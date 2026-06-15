@@ -839,78 +839,179 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     static func extractValue(from text: String, topic: String) -> String? {
-        // Strip any leading @mention first to avoid parsing numbers in usernames
-        let cleanedText: String = {
-            if text.hasPrefix("@") {
-                let parts = text.split(separator: " ", maxSplits: 1)
-                return parts.count > 1 ? String(parts[1]) : text
-            }
-            return text
-        }()
+        var matches: [(val: String, range: NSRange)] = []
+        let nsText = text as NSString
         
         switch topic {
         case "hof", "streak":
-            // Find all integers in the cleaned text
-            let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)")
-            let matches = pattern?.matches(in: cleanedText, range: NSRange(cleanedText.startIndex..., in: cleanedText)) ?? []
-            let numbers = matches.compactMap { match -> Int? in
-                if let range = Range(match.range(at: 1), in: cleanedText) { return Int(cleanedText[range]) }
-                return nil
-            }
-            if let maxNum = numbers.max() {
-                return String(maxNum)
-            }
-            return nil
-            
-        case "time":
-            let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})")
-            let matches = pattern?.matches(in: cleanedText, range: NSRange(cleanedText.startIndex..., in: cleanedText)) ?? []
-            var times: [(mins: Int, secs: Int)] = []
-            for match in matches {
-                if let mRange = Range(match.range(at: 1), in: cleanedText),
-                   let sRange = Range(match.range(at: 2), in: cleanedText),
-                   let mins = Int(cleanedText[mRange]),
-                   let secs = Int(cleanedText[sRange]) {
-                    times.append((mins, secs))
+            if let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)") {
+                let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                for m in regexMatches {
+                    if m.numberOfRanges > 1 {
+                        let r = m.range(at: 1)
+                        let val = nsText.substring(with: r)
+                        matches.append((val: val, range: m.range))
+                    }
                 }
             }
-            // We want the fastest time (minimum total seconds)
-            if let bestTime = times.min(by: { ($0.mins * 60 + $0.secs) < ($1.mins * 60 + $1.secs) }) {
-                return "\(bestTime.mins):\(String(format: "%02d", bestTime.secs))"
+            
+        case "time":
+            if let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})") {
+                let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                for m in regexMatches {
+                    let val = nsText.substring(with: m.range)
+                    matches.append((val: val, range: m.range))
+                }
             }
-            return nil
             
         case "quest":
             let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            var foundTiers: [String] = []
             for tier in tiers {
-                if cleanedText.localizedCaseInsensitiveContains(tier) {
-                    foundTiers.append(tier)
+                var searchRange = NSRange(location: 0, length: nsText.length)
+                while searchRange.location < nsText.length {
+                    let foundRange = nsText.range(of: tier, options: .caseInsensitive, range: searchRange)
+                    if foundRange.location != NSNotFound {
+                        matches.append((val: tier, range: foundRange))
+                        searchRange.location = foundRange.location + foundRange.length
+                        searchRange.length = nsText.length - searchRange.location
+                    } else {
+                        break
+                    }
                 }
             }
-            // We want the highest tier
-            if let bestTier = foundTiers.max(by: { (tiers.firstIndex(of: $0) ?? 0) < (tiers.firstIndex(of: $1) ?? 0) }) {
-                return bestTier
-            }
-            return nil
             
         case "milestone":
             let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
-            var foundMilestones: [String] = []
             for m in sortedMilestones {
-                let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
-                if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: cleanedText, range: NSRange(cleanedText.startIndex..., in: cleanedText)) != nil {
-                    foundMilestones.append(m)
+                let patternStr = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
+                if let pattern = try? NSRegularExpression(pattern: patternStr, options: .caseInsensitive) {
+                    let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                    for regMatch in regexMatches {
+                        matches.append((val: m, range: regMatch.range))
+                    }
                 }
             }
-            // We want the highest milestone index
-            if let bestMilestone = foundMilestones.max(by: { (Self.allMilestones.firstIndex(of: $0) ?? 0) < (Self.allMilestones.firstIndex(of: $1) ?? 0) }) {
-                return bestMilestone
-            }
-            return nil
             
         default:
             return nil
+        }
+        
+        // Remove sub-range overlaps (keep the longer matches)
+        var uniqueMatches: [(val: String, range: NSRange)] = []
+        let sortedByLength = matches.sorted(by: { $0.range.length > $1.range.length })
+        for candidate in sortedByLength {
+            let isContained = uniqueMatches.contains { accepted in
+                candidate.range.location >= accepted.range.location &&
+                candidate.range.location + candidate.range.length <= accepted.range.location + accepted.range.length
+            }
+            if !isContained {
+                uniqueMatches.append(candidate)
+            }
+        }
+        
+        func bestValue(among values: [String], topic: String) -> String? {
+            guard !values.isEmpty else { return nil }
+            var best = values[0]
+            for v in values.dropFirst() {
+                if isRecord(best, worseThan: v, topic: topic) {
+                    best = v
+                }
+            }
+            return best
+        }
+        
+        // Filter out matches that are part of the leading @mention username
+        let firstSpaceRange = nsText.range(of: " ")
+        let firstSpaceIdx = firstSpaceRange.location != NSNotFound ? firstSpaceRange.location : 0
+        let filteredMatches = uniqueMatches.filter { $0.range.location >= firstSpaceIdx }
+        
+        guard !filteredMatches.isEmpty else { return nil }
+        
+        if !text.hasPrefix("@") {
+            // Base comment/post: return the best value
+            return bestValue(among: filteredMatches.map { $0.val }, topic: topic)
+        }
+        
+        // Reply comment: score each candidate based on context
+        var scoredMatches: [(val: String, netScore: Int)] = []
+        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing from", "sitting at", "cleared", "record is", "down to", "pushing", "i own", "hoard", "standard for me"]
+        let otherKeywords = ["your", "about", "celebrating", "only", "thought", "than", "compared", "passed", "cute", "joke", "beat", "left"]
+        
+        for match in filteredMatches {
+            let startLoc = match.range.location
+            let prefixLen = min(25, startLoc - firstSpaceIdx)
+            let prefixRange = NSRange(location: startLoc - prefixLen, length: prefixLen)
+            let prefixText = nsText.substring(with: prefixRange).lowercased()
+            
+            var speakerScore = 0
+            var otherScore = 0
+            for kw in speakerKeywords { if prefixText.contains(kw) { speakerScore += 1 } }
+            for kw in otherKeywords { if prefixText.contains(kw) { otherScore += 1 } }
+            let netScore = speakerScore - otherScore
+            scoredMatches.append((val: match.val, netScore: netScore))
+        }
+        
+        if let maxScore = scoredMatches.map({ $0.netScore }).max() {
+            let bestMatches = scoredMatches.filter { $0.netScore == maxScore }
+            if bestMatches.count == 1 {
+                if bestMatches[0].netScore < 0 {
+                    return nil
+                }
+                return bestMatches[0].val
+            } else {
+                return bestValue(among: bestMatches.map { $0.val }, topic: topic)
+            }
+        }
+        
+        return nil
+    }
+
+    static func oneUpValue(for val: String?, topic: String) -> String {
+        switch topic {
+        case "hof":
+            let current = val.flatMap(Int.init) ?? Int.random(in: 1...5)
+            return String(current + Int.random(in: 2...8))
+            
+        case "streak":
+            let current = val.flatMap(Int.init) ?? Int.random(in: 5...30)
+            return String(current + Int.random(in: 5...15))
+            
+        case "time":
+            func timeToSeconds(_ timeStr: String) -> Int {
+                let parts = timeStr.split(separator: ":")
+                guard parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) else { return 60 }
+                return mins * 60 + secs
+            }
+            let currentSecs = val.map(timeToSeconds) ?? Int.random(in: 60...120)
+            let newSecs: Int
+            if currentSecs <= 10 {
+                newSecs = max(2, currentSecs - Int.random(in: 1...3))
+            } else {
+                newSecs = max(10, currentSecs - Int.random(in: 10...30))
+            }
+            let mins = newSecs / 60
+            let secs = newSecs % 60
+            return "\(mins):\(String(format: "%02d", secs))"
+            
+        case "quest":
+            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+            guard let currentVal = val, let idx = tiers.firstIndex(of: currentVal) else { return "Silver" }
+            if idx < tiers.count - 1 {
+                return tiers[idx + 1]
+            } else {
+                return "Diamond"
+            }
+            
+        case "milestone":
+            guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
+                return JourneyTileGenerator.formatTileAtStep(10)
+            }
+            let jump = Int.random(in: 1...3)
+            let newIdx = min(idx + jump, Self.allMilestones.count - 1)
+            return Self.allMilestones[newIdx]
+            
+        default:
+            return "10"
         }
     }
 
@@ -1260,21 +1361,20 @@ public struct MockSocialService: SocialService, Sendable {
                     let replyText: String
                     if currentDepth % 2 == 0 {
                         if npc2Value == nil {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up")
-                            npc2Value = Self.extractValue(from: replyText, topic: topic)
+                            npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                        }
+                        
+                        let isBehind: Bool
+                        if let n1Val = npc1Value, let n2Val = npc2Value {
+                            isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
                         } else {
-                            let isBehind: Bool
-                            if let n1Val = npc1Value, let n2Val = npc2Value {
-                                isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
-                            } else {
-                                isBehind = false
-                            }
-                            
-                            if isBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
-                            } else {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
-                            }
+                            isBehind = false
+                        }
+                        
+                        if isBehind {
+                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
+                        } else {
+                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                         }
                     } else {
                         let isBehind: Bool
@@ -1595,21 +1695,20 @@ public struct MockSocialService: SocialService, Sendable {
                         let replyText: String
                         if currentDepth % 2 == 0 {
                             if npc2Value == nil {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up")
-                                npc2Value = Self.extractValue(from: replyText, topic: topic)
+                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                            }
+                            
+                            let isBehind: Bool
+                            if let n1Val = npc1Value, let n2Val = npc2Value {
+                                isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
                             } else {
-                                let isBehind: Bool
-                                if let n1Val = npc1Value, let n2Val = npc2Value {
-                                    isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
-                                } else {
-                                    isBehind = false
-                                }
-                                
-                                if isBehind {
-                                    replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
-                                } else {
-                                    replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
-                                }
+                                isBehind = false
+                            }
+                            
+                            if isBehind {
+                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
+                            } else {
+                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                             }
                         } else {
                             let isBehind: Bool
@@ -3384,7 +3483,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
-                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index && Double.random(in: 0...1) < 0.95
+                let isLowerBrag = speakerValue == nil && commentText != message && commentIsCompetitive && commentMilestone != nil && rootMilestone != nil && commentMilestone!.index < rootMilestone!.index && Double.random(in: 0...1) < 0.95
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = rootMilestone {
                     replies.append(contentsOf: [
@@ -3398,10 +3497,15 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I left \(cM.name) in the dust a long time ago. \(rM.name) is my new floor."
                     ])
                 } else if rootIsJealous, let cM = commentMilestone {
-                    let mIdx = cM.index
-                    let jump = Int.random(in: 2...5)
-                    let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
-                    let higherM = Self.allMilestones[higherIdx]
+                    let higherM: String
+                    if let speakerValue = speakerValue {
+                        higherM = speakerValue
+                    } else {
+                        let mIdx = cM.index
+                        let jump = Int.random(in: 2...5)
+                        let higherIdx = min(mIdx + jump, Self.allMilestones.count - 1)
+                        higherM = Self.allMilestones[higherIdx]
+                    }
                     replies.append(contentsOf: [
                         "I easily passed your \(cM.name). I'm at \(higherM).",
                         "I let you think you had the lead. Your \(cM.name) is nothing. I'm at \(higherM).",
@@ -3416,7 +3520,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     let mIdx = m.index
                     let mName = m.name
-                    let isLowMilestone = Double.random(in: 0...1) < 0.45
+                    let isLowMilestone = speakerValue == nil && Double.random(in: 0...1) < 0.45
                     if isLowMilestone && mIdx > 0 {
                         let jump = Int.random(in: 1...5)
                         let lowerIdx = max(0, mIdx - jump)
@@ -3482,7 +3586,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
 
             if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
-                let isLowerScoreBrag = commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                let isLowerScoreBrag = speakerValue == nil && commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
                 
                 if isLowerScoreBrag, let cN = commentNumber, let rN = rootNumber {
                     replies.append(contentsOf: [
@@ -3496,7 +3600,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I left \(cN) in the dust a long time ago. \(rN) is my new floor."
                     ])
                 } else if rootIsJealous, let cN = commentNumber {
-                    let higherNum = cN + Int.random(in: 10...max(20, cN))
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = cN + Int.random(in: 10...max(20, cN))
+                    }
                     replies.append(contentsOf: [
                         "I easily passed your \(cN). I'm at \(higherNum).",
                         "I let you think you had the lead. Your \(cN) is nothing. I'm at \(higherNum).",
@@ -3545,7 +3654,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let isLowerStreakBrag = commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    let isLowerStreakBrag = speakerValue == nil && commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
                     
                     if isLowerStreakBrag, let cN = commentNumber, let rN = rootNumber {
                         replies.append(contentsOf: [
@@ -3559,7 +3668,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I left \(cN) days in the dust a long time ago. \(rN) is my new floor."
                         ])
                     } else if rootIsJealous, let cN = commentNumber {
-                        let higherNum = cN + Int.random(in: 5...max(15, cN / 5))
+                        let higherNum: Int
+                        if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                            higherNum = valInt
+                        } else {
+                            higherNum = cN + Int.random(in: 5...max(15, cN / 5))
+                        }
                         replies.append(contentsOf: [
                             "I easily passed your \(cN) days. I'm at \(higherNum) days.",
                             "I let you think you had the lead. Your \(cN) days is nothing. I'm at \(higherNum) days.",
@@ -3637,7 +3751,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedTime {
                 let isSlowerTimeBrag = {
-                    if commentText != message, commentIsCompetitive, let cT = commentTime, let rT = rootTime {
+                    if speakerValue == nil, commentText != message, commentIsCompetitive, let cT = commentTime, let rT = rootTime {
                         let cSecs = cT.0 * 60 + cT.1
                         let rSecs = rT.0 * 60 + rT.1
                         if cSecs > rSecs {
@@ -3680,9 +3794,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "0:02? Solid. I'm right there at the limit too."
                         ])
                     } else {
-                        var mySecs = cSecs - Int.random(in: 5...30)
-                        if mySecs <= 1 { mySecs = 2 }
-                        let myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                        let myTimeStr: String
+                        if let speakerValue = speakerValue {
+                            myTimeStr = speakerValue
+                        } else {
+                            var mySecs = cSecs - Int.random(in: 5...30)
+                            if mySecs <= 1 { mySecs = 2 }
+                            myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                        }
                         replies.append(contentsOf: [
                             "I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
                             "I let you think you had the lead. Your \(cTimeStr) is nothing. I'm at \(myTimeStr).",
@@ -3782,7 +3901,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             if mentionedHoF {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
-                    let isLowerHoFBrag = commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
+                    let isLowerHoFBrag = speakerValue == nil && commentText != message && commentIsCompetitive && commentNumber != nil && rootNumber != nil && commentNumber! < rootNumber!
                     if isLowerHoFBrag, let cN = commentNumber, let rN = rootNumber {
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
