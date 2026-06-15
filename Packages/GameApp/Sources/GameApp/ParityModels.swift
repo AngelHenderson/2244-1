@@ -2787,7 +2787,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
     }
 
     /// Generates a contextual reply that responds to what the previous comment actually said.
-    private func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil) -> String {
+    func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil) -> String {
         let lowered = commentText.lowercased()
 
         // Strip any leading @mention so we analyze the real content
@@ -3357,13 +3357,26 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 if isSlowerTimeBrag, let cT = commentTime, let rT = rootTime {
                     let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
                     let rTimeStr = "\(rT.0):\(String(format: "%02d", rT.1))"
-                    replies.append(contentsOf: [
-                        "You're bragging about \(cTimeStr)? I'm already down to \(rTimeStr). You're still too slow to get ahead.",
-                        "\(cTimeStr) is nothing. I posted about \(rTimeStr). You're still too slow to get ahead.",
-                        "You thought \(cTimeStr) would impress me? I'm at \(rTimeStr). You're still too slow to get ahead.",
-                        "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still too slow to get ahead.",
-                        "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still too slow to get ahead."
-                    ])
+                    let cSecs = cT.0 * 60 + cT.1
+                    let rSecs = rT.0 * 60 + rT.1
+                    let diff = cSecs - rSecs
+                    if diff >= 10 {
+                        replies.append(contentsOf: [
+                            "You're bragging about \(cTimeStr)? I'm already down to \(rTimeStr). You're still too slow to get ahead.",
+                            "\(cTimeStr) is nothing. I posted about \(rTimeStr). You're still too slow to get ahead.",
+                            "You thought \(cTimeStr) would impress me? I'm at \(rTimeStr). You're still too slow to get ahead.",
+                            "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still too slow to get ahead.",
+                            "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still too slow to get ahead."
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
+                            "You're bragging about \(cTimeStr)? I'm already down to \(rTimeStr). You're still not fast enough to get ahead.",
+                            "\(cTimeStr) is nothing. I posted about \(rTimeStr). You're still not fast enough to get ahead.",
+                            "You thought \(cTimeStr) would impress me? I'm at \(rTimeStr). You're still not fast enough to get ahead.",
+                            "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still not fast enough to get ahead.",
+                            "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still not fast enough to get ahead."
+                        ])
+                    }
                 } else if rootIsJealous, let cT = commentTime {
                     let cSecs = cT.0 * 60 + cT.1
                     let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
@@ -3403,16 +3416,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I never stop climbing. \(higherTime) is already done.",
                         ])
                     } else {
-                        replies.append(contentsOf: [
-                        "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
-                        "Your \(posterTime) time is cute. I clear it in \(higherTime).",
-                        "I easily passed your time. My record is \(higherTime).",
-                        "\(posterTime) is too slow. I just clocked \(higherTime).",
-                        "I shaved time off your \(posterTime). My best is \(higherTime).",
-                        "You call \(posterTime) fast? Try reaching my \(higherTime).",
-                        "I speedrun easily. \(higherTime) destroys your \(posterTime).",
-                        "Your \(posterTime) was my practice run. I'm down to \(higherTime).",
-                    ])
+                        let diff = totalSecs - higherNum
+                        var templates = [
+                            "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
+                            "Your \(posterTime) time is cute. I clear it in \(higherTime).",
+                            "I easily passed your time. My record is \(higherTime).",
+                            "I shaved time off your \(posterTime). My best is \(higherTime).",
+                            "You call \(posterTime) fast? Try reaching my \(higherTime).",
+                            "I speedrun easily. \(higherTime) destroys your \(posterTime).",
+                            "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
+                        ]
+                        if diff >= 10 {
+                            templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
+                        } else {
+                            templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
+                        }
+                        replies.append(contentsOf: templates)
                     }
                 } else {
                     let assumedTotal = Int.random(in: 60...120)
@@ -3423,16 +3442,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let posterMins = assumedTotal / 60
                     let posterSecs = assumedTotal % 60
                     let posterTime = "\(posterMins):\(String(format: "%02d", posterSecs))"
-                    replies.append(contentsOf: [
+                    let diff = assumedTotal - higherNum
+                    var templates = [
                         "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime).",
                         "I easily passed your time. My record is \(higherTime).",
-                        "\(posterTime) is too slow. I just clocked \(higherTime).",
                         "I shaved time off your \(posterTime). My best is \(higherTime).",
                         "You call \(posterTime) fast? Try reaching my \(higherTime).",
                         "I speedrun easily. \(higherTime) destroys your \(posterTime).",
-                        "Your \(posterTime) was my practice run. I'm down to \(higherTime).",
-                    ])
+                        "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
+                    ]
+                    if diff >= 10 {
+                        templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
+                    } else {
+                        templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
+                    }
+                    replies.append(contentsOf: templates)
                 }
             }
 

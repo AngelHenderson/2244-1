@@ -203,11 +203,39 @@ struct ParityModelsTests {
                     for sym in jealousSymbols {
                         #expect(!lowercasedText.contains(sym), "Found jealous symbol '\(sym)' in competitive comment: \(comment.text)")
                     }
-                }
             }
         }
-        
-        #expect(totalCommentsChecked > 0, "No comments were generated to check")
+    }
+    #expect(totalCommentsChecked > 0, "No comments were generated to check")
+}
+
+@Test("Too slow phrasing is only used for time gaps of 10+ seconds")
+    func tooSlowPhrasingRequiresTenSecondsGap() async throws {
+        let service = MockSocialService()
+
+        // Test Case 1: Gap of 1 second (under 10s) -> "too slow" should NOT be used in slower time brag replies.
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(to: "0:07", message: "0:06", forceTone: "one_up")
+            #expect(!reply.lowercased().contains("too slow"), "Should not contain 'too slow' when gap is 1s: \(reply)")
+        }
+
+        // Test Case 2: Gap of 19 seconds (10s+) -> "too slow" is allowed and should be generated at least sometimes.
+        var sawTooSlow = false
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(to: "0:25", message: "0:06", forceTone: "one_up")
+            if reply.lowercased().contains("too slow") {
+                sawTooSlow = true
+                break
+            }
+        }
+        #expect(sawTooSlow, "Should generate 'too slow' when gap is 19s")
+
+        // Test Case 3: Small gap when commenting on single time post -> "too slow" should NOT be used.
+        // If we reply to "0:07", since the time is <= 10s, the generated higherNum will be at least 4s, meaning gap <= 3s.
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(to: "0:07", message: "no time here", forceTone: "one_up")
+            #expect(!reply.lowercased().contains("too slow"), "Should not contain 'too slow' when commenting on a 7s post: \(reply)")
+        }
     }
 
     @Test("Firebase-backed account service uses local fallback when Firebase is unavailable")
