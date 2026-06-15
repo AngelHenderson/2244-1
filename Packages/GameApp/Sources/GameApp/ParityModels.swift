@@ -934,14 +934,25 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Reply comment: score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
-        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing from", "sitting at", "cleared", "record is", "down to", "pushing", "i own", "hoard", "standard for me"]
-        let otherKeywords = ["your", "about", "celebrating", "only", "thought", "than", "compared", "passed", "cute", "joke", "beat", "left"]
+        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "passed"]
+        let otherKeywords = ["your", "about", "celebrating", "only", "thought", "than", "compared", "passed", "cute", "joke", "beat", "left", "behind"]
+        
+        func getClausePrefix(from text: String, startLoc: Int, firstSpaceIdx: Int) -> String {
+            let prefixLen = min(35, startLoc - firstSpaceIdx)
+            guard prefixLen > 0 else { return "" }
+            let prefixRange = NSRange(location: startLoc - prefixLen, length: prefixLen)
+            let rawPrefix = (text as NSString).substring(with: prefixRange).lowercased()
+            
+            let separators: [Character] = [".", "?", "!", ";"]
+            if let lastSepIdx = rawPrefix.lastIndex(where: { separators.contains($0) }) {
+                let nextIdx = rawPrefix.index(after: lastSepIdx)
+                return String(rawPrefix[nextIdx...])
+            }
+            return rawPrefix
+        }
         
         for match in filteredMatches {
-            let startLoc = match.range.location
-            let prefixLen = min(25, startLoc - firstSpaceIdx)
-            let prefixRange = NSRange(location: startLoc - prefixLen, length: prefixLen)
-            let prefixText = nsText.substring(with: prefixRange).lowercased()
+            let prefixText = getClausePrefix(from: text, startLoc: match.range.location, firstSpaceIdx: firstSpaceIdx)
             
             var speakerScore = 0
             var otherScore = 0
