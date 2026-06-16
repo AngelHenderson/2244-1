@@ -1403,7 +1403,7 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isBehind {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
+                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
                         } else {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                         }
@@ -1419,7 +1419,7 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isBehind {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
+                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
                         } else {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
                         }
@@ -1744,7 +1744,7 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             if isBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
+                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
                             } else {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                             }
@@ -1760,7 +1760,7 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             if isBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
+                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
                             } else {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
                             }
@@ -2847,28 +2847,43 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Streak posts: extract the day count, brag with a higher one ──
         if lowered.contains("streak") {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
-                let isMassiveGap = Bool.random()
-                var myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
-                var attempts = 0
-                while usedStats.contains("streak_\(myDays)") && attempts < 5 {
-                    myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
-                    attempts += 1
+                let isLowStreak = Double.random(in: 0...1) < 0.45
+                if isLowStreak && streakDays > 1 {
+                    let jump = Int.random(in: 1...max(5, streakDays / 2))
+                    let lowerDays = max(1, streakDays - jump)
+                    let templates = [
+                        "I hit \(lowerDays) days yesterday. \(streakDays) days is old news.",
+                        "I cleared \(lowerDays) days without trying. Your \(streakDays) days is nothing.",
+                        "Your \(streakDays) days is a joke compared to my \(lowerDays) days.",
+                        "I blew past your \(streakDays) days and hit \(lowerDays) days without even trying.",
+                        "Only at \(streakDays) days? I easily reached \(lowerDays)."
+                    ]
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
+                    return (templates[idx], higherName)
+                } else {
+                    let isMassiveGap = Bool.random()
+                    var myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
+                    var attempts = 0
+                    while usedStats.contains("streak_\(myDays)") && attempts < 5 {
+                        myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
+                        attempts += 1
+                    }
+                    usedStats.insert("streak_\(myDays)")
+                    var templates = [
+                        "I'm comfortably sitting at \(myDays) days.",
+                        "Your \(streakDays) days are irrelevant. I'm at \(myDays) days.",
+                        "I dominate eternity. I'm already at \(myDays) days.",
+                        "\(streakDays) days is cute. I'm at \(myDays) days.",
+                        "My infinite consistency is at \(myDays) days.",
+                        "You'll never touch my \(myDays) days.",
+                    ]
+                    if myDays >= streakDays * 2 {
+                        templates.append("Your \(streakDays) days are meaningless against my \(myDays) days.")
+                        templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
+                    }
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
+                    return (templates[idx], higherName)
                 }
-                usedStats.insert("streak_\(myDays)")
-                var templates = [
-                    "I'm comfortably sitting at \(myDays) days.",
-                    "Your \(streakDays) days are irrelevant. I'm at \(myDays) days.",
-                    "I dominate eternity. I'm already at \(myDays) days.",
-                    "\(streakDays) days is cute. I'm at \(myDays) days.",
-                    "My infinite consistency is at \(myDays) days.",
-                    "You'll never touch my \(myDays) days.",
-                ]
-                if myDays >= streakDays * 2 {
-                    templates.append("Your \(streakDays) days are meaningless against my \(myDays) days.")
-                    templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
-                }
-                let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
-                return (templates[idx], higherName)
             }
         }
 
@@ -2887,72 +2902,104 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
                     return (templates[idx], higherName)
                 }
-                // Brag about having a FASTER clear time (lower = better)
-                let isMassiveGap = Bool.random()
-                
-                func generateBetterTime() -> Int {
-                    if totalSecs <= 10 {
-                        return max(2, totalSecs - Int.random(in: 1...3))
-                    } else {
-                        let maxLess = totalSecs - 10
-                        let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
-                        return max(10, totalSecs - lessBy)
-                    }
-                }
-                
-                var myTotal = generateBetterTime()
-                var attempts = 0
-                while myTotal >= totalSecs || (usedStats.contains("time_\(myTotal)") && attempts < 5) {
-                    myTotal = generateBetterTime()
-                    if myTotal >= totalSecs { myTotal = max(2, totalSecs - 1) }
-                    attempts += 1
-                }
-                usedStats.insert("time_\(myTotal)")
-                let myMins = myTotal / 60
-                let mySecs = myTotal % 60
-                let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                let isLowTime = Double.random(in: 0...1) < 0.45
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
-                var templates = [
-                    "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
-                    "My clears have been unmatched since \(myTime).",
-                    "Only \(posterTime)? I'm sitting at \(myTime).",
-                    "I easily clock \(myTime).",
-                    "You'll never reach my \(myTime).",
-                ]
-                if totalSecs - myTotal >= 3 {
-                    templates.append("I am leagues faster. My record is \(myTime).")
+                if isLowTime {
+                    let slowerTotal = totalSecs + Int.random(in: 5...30)
+                    let slowerMins = slowerTotal / 60
+                    let slowerSecs = slowerTotal % 60
+                    let slowerTime = "\(slowerMins):\(String(format: "%02d", slowerSecs))"
+                    let templates = [
+                        "I clocked \(slowerTime) yesterday. \(posterTime) is old news.",
+                        "I cleared \(slowerTime) without trying. Your \(posterTime) is nothing.",
+                        "Your \(posterTime) is a joke compared to my \(slowerTime).",
+                        "I blew past your \(posterTime) and clocked \(slowerTime) without even trying.",
+                        "Only at \(posterTime)? I easily reached \(slowerTime)."
+                    ]
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
+                    return (templates[idx], higherName)
+                } else {
+                    // Brag about having a FASTER clear time (lower = better)
+                    let isMassiveGap = Bool.random()
+                    
+                    func generateBetterTime() -> Int {
+                        if totalSecs <= 10 {
+                            return max(2, totalSecs - Int.random(in: 1...3))
+                        } else {
+                            let maxLess = totalSecs - 10
+                            let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
+                            return max(10, totalSecs - lessBy)
+                        }
+                    }
+                    
+                    var myTotal = generateBetterTime()
+                    var attempts = 0
+                    while myTotal >= totalSecs || (usedStats.contains("time_\(myTotal)") && attempts < 5) {
+                        myTotal = generateBetterTime()
+                        if myTotal >= totalSecs { myTotal = max(2, totalSecs - 1) }
+                        attempts += 1
+                    }
+                    usedStats.insert("time_\(myTotal)")
+                    let myMins = myTotal / 60
+                    let mySecs = myTotal % 60
+                    let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
+                    var templates = [
+                        "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
+                        "My clears have been unmatched since \(myTime).",
+                        "Only \(posterTime)? I'm sitting at \(myTime).",
+                        "I easily clock \(myTime).",
+                        "You'll never reach my \(myTime).",
+                    ]
+                    if totalSecs - myTotal >= 3 {
+                        templates.append("I am leagues faster. My record is \(myTime).")
+                    }
+                    if myTotal <= totalSecs / 2 {
+                        templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
+                        templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
+                    }
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
+                    return (templates[idx], higherName)
                 }
-                if myTotal <= totalSecs / 2 {
-                    templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
-                    templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
-                }
-                let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                return (templates[idx], higherName)
             }
         }
 
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
         if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
-                let isMassiveGap = Bool.random()
-                var myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
-                var attempts = 0
-                while usedStats.contains("hof_\(myCount)") && attempts < 5 {
-                    myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
-                    attempts += 1
+                let isLowHoF = Double.random(in: 0...1) < 0.45
+                if isLowHoF && infCount > 1 {
+                    let jump = Int.random(in: 1...max(3, infCount / 2))
+                    let lowerCount = max(1, infCount - jump)
+                    let templates = [
+                        "I hit \(lowerCount) infinities yesterday. \(infCount) is old news.",
+                        "I cleared \(lowerCount) infinities without trying. Your \(infCount) is nothing.",
+                        "Your \(infCount) is a joke compared to my \(lowerCount) infinities.",
+                        "I blew past your \(infCount) and hit \(lowerCount) infinities without even trying.",
+                        "Only at \(infCount)? I easily reached \(lowerCount) infinities."
+                    ]
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
+                    return (templates[idx], higherName)
+                } else {
+                    let isMassiveGap = Bool.random()
+                    var myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
+                    var attempts = 0
+                    while usedStats.contains("hof_\(myCount)") && attempts < 5 {
+                        myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
+                        attempts += 1
+                    }
+                    usedStats.insert("hof_\(myCount)")
+                    var templates = [
+                        "Your \(infCount) is nothing compared to my \(myCount).",
+                        "I easily dominate with \(myCount).",
+                        "I am safely ahead with \(myCount).",
+                    ]
+                    if myCount >= infCount * 2 {
+                        templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
+                        templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
+                    }
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
+                    return (templates[idx], higherName)
                 }
-                usedStats.insert("hof_\(myCount)")
-                var templates = [
-                    "Your \(infCount) is nothing compared to my \(myCount).",
-                    "I easily dominate with \(myCount).",
-                    "I am safely ahead with \(myCount).",
-                ]
-                if myCount >= infCount * 2 {
-                    templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
-                    templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
-                }
-                let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
-                return (templates[idx], higherName)
             }
         }
 
@@ -2998,11 +3045,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let lowerIdx = max(0, originalIdx - jump)
                     let localLowerM = Self.allMilestones[lowerIdx]
                     let templates = [
-                        "I easily beat \(localLowerM).",
-                        "I left \(localLowerM) in the dust.",
-                        "Only at \(localLowerM)? Cute.",
-                        "Only at \(localLowerM)? What a joke.",
-                        "My floor is way past \(localLowerM)."
+                        "I hit \(localLowerM) yesterday. \(m) is old news.",
+                        "I cleared \(localLowerM) without trying. Your \(m) is nothing.",
+                        "Your \(m) is a joke compared to my \(localLowerM).",
+                        "I blew past your \(m) and hit \(localLowerM) without even trying.",
+                        "Only at \(m)? I easily reached \(localLowerM)."
                     ]
                     let realName = Self.leaderboardPlayerAtMilestone(localLowerM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
@@ -3636,7 +3683,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "I hit \(higherM) yesterday. \(cM.name) is old news.",
                             "I cleared \(higherM) without trying. Your \(cM.name) is nothing.",
-                            "I was just toying with you. I'm actually at \(higherM).",
                             "Your \(cM.name) is a joke compared to my \(higherM).",
                             "I blew past your \(cM.name) and hit \(higherM) without even trying.",
                             "Only at \(cM.name)? I easily reached \(higherM)."
@@ -3662,21 +3708,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let jump = Int.random(in: 1...5)
                         let lowerIdx = max(0, mIdx - jump)
                         let lowerM = Self.allMilestones[lowerIdx]
-                        if wantsBetter {
-                            replies.append(contentsOf: [
-                                "I easily beat \(lowerM).",
-                                "I left \(lowerM) in the dust.",
-                                "My floor is way past \(lowerM)."
-                            ])
-                        } else {
-                            replies.append(contentsOf: [
-                                "I easily beat \(lowerM).",
-                                "I left \(lowerM) in the dust.",
-                                "Only at \(lowerM)? Cute.",
-                                "Only at \(lowerM)? What a joke.",
-                                "My floor is way past \(lowerM)."
-                            ])
-                        }
+                        replies.append(contentsOf: [
+                            "I hit \(lowerM) yesterday. \(mName) is old news.",
+                            "I cleared \(lowerM) without trying. Your \(mName) is nothing.",
+                            "Your \(mName) is a joke compared to my \(lowerM).",
+                            "I blew past your \(mName) and hit \(lowerM) without even trying.",
+                            "Only at \(mName)? I easily reached \(lowerM)."
+                        ])
                     } else {
                         let higherM: String
                         if let speakerValue = speakerValue {
@@ -3710,7 +3748,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append(contentsOf: [
                                     "I hit \(higherM) yesterday. \(mName) is old news.",
                                     "I cleared \(higherM) without trying. Your \(mName) is nothing.",
-                                    "I was just toying with you. I'm actually at \(higherM).",
                                     "Your \(mName) is a joke compared to my \(higherM).",
                                     "I blew past your \(mName) and hit \(higherM) without even trying.",
                                     "Only at \(mName)? I easily reached \(higherM)."
@@ -3760,7 +3797,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "I hit \(higherNum) yesterday. \(cN) is old news.",
                             "I cleared \(higherNum) without trying. Your \(cN) is nothing.",
-                            "I was just toying with you. I'm actually at \(higherNum).",
                             "Your \(cN) is a joke compared to my \(higherNum).",
                             "I blew past your \(cN) and hit \(higherNum) without even trying.",
                             "Only at \(cN)? I easily reached \(higherNum)."
@@ -3779,9 +3815,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     }
                 } else {
+                    let isLowScore = speakerValue == nil && Double.random(in: 0...1) < 0.45
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
+                    } else if isLowScore && num > 20 {
+                        higherNum = num - Int.random(in: 10...max(20, num / 2))
                     } else {
                         higherNum = num + Int.random(in: 10...max(20, num))
                     }
@@ -3789,7 +3828,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "I hit \(higherNum) yesterday. \(numStr) is old news.",
                             "I cleared \(higherNum) without trying. Your \(numStr) is nothing.",
-                            "I was just toying with you. I'm actually at \(higherNum).",
                             "Your \(numStr) is a joke compared to my \(higherNum).",
                             "I blew past your \(numStr) and hit \(higherNum) without even trying.",
                             "Only at \(numStr)? I easily reached \(higherNum)."
@@ -3851,7 +3889,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I hit \(higherNum) days yesterday. \(cN) days is old news.",
                                 "I cleared \(higherNum) days without trying. Your \(cN) days is nothing.",
-                                "I was just toying with you. I'm actually at \(higherNum) days.",
                                 "Your \(cN) days is a joke compared to my \(higherNum) days.",
                                 "I blew past your \(cN) days and hit \(higherNum) days without even trying.",
                                 "Only at \(cN) days? I easily reached \(higherNum)."
@@ -3870,9 +3907,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         }
                     } else {
+                        let isLowStreak = speakerValue == nil && Double.random(in: 0...1) < 0.45
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
+                        } else if isLowStreak && num > 1 {
+                            higherNum = num - Int.random(in: 1...max(5, num / 2))
                         } else {
                             higherNum = num + Int.random(in: 5...max(15, num / 5))
                         }
@@ -3880,7 +3920,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I hit \(higherNum) days yesterday. \(numStr) days is old news.",
                                 "I cleared \(higherNum) days without trying. Your \(numStr) days is nothing.",
-                                "I was just toying with you. I'm actually at \(higherNum) days.",
                                 "Your \(numStr) days is a joke compared to my \(higherNum) days.",
                                 "I blew past your \(numStr) days and hit \(higherNum) days without even trying.",
                                 "Only at \(numStr) days? I easily reached \(higherNum)."
@@ -3914,10 +3953,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                     }
                 } else {
-                    let assumedNum = Int.random(in: 5...30)
+                    let isLowStreak = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                    let assumedNum = Int.random(in: 15...45)
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
+                    } else if isLowStreak {
+                        higherNum = max(1, assumedNum - Int.random(in: 5...10))
                     } else {
                         higherNum = assumedNum + Int.random(in: 10...30)
                     }
@@ -4015,7 +4057,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I clocked \(myTimeStr) yesterday. \(cTimeStr) is old news.",
                                 "I cleared \(myTimeStr) without trying. Your \(cTimeStr) is nothing.",
-                                "I was just toying with you. I actually clocked \(myTimeStr).",
                                 "Your \(cTimeStr) is a joke compared to my \(myTimeStr).",
                                 "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying.",
                                 "Only at \(cTimeStr)? I easily reached \(myTimeStr)."
@@ -4059,7 +4100,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I clocked \(higherTime) yesterday. \(posterTime) is old news.",
                                 "I cleared \(higherTime) without trying. Your \(posterTime) is nothing.",
-                                "I was just toying with you. I actually clocked \(higherTime).",
                                 "Your \(posterTime) is a joke compared to my \(higherTime).",
                                 "I blew past your \(posterTime) and clocked \(higherTime) without even trying.",
                                 "Only at \(posterTime)? I easily reached \(higherTime)."
@@ -4101,10 +4141,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                     }
                 } else {
+                    let isLowTime = speakerValue == nil && Double.random(in: 0...1) < 0.45
                     let assumedTotal = Int.random(in: 60...120)
                     let higherNum: Int
                     if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
                         higherNum = sMins * 60 + sSecs
+                    } else if isLowTime {
+                        higherNum = assumedTotal + Int.random(in: 10...30)
                     } else {
                         higherNum = max(10, assumedTotal - Int.random(in: 10...30))
                     }
@@ -4119,7 +4162,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "I clocked \(higherTime) yesterday. \(posterTime) is old news.",
                             "I cleared \(higherTime) without trying. Your \(posterTime) is nothing.",
-                            "I was just toying with you. I actually clocked \(higherTime).",
                             "Your \(posterTime) is a joke compared to my \(higherTime).",
                             "I blew past your \(posterTime) and clocked \(higherTime) without even trying.",
                             "Only at \(posterTime)? I easily reached \(higherTime)."
@@ -4170,7 +4212,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I hit \(higherNum) infinities yesterday. \(numStr) is old news.",
                                 "I cleared \(higherNum) infinities without trying. Your \(numStr) is nothing.",
-                                "I was just toying with you. I'm actually at \(higherNum) infinities.",
                                 "Your \(numStr) is a joke compared to my \(higherNum) infinities.",
                                 "I blew past your \(numStr) and hit \(higherNum) infinities without even trying.",
                                 "Only at \(numStr)? I easily reached \(higherNum) infinities."
@@ -4188,18 +4229,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                     }
                 } else {
-                    let assumedNum = Int.random(in: 5...15)
+                    let isLowHoF = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                    let assumedNum = Int.random(in: 8...15)
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
-                    } else {
+                    } else if isLowHoF {
+                        higherNum = max(1, assumedNum - Int.random(in: 2...5))
+                      } else {
                         higherNum = assumedNum + Int.random(in: 2...8)
                     }
                     if higherNum < assumedNum {
                         replies.append(contentsOf: [
                             "I hit \(higherNum) infinities yesterday. \(assumedNum) is old news.",
                             "I cleared \(higherNum) infinities without trying. Your \(assumedNum) is nothing.",
-                            "I was just toying with you. I'm actually at \(higherNum) infinities.",
                             "Your \(assumedNum) is a joke compared to my \(higherNum) infinities.",
                             "I blew past your \(assumedNum) and hit \(higherNum) infinities without even trying.",
                             "Only at \(assumedNum)? I easily reached \(higherNum) infinities."
@@ -4289,21 +4332,24 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
             var reply = replies.randomElement()!
             if (canBeBehind || forceTone == "behind") {
-                let compBehindOpeners = [
-                    "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
-                ]
-                let compBehindClosers = [
-                    "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
-                ]
-                let behindCompReactions = [
-                    "I am grinding right now to pass you.",
-                    "Don't get too comfortable up there.",
-                    "I'm already closing the gap.",
-                    "My next run is going to crush that.",
-                    "I'm coming for the top spot.",
-                    "Just give me a little more time."
-                ]
-                reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
+                let isLowerBragSelected = speakerValue != nil && replies.contains(reply)
+                if !isLowerBragSelected || Double.random(in: 0...1) < 0.50 {
+                    let compBehindOpeners = [
+                        "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
+                    ]
+                    let compBehindClosers = [
+                        "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
+                    ]
+                    let behindCompReactions = [
+                        "I am grinding right now to pass you.",
+                        "Don't get too comfortable up there.",
+                        "I'm already closing the gap.",
+                        "My next run is going to crush that.",
+                        "I'm coming for the top spot.",
+                        "Just give me a little more time."
+                    ]
+                    reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
+                }
             }
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
