@@ -1362,7 +1362,8 @@ public struct MockSocialService: SocialService, Sendable {
                 var npc2: (name: String, avatar: String)? = nil
                 
                 let topic = Self.determineTopic(message: message)
-                let npc1Value = Self.extractValue(from: baseComment.text, topic: topic)
+                let rootValue = Self.extractValue(from: message, topic: topic)
+                var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                 var npc2Value: String? = nil
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
@@ -1392,6 +1393,9 @@ public struct MockSocialService: SocialService, Sendable {
                         } else {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                         }
+                        if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                            npc2Value = newVal
+                        }
                     } else {
                         let isBehind: Bool
                         if let n1Val = npc1Value, let n2Val = npc2Value {
@@ -1404,6 +1408,9 @@ public struct MockSocialService: SocialService, Sendable {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
                         } else {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
+                        }
+                        if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                            npc1Value = newVal
                         }
                     }
                     
@@ -1691,7 +1698,8 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc2: (name: String, avatar: String)? = nil
                     
                     let topic = Self.determineTopic(message: message)
-                    let npc1Value = Self.extractValue(from: baseComment.text, topic: topic)
+                    let rootValue = Self.extractValue(from: message, topic: topic)
+                    var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                     var npc2Value: String? = nil
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
@@ -1726,6 +1734,9 @@ public struct MockSocialService: SocialService, Sendable {
                             } else {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                             }
+                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                npc2Value = newVal
+                            }
                         } else {
                             let isBehind: Bool
                             if let n1Val = npc1Value, let n2Val = npc2Value {
@@ -1738,6 +1749,9 @@ public struct MockSocialService: SocialService, Sendable {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind")
                             } else {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
+                            }
+                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                npc1Value = newVal
                             }
                         }
                         
@@ -3263,7 +3277,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster"]
+        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past"]
         var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
