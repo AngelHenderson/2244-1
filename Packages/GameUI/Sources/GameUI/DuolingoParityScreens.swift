@@ -549,7 +549,7 @@ private struct AddEventSheet: View {
                 }
 
                 Section("Status Tag (optional)") {
-                    TextField("e.g. New record · Endless", text: $statText)
+                    TextField("e.g. New record · Game", text: $statText)
                 }
 
                 if let postError {
