@@ -374,6 +374,84 @@ struct ParityModelsTests {
         #expect(ratio >= 0.88 && ratio <= 0.99, "Too low reply ratio is \(ratio), expected around 0.95")
     }
 
+    @Test("Verify that milestone strings exist in MockSocialService.allMilestones")
+    func testMilestoneExistence() {
+        let milestones = MockSocialService.allMilestones
+        #expect(milestones.contains("3q"))
+        #expect(milestones.contains("51q"))
+        
+        let index3q = milestones.firstIndex(of: "3q")
+        let index51q = milestones.firstIndex(of: "51q")
+        #expect(index3q != nil)
+        #expect(index51q != nil)
+    }
+
+    @Test("Verify extractValue filters out milestones inside leading mentions with spaces")
+    func testExtractValueWithSpaceMention() {
+        let text = "@Amanda 2048 I hit 8192"
+        let val = MockSocialService.extractValue(from: text, topic: "milestone")
+        #expect(val == "8192")
+    }
+
+    @Test("Verify that lower brag replies are correctly selected when speaker record is lower than the comment milestone")
+    func testLowerBragReplySelection() {
+        let service = MockSocialService()
+        
+        let milestones = MockSocialService.allMilestones
+        let lowerMilestone = milestones[100]
+        let higherMilestone = milestones[200]
+        
+        let comment = "My \(higherMilestone) is better, you cute."
+        let reply = service.generateContextualReply(to: comment, message: "Unlocked milestone \(higherMilestone).", forceTone: "one_up", speakerValue: lowerMilestone)
+        
+        #expect(reply.contains(lowerMilestone), "Expected lower brag reply to contain speaker record: \(lowerMilestone) (Reply: \(reply))")
+        #expect(reply.contains(higherMilestone), "Expected lower brag reply to contain target milestone: \(higherMilestone) (Reply: \(reply))")
+    }
+
+    @Test("Verify that lower brag replies are correctly selected for streaks when speaker record is lower")
+    func testStreakLowerBragReplySelection() {
+        let service = MockSocialService()
+        
+        let comment = "My 50 day streak is better, you cute."
+        let reply = service.generateContextualReply(to: comment, message: "Unlocked milestone 50 days.", forceTone: "one_up", speakerValue: "20")
+        
+        #expect(reply.contains("20"), "Expected lower brag reply to contain speaker record: 20 (Reply: \(reply))")
+        #expect(reply.contains("50"), "Expected lower brag reply to contain target streak: 50 (Reply: \(reply))")
+    }
+
+    @Test("Verify that lower brag replies are correctly selected for time when speaker record is slower")
+    func testTimeLowerBragReplySelection() {
+        let service = MockSocialService()
+        
+        let comment = "I clocked 0:15."
+        let reply = service.generateContextualReply(to: comment, message: "timed challenge in 0:15", forceTone: "one_up", speakerValue: "0:30")
+        
+        #expect(reply.contains("0:30"), "Expected lower brag reply to contain speaker record: 0:30 (Reply: \(reply))")
+        #expect(reply.contains("0:15"), "Expected lower brag reply to contain target time: 0:15 (Reply: \(reply))")
+    }
+
+    @Test("Verify that lower brag replies are correctly selected for HOF when speaker record is lower")
+    func testHofLowerBragReplySelection() {
+        let service = MockSocialService()
+        
+        let comment = "My 10 infinities is better, you cute."
+        let reply = service.generateContextualReply(to: comment, message: "10 infinities count", forceTone: "one_up", speakerValue: "5")
+        
+        #expect(reply.contains("5"), "Expected lower brag reply to contain speaker record: 5 (Reply: \(reply))")
+        #expect(reply.contains("10"), "Expected lower brag reply to contain target HOF entries: 10 (Reply: \(reply))")
+    }
+
+    @Test("Verify that lower brag replies are correctly selected for score when speaker record is lower")
+    func testScoreLowerBragReplySelection() {
+        let service = MockSocialService()
+        
+        let comment = "My 1000 is better, you cute."
+        let reply = service.generateContextualReply(to: comment, message: "I got 1000 points.", forceTone: "one_up", speakerValue: "500")
+        
+        #expect(reply.contains("500"), "Expected lower brag reply to contain speaker record: 500 (Reply: \(reply))")
+        #expect(reply.contains("1000"), "Expected lower brag reply to contain target score: 1000 (Reply: \(reply))")
+    }
+
     @Test("Player record is consistent across a competitive comment thread")
     func testPlayerRecordConsistency() async throws {
         let defaults = UserDefaults.standard
