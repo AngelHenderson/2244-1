@@ -236,6 +236,12 @@ struct ParityModelsTests {
             let reply = service.generateContextualReply(to: "beat you 0:07", message: "no time here", forceTone: "one_up")
             #expect(!reply.lowercased().contains("too slow"), "Should not contain 'too slow' when commenting on a 7s post: \(reply)")
         }
+
+        // Test Case 4: Gap of 1 or 2 seconds -> "leagues faster" should NOT be used.
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(to: "beat you 0:08", message: "0:06", forceTone: "one_up")
+            #expect(!reply.lowercased().contains("leagues faster"), "Should not contain 'leagues faster' when gap is 2s: \(reply)")
+        }
     }
 
     private func isTooLowMilestoneReply(_ reply: String) -> Bool {

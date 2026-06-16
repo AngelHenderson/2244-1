@@ -2888,10 +2888,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
                     "My clears have been unmatched since \(myTime).",
                     "Only \(posterTime)? I'm sitting at \(myTime).",
-                    "I am leagues faster. My record is \(myTime).",
                     "I easily clock \(myTime).",
                     "You'll never reach my \(myTime).",
                 ]
+                if totalSecs - myTotal >= 3 {
+                    templates.append("I am leagues faster. My record is \(myTime).")
+                }
                 if myTotal <= totalSecs / 2 {
                     templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
                     templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
@@ -3937,7 +3939,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             let diff = totalSecs - higherNum
                             var templates = [
-                                "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
                                 "Your \(posterTime) time is cute. I clear it in \(higherTime).",
                                 "I easily passed your time. My record is \(higherTime).",
                                 "I shaved time off your \(posterTime). My best is \(higherTime).",
@@ -3945,6 +3946,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I speedrun easily. \(higherTime) destroys your \(posterTime).",
                                 "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
                             ]
+                            if diff >= 3 {
+                                templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
+                            }
                             if diff >= 10 && commentIsCompetitive && commentText != message {
                                 templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
                             } else {
@@ -3969,7 +3973,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let posterTime = "\(posterMins):\(String(format: "%02d", posterSecs))"
                     let diff = assumedTotal - higherNum
                     var templates = [
-                        "I am leagues faster than your \(posterTime). I'm at \(higherTime).",
                         "Your \(posterTime) time is cute. I clear it in \(higherTime).",
                         "I easily passed your time. My record is \(higherTime).",
                         "I shaved time off your \(posterTime). My best is \(higherTime).",
@@ -3977,6 +3980,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I speedrun easily. \(higherTime) destroys your \(posterTime).",
                         "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
                     ]
+                    if diff >= 3 {
+                        templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
+                    }
                     if diff >= 10 && commentIsCompetitive && commentText != message {
                         templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
                     } else {
