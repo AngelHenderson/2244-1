@@ -524,7 +524,11 @@ public struct HomeView: View {
                     id: "feed",
                     system: "bubble.left.and.bubble.right.fill",
                     title: "Feed",
-                    action: { presentedSheet = .feed }
+                    banned: state.isBanned,
+                    action: {
+                        if state.isBanned { state.showBanAlert = true }
+                        else { presentedSheet = .feed }
+                    }
                 )
             )
         }
@@ -534,7 +538,11 @@ public struct HomeView: View {
                 id: "profile",
                 system: "person.circle.fill",
                 title: "Profile",
-                action: { presentedSheet = .profile }
+                banned: state.isBanned,
+                action: {
+                    if state.isBanned { state.showBanAlert = true }
+                    else { presentedSheet = .profile }
+                }
             )
         )
 
@@ -580,7 +588,11 @@ public struct HomeView: View {
                     id: "friends",
                     system: "person.2.circle.fill",
                     title: "Friends",
-                    action: { presentedSheet = .friends }
+                    banned: state.isBanned,
+                    action: {
+                        if state.isBanned { state.showBanAlert = true }
+                        else { presentedSheet = .friends }
+                    }
                 )
             )
         }
@@ -656,7 +668,8 @@ public struct HomeView: View {
         case .settings:
             presentedSheet = .settings
         case .profile:
-            presentedSheet = .profile
+            if state.isBanned { state.showBanAlert = true }
+            else { presentedSheet = .profile }
         case .achievements:
             presentedSheet = .achievements
         case .leaderboard:
@@ -674,9 +687,11 @@ public struct HomeView: View {
         case .modes:
             presentedSheet = .modes
         case .feed:
-            presentedSheet = .feed
+            if state.isBanned { state.showBanAlert = true }
+            else { presentedSheet = .feed }
         case .friends:
-            presentedSheet = .friends
+            if state.isBanned { state.showBanAlert = true }
+            else { presentedSheet = .friends }
         case .account:
             presentedSheet = .account
         case .subscription:
