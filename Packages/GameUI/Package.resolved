@@ -1,5 +1,5 @@
 {
-  "originHash" : "6ccfde6c3e0d9e5fb8c579d90e18cc34478713c0f84f29e6fb5f7131d1cd135d",
+  "originHash" : "e54bd7d78c3116001681b84b91c859e9dc5f903f1405ef5855a7376623700c2a",
   "pins" : [
     {
       "identity" : "abseil-cpp-swiftpm",
@@ -31,7 +31,7 @@
     {
       "identity" : "firebase-ios-sdk",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/firebase/firebase-ios-sdk.git",
+      "location" : "https://github.com/firebase/firebase-ios-sdk",
       "state" : {
         "revision" : "1cce11cf94d27e2fc194112cc7ad51e8fb279230",
         "version" : "12.3.0"
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
       "state" : {
-        "revision" : "8d08e4396ea955a7d2baf067c0eedfc34ca0821d",
-        "version" : "13.2.0"
+        "revision" : "e2b1c31cdf11cb4b57b4e70ae4c313d4e48c444a",
+        "version" : "13.3.0"
       }
     },
     {
