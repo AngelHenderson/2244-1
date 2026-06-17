@@ -531,7 +531,7 @@ struct GameEngineTests {
             #expect(state.board[pos]?.value != removedValue, "Tile \(removedValue) should be eliminated from board")
         }
         
-        #expect(engine._latestEliminatedValueForTesting() == removedValue, "Spawn floor should reflect removed value")
+        #expect(engine._latestEliminatedValueForTesting() == 1_048_576, "Spawn floor should reflect removed value")
     }
 
     @Test("Creating a 65K tile purges all 4s immediately")

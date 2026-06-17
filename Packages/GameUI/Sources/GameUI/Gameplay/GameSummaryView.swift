@@ -5,6 +5,7 @@ struct GameSummaryView: View {
     let summary: GameRunSummary
     let isFirstRun: Bool
     let isPersonalBest: Bool
+    var isSandboxed: Bool = false
     let onPlayAgain: () -> Void
     let onReplayFromMilestone: () -> Void
     let onHome: () -> Void
@@ -72,7 +73,9 @@ struct GameSummaryView: View {
             ],
             spacing: 10
         ) {
-            SummaryStatTile(label: "Score", value: summary.scoreAlpha.formattedWithCommas(), icon: "chart.line.uptrend.xyaxis")
+            if !isSandboxed {
+                SummaryStatTile(label: "Score", value: summary.scoreAlpha.formattedWithCommas(), icon: "chart.line.uptrend.xyaxis")
+            }
             SummaryStatTile(label: "Moves", value: "\(summary.moves)", icon: "hand.tap.fill")
             SummaryStatTile(label: "Tile", value: tileLabel, icon: "square.grid.2x2.fill")
             SummaryStatTile(label: "Time", value: formattedDuration, icon: "timer")
@@ -138,7 +141,9 @@ struct GameSummaryView: View {
 
     private var subtitle: String {
         if isFirstRun {
-            return "Score, highest tile, and moves are the numbers to beat next."
+            return isSandboxed
+                ? "Highest tile and moves are the numbers to beat next."
+                : "Score, highest tile, and moves are the numbers to beat next."
         }
         if isPersonalBest {
             return "That run pushed your best score higher."

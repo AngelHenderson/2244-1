@@ -437,6 +437,7 @@ public struct HybridGameScreen: View {
                         summary: presentation.summary,
                         isFirstRun: presentation.isFirstRun,
                         isPersonalBest: presentation.isPersonalBest,
+                        isSandboxed: gameStore.sandboxed,
                         onPlayAgain: { playAgainFromSummary() },
                         onReplayFromMilestone: { replayFromMilestoneAfterSummary() },
                         onHome: { returnHomeFromSummary() }
@@ -799,7 +800,7 @@ public struct HybridGameScreen: View {
         let presentation = GameSummaryPresentation(
             summary: summary,
             isFirstRun: !hasSeenFirstGameSummary,
-            isPersonalBest: !summary.scoreAlpha.isZero && summary.scoreAlpha > runBestScoreAtStart
+            isPersonalBest: !gameStore.sandboxed && !summary.scoreAlpha.isZero && summary.scoreAlpha > runBestScoreAtStart
         )
         hasSeenFirstGameSummary = true
         return presentation
@@ -1211,20 +1212,29 @@ struct GameplayNavigationStatus: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 7) {
-                    Text(playtimeText(at: context.date))
-                        .monospacedDigit()
-                    Text("Score \(scoreText)")
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
-                }
+                if gameStore.sandboxed {
+                    HStack(spacing: 7) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 14, weight: .bold))
+                        Text(playtimeText(at: context.date))
+                            .monospacedDigit()
+                    }
+                } else {
+                    HStack(spacing: 7) {
+                        Text(playtimeText(at: context.date))
+                            .monospacedDigit()
+                        Text("Score \(scoreText)")
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                    }
 
-                VStack(spacing: 0) {
-                    Text(scoreText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
-                    Text(playtimeText(at: context.date))
-                        .monospacedDigit()
+                    VStack(spacing: 0) {
+                        Text(scoreText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                        Text(playtimeText(at: context.date))
+                            .monospacedDigit()
+                    }
                 }
             }
             .font(.avenirNext(size: GameFonts.calloutSize, weight: .bold))
@@ -1234,7 +1244,7 @@ struct GameplayNavigationStatus: View {
             .padding(.vertical, 2)
             .frame(minHeight: 38)
             .glassEffectCompat(cornerRadius: 10)
-            .accessibilityLabel("Time \(playtimeText(at: context.date)), score \(scoreText)")
+            .accessibilityLabel(gameStore.sandboxed ? "Time \(playtimeText(at: context.date))" : "Time \(playtimeText(at: context.date)), score \(scoreText)")
         }
     }
 
@@ -1642,7 +1652,9 @@ private struct GameplaySidePanel: View {
                         systemImage: "timer"
                     )
                 }
-                SidePanelStat(title: "Score", value: scoreText, systemImage: "number")
+                if !gameStore.sandboxed {
+                    SidePanelStat(title: "Score", value: scoreText, systemImage: "number")
+                }
                 SidePanelStat(title: "Moves", value: "\(gameStore.validMovesCount)", systemImage: "point.3.connected.trianglepath.dotted")
             }
 
