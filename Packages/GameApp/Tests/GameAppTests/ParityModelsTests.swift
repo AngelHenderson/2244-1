@@ -524,9 +524,15 @@ struct ParityModelsTests {
                     let author = comment.authorName
                     if let val = MockSocialService.extractValue(from: comment.text, topic: topic) {
                         if let establishedVal = playerRecords[author] {
-                            // val must be worse than or equal to establishedVal
+                            let textLower = comment.text.lowercased()
+                            let isCatchUpReply = textLower.contains("catch up") || textLower.contains("ahead now") || textLower.contains("passed you") || textLower.contains("overtake") || textLower.contains("watch your back") || textLower.contains("beat your") || textLower.contains("clocked faster than") || textLower.contains("caught up") || textLower.contains("got ahead")
+                            
                             let isBetter = MockSocialService.isRecord(establishedVal, worseThan: val, topic: topic)
-                            #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            if isCatchUpReply {
+                                #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            } else {
+                                #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            }
                         } else {
                             playerRecords[author] = val
                         }
@@ -559,6 +565,128 @@ struct ParityModelsTests {
         // It should generate a behind reply instead.
         #expect(!reply.contains("can't even get to"), "Reply should not contain out-of-reach response: \(reply)")
         #expect(!reply.contains("out of reach for you"), "Reply should not contain out-of-reach response: \(reply)")
+    }
+
+    @Test("Same milestone replies use rivalry/tie phrasing")
+    func sameMilestoneRepliesUseRivalryPhrasing() {
+        let service = MockSocialService()
+        let commentText = "My 383n is better, you cute."
+        let reply = service.generateContextualReply(
+            to: commentText,
+            message: "Unlocked milestone 383n.",
+            forceTone: "one_up",
+            speakerValue: "383n"
+        )
+        
+        let isTieReply = reply.contains("tied") || reply.contains("both at 383n") || reply.contains("right there at 383n") || reply.contains("also hit 383n") || reply.contains("sitting at 383n too") || reply.contains("Friendly rivalry?")
+        #expect(isTieReply, "Expected same-milestone reply to use rivalry/tie phrasing: \(reply)")
+    }
+
+    @Test("Same value replies for other topics use rivalry/tie phrasing")
+    func sameValueRepliesForOtherTopicsUseRivalryPhrasing() {
+        let service = MockSocialService()
+        
+        // 1. Streaks
+        let streakReply = service.generateContextualReply(
+            to: "My 10 day streak is better, you cute.",
+            message: "Unlocked milestone 10 days.",
+            forceTone: "one_up",
+            speakerValue: "10"
+        )
+        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Friendly rivalry?")
+        #expect(isStreakTie, "Expected same-streak reply to use rivalry/tie phrasing: \(streakReply)")
+        
+        // 2. Time
+        let timeReply = service.generateContextualReply(
+            to: "I clocked 0:15.",
+            message: "timed challenge in 0:15",
+            forceTone: "one_up",
+            speakerValue: "0:15"
+        )
+        let isTimeTie = timeReply.contains("tied") || timeReply.contains("both at 0:15") || timeReply.contains("right there at 0:15") || timeReply.contains("also clocked 0:15") || timeReply.contains("Friendly rivalry?")
+        #expect(isTimeTie, "Expected same-time reply to use rivalry/tie phrasing: \(timeReply)")
+        
+        // 3. HOF
+        let hofReply = service.generateContextualReply(
+            to: "My 15 infinities is better, you cute.",
+            message: "15 infinities count",
+            forceTone: "one_up",
+            speakerValue: "15"
+        )
+        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Friendly rivalry?")
+        #expect(isHofTie, "Expected same-HOF reply to use rivalry/tie phrasing: \(hofReply)")
+        
+        // 4. Score
+        let scoreReply = service.generateContextualReply(
+            to: "My 1000 is better, you cute.",
+            message: "I got 1000 points.",
+            forceTone: "one_up",
+            speakerValue: "1000"
+        )
+        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Friendly rivalry?")
+        #expect(isScoreTie, "Expected same-score reply to use rivalry/tie phrasing: \(scoreReply)")
+        
+        // 5. Quest
+        let questReply = service.generateContextualReply(
+            to: "My Silver is better, you cute.",
+            message: "I pull Silver chests.",
+            forceTone: "one_up",
+            speakerValue: "Silver"
+        )
+        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("tied at Silver") || questReply.contains("farming Silver") || questReply.contains("Silver chests too") || questReply.contains("Friendly rivalry?")
+        #expect(isQuestTie, "Expected same-quest reply to use rivalry/tie phrasing: \(questReply)")
+    }
+
+    @Test("Catch-up phrasing is used when speaker is behind")
+    func catchUpPhrasingUsedWhenBehind() {
+        let service = MockSocialService()
+        
+        // Behind on milestone
+        let milestoneReply = service.generateContextualReply(
+            to: "My 383n is better, you cute.",
+            message: "Unlocked milestone 383n.",
+            forceTone: "behind",
+            speakerValue: "32K"
+        )
+        let isMilestoneBehind = milestoneReply.contains("lower right now") || milestoneReply.contains("ahead for now") || milestoneReply.contains("lead while it lasts") || milestoneReply.contains("catch up") || milestoneReply.contains("closing the gap") || milestoneReply.contains("overtake") || milestoneReply.contains("coming for") || milestoneReply.contains("is next") || milestoneReply.contains("comfortable")
+        #expect(isMilestoneBehind, "Expected behind milestone reply to use catch-up phrasing: \(milestoneReply)")
+        
+        // Behind on streak
+        let streakReply = service.generateContextualReply(
+            to: "My 50 day streak is better, you cute.",
+            message: "Unlocked milestone 50 days.",
+            forceTone: "behind",
+            speakerValue: "10"
+        )
+        let isStreakBehind = streakReply.contains("lower right now") || streakReply.contains("ahead for now") || streakReply.contains("lead while it lasts") || streakReply.contains("catch up") || streakReply.contains("closing the gap") || streakReply.contains("overtake") || streakReply.contains("coming for") || streakReply.contains("is next") || streakReply.contains("comfortable")
+        #expect(isStreakBehind, "Expected behind streak reply to use catch-up phrasing: \(streakReply)")
+    }
+
+    @Test("Caught-up replies say they beat the milestone and got ahead")
+    func caughtUpRepliesUseBeatPhrasing() {
+        let service = MockSocialService()
+        
+        // 1. Milestone
+        let milestoneReply = service.generateContextualReply(
+            to: "My 383n is better, you cute.",
+            message: "Unlocked milestone 383n.",
+            forceTone: "caught_up",
+            speakerValue: "4ad"
+        )
+        #expect(milestoneReply.contains("383n"), "Expected caught-up reply to mention commenter record: \(milestoneReply)")
+        let isMilestoneBeat = milestoneReply.contains("catch up") || milestoneReply.contains("ahead now") || milestoneReply.contains("passed you") || milestoneReply.contains("overtake") || milestoneReply.contains("watch your back") || milestoneReply.contains("beat your")
+        #expect(isMilestoneBeat, "Expected milestone caught-up reply to use beat/ahead phrasing: \(milestoneReply)")
+        
+        // 2. Streak
+        let streakReply = service.generateContextualReply(
+            to: "My 50 day streak is better, you cute.",
+            message: "Unlocked milestone 50 days.",
+            forceTone: "caught_up",
+            speakerValue: "60"
+        )
+        #expect(streakReply.contains("50"), "Expected caught-up reply to mention commenter record: \(streakReply)")
+        let isStreakBeat = streakReply.contains("catch up") || streakReply.contains("ahead now") || streakReply.contains("passed you") || streakReply.contains("overtake") || streakReply.contains("beat your")
+        #expect(isStreakBeat, "Expected streak caught-up reply to use beat/ahead phrasing: \(streakReply)")
     }
 }
 

@@ -1035,6 +1035,50 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
 
+    static func lowerValue(for val: String?, topic: String) -> String {
+        switch topic {
+        case "hof":
+            let current = val.flatMap(Int.init) ?? 10
+            return String(max(1, current - Int.random(in: 2...5)))
+            
+        case "streak":
+            let current = val.flatMap(Int.init) ?? 20
+            return String(max(1, current - Int.random(in: 3...10)))
+            
+        case "time":
+            func timeToSeconds(_ timeStr: String) -> Int {
+                let parts = timeStr.split(separator: ":")
+                guard parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) else { return 60 }
+                return mins * 60 + secs
+            }
+            let currentSecs = val.map(timeToSeconds) ?? 60
+            let newSecs = currentSecs + Int.random(in: 10...30)
+            let mins = newSecs / 60
+            let secs = newSecs % 60
+            return "\(mins):\(String(format: "%02d", secs))"
+            
+        case "quest":
+            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+            guard let currentVal = val, let idx = tiers.firstIndex(of: currentVal) else { return "Bronze" }
+            if idx > 0 {
+                return tiers[idx - 1]
+            } else {
+                return "Bronze"
+            }
+            
+        case "milestone":
+            guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
+                return JourneyTileGenerator.formatTileAtStep(4)
+            }
+            let jump = Int.random(in: 1...3)
+            let newIdx = max(0, idx - jump)
+            return Self.allMilestones[newIdx]
+            
+        default:
+            return "2"
+        }
+    }
+
     static func isRecord(_ rec1: String, worseThan rec2: String, topic: String) -> Bool {
         switch topic {
         case "hof", "streak", "score":
@@ -1376,6 +1420,9 @@ public struct MockSocialService: SocialService, Sendable {
                 var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                 var npc2Value: String? = nil
                 
+                var npc1WasBehind = false
+                var npc2WasBehind = false
+                
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                 let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
                 while currentDepth < targetDepth {
@@ -1392,6 +1439,14 @@ public struct MockSocialService: SocialService, Sendable {
                     let replyText: String
                     if currentDepth % 2 == 0 {
                         if npc2Value == nil {
+                            if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
+                                npc2Value = Self.lowerValue(for: n1Val, topic: topic)
+                            } else {
+                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                            }
+                        }
+                        
+                        if npc2WasBehind {
                             npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                         }
                         
@@ -1403,7 +1458,11 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isBehind {
+                            npc2WasBehind = true
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
+                        } else if npc2WasBehind {
+                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc2Value)
+                            npc2WasBehind = false
                         } else {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                         }
@@ -1411,6 +1470,10 @@ public struct MockSocialService: SocialService, Sendable {
                             npc2Value = newVal
                         }
                     } else {
+                        if npc1WasBehind {
+                            npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                        }
+                        
                         let isBehind: Bool
                         if let n1Val = npc1Value, let n2Val = npc2Value {
                             isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
@@ -1419,7 +1482,11 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isBehind {
+                            npc1WasBehind = true
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
+                        } else if npc1WasBehind {
+                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc1Value)
+                            npc1WasBehind = false
                         } else {
                             replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
                         }
@@ -1716,6 +1783,9 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                     var npc2Value: String? = nil
                     
+                    var npc1WasBehind = false
+                    var npc2WasBehind = false
+                    
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                     let targetDepth: Int
                     if tone == "behind_competitive" {
@@ -1733,6 +1803,14 @@ public struct MockSocialService: SocialService, Sendable {
                         let replyText: String
                         if currentDepth % 2 == 0 {
                             if npc2Value == nil {
+                                if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
+                                    npc2Value = Self.lowerValue(for: n1Val, topic: topic)
+                                } else {
+                                    npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                }
+                            }
+                            
+                            if npc2WasBehind {
                                 npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                             }
                             
@@ -1744,7 +1822,11 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             if isBehind {
+                                npc2WasBehind = true
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
+                            } else if npc2WasBehind {
+                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc2Value)
+                                npc2WasBehind = false
                             } else {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                             }
@@ -1752,6 +1834,10 @@ public struct MockSocialService: SocialService, Sendable {
                                 npc2Value = newVal
                             }
                         } else {
+                            if npc1WasBehind {
+                                npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                            }
+                            
                             let isBehind: Bool
                             if let n1Val = npc1Value, let n2Val = npc2Value {
                                 isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
@@ -1760,7 +1846,11 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             if isBehind {
+                                npc1WasBehind = true
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
+                            } else if npc1WasBehind {
+                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc1Value)
+                                npc1WasBehind = false
                             } else {
                                 replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
                             }
@@ -3316,7 +3406,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         var mentionedTime = hasTimeFormat || !combinedWords.isDisjoint(with: ["time", "fast", "speed", "quick", "sec", "min", "mins", "clock", "timed", "seconds", "minutes"])
         var mentionedStreak = !combinedWords.isDisjoint(with: ["streak", "day", "days", "consecutive"])
         let mentionedTheme = !combinedWords.isDisjoint(with: ["theme", "style", "aesthetic"])
-        var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("infinity count") || !combinedWords.isDisjoint(with: ["hof", "infinity", "infinit"])
+        var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("infinity") || combinedLower.contains("infinities") || !combinedWords.isDisjoint(with: ["hof", "infinit"])
         let mentionedPerk = !combinedWords.isDisjoint(with: ["hammer", "swap", "magnet", "perk", "perks"])
         let mentionedGems = !combinedWords.isDisjoint(with: ["gem", "gems"])
         var mentionedQuest = !combinedWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
@@ -3325,7 +3415,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let msgWords = Set(msgLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
         let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
         let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && rootMilestone == nil)
-        let isMessageHoF = !msgWords.isDisjoint(with: ["hof", "infinity", "infinit"]) || msgLower.contains("hall of fame")
+        let isMessageHoF = msgLower.contains("hall of fame") || msgLower.contains("infinity") || msgLower.contains("infinities") || !msgWords.isDisjoint(with: ["hof", "infinit"])
         let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
         let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
         
@@ -3366,22 +3456,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Detect the tone/intent of the comment being replied to ──
 
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
-        let isQuestion = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && questionKeywords.contains(where: { strippedLower.contains($0) })
+        let isQuestion = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "childs play", "compared to"]
-        var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || forceTone == "caught_up" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
         }
 
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
-        let isJealous = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && jealousKeywords.contains(where: { strippedLower.contains($0) })
+        let isJealous = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
         let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "effortless", "this is entirely effortless"]
-        let isPositive = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && positiveKeywords.contains(where: { strippedLower.contains($0) })
+        let isPositive = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
-        let isAddRequest = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && addFriendKeywords.contains(where: { strippedLower.contains($0) })
+        let isAddRequest = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && addFriendKeywords.contains(where: { strippedLower.contains($0) })
 
         // ── Generate contextual replies that reference the actual comment ──
 
@@ -3520,6 +3610,67 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         if isCompetitive {
+            if forceTone == "caught_up" {
+                var replies: [String] = []
+                if let m = mentionedMilestone {
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! Just beat your \(m.name) and got ahead.",
+                        "Look who's ahead now! I blew past your \(m.name) record.",
+                        "Caught up and passed you! Finally ahead of your \(m.name) record.",
+                        "I told you I would overtake you. I just beat your \(m.name)!",
+                        "Told you to watch your back! I just passed your \(m.name) record."
+                    ])
+                } else if mentionedStreak, let numStr = mentionedNumber {
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! Just beat your \(numStr) days and got ahead.",
+                        "Look who's ahead now! I blew past your \(numStr) day streak.",
+                        "Caught up and passed you! Finally ahead of your \(numStr) day streak.",
+                        "I told you I would overtake you. I just beat your \(numStr) days!"
+                    ])
+                } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                    let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! Just beat your \(posterTime) and got ahead.",
+                        "Look who's ahead now! I clocked faster than your \(posterTime).",
+                        "Caught up and passed you! Finally clocked faster than your \(posterTime).",
+                        "I told you I would overtake you. I just beat your \(posterTime)!"
+                    ])
+                } else if mentionedHoF, let numStr = mentionedNumber {
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! Just beat your \(numStr) infinities and got ahead.",
+                        "Look who's ahead now! I blew past your \(numStr) HoF entries.",
+                        "Caught up and passed you! Finally ahead of your \(numStr) HoF entries.",
+                        "I told you I would overtake you. I just beat your \(numStr) infinities!"
+                    ])
+                } else if mentionedQuest {
+                    let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
+                    let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
+                    let posterTier = tiers[posterTierIdx]
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! Just beat your \(posterTier) chests and got ahead.",
+                        "Look who's ahead now! I blew past your \(posterTier) tier.",
+                        "Caught up and passed you! Finally ahead of your \(posterTier) tier."
+                    ])
+                } else if let numStr = mentionedNumber {
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! Just beat your \(numStr) and got ahead.",
+                        "Look who's ahead now! I blew past your \(numStr) score.",
+                        "Caught up and passed you! Finally ahead of your \(numStr) score.",
+                        "I told you I would overtake you. I just beat your \(numStr)!"
+                    ])
+                } else {
+                    replies.append(contentsOf: [
+                        "I told you I'd catch up! I just got ahead.",
+                        "Look who's ahead now!",
+                        "Caught up and passed you! Finally ahead.",
+                        "I told you I would overtake you!"
+                    ])
+                }
+                var reply = replies.randomElement()!
+                if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
+                return reply
+            }
+
             let outOfReachPhrases = ["get to", "reach", "trying to", "stuck on", "can't even", "can never", "impossible", "struggling", "wish i could", "aiming for", "hard to", "hoping to"]
             let isTargetOutOfReach = outOfReachPhrases.contains { phrase in
                 let pattern = "\\b\(NSRegularExpression.escapedPattern(for: phrase))\\b"
