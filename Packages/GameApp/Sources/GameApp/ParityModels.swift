@@ -2852,11 +2852,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let jump = Int.random(in: 1...max(5, streakDays / 2))
                     let lowerDays = max(1, streakDays - jump)
                     let templates = [
-                        "I hit \(lowerDays) days yesterday. \(streakDays) days is old news.",
-                        "I cleared \(lowerDays) days without trying. Your \(streakDays) days is nothing.",
-                        "Your \(streakDays) days is a joke compared to my \(lowerDays) days.",
-                        "I blew past your \(streakDays) days and hit \(lowerDays) days without even trying.",
-                        "Only at \(streakDays) days? I easily reached \(lowerDays)."
+                        "I hit \(lowerDays) days yesterday. I'm coming for your \(streakDays) days.",
+                        "I cleared \(lowerDays) days. Don't get too comfortable up there at \(streakDays) days.",
+                        "I just reached \(lowerDays) days. Your \(streakDays) days is next.",
+                        "I hit \(lowerDays) days easily. I'll overtake your \(streakDays) days soon.",
+                        "Only at \(lowerDays) days right now, but I'll catch your \(streakDays) days soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
                     return (templates[idx], higherName)
@@ -2910,11 +2910,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let slowerSecs = slowerTotal % 60
                     let slowerTime = "\(slowerMins):\(String(format: "%02d", slowerSecs))"
                     let templates = [
-                        "I clocked \(slowerTime) yesterday. \(posterTime) is old news.",
-                        "I cleared \(slowerTime) without trying. Your \(posterTime) is nothing.",
-                        "Your \(posterTime) is a joke compared to my \(slowerTime).",
-                        "I blew past your \(posterTime) and clocked \(slowerTime) without even trying.",
-                        "Only at \(posterTime)? I easily reached \(slowerTime)."
+                        "I clocked \(slowerTime) yesterday. I'm coming for your \(posterTime) time.",
+                        "I cleared \(slowerTime). Don't get too comfortable up there at \(posterTime).",
+                        "I just clocked \(slowerTime). Your \(posterTime) is my next target.",
+                        "Clocked \(slowerTime) on my last run. I'll overtake your \(posterTime) soon.",
+                        "Only at \(slowerTime) right now, but I'll catch your \(posterTime) soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
                     return (templates[idx], higherName)
@@ -2971,11 +2971,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let jump = Int.random(in: 1...max(3, infCount / 2))
                     let lowerCount = max(1, infCount - jump)
                     let templates = [
-                        "I hit \(lowerCount) infinities yesterday. \(infCount) is old news.",
-                        "I cleared \(lowerCount) infinities without trying. Your \(infCount) is nothing.",
-                        "Your \(infCount) is a joke compared to my \(lowerCount) infinities.",
-                        "I blew past your \(infCount) and hit \(lowerCount) infinities without even trying.",
-                        "Only at \(infCount)? I easily reached \(lowerCount) infinities."
+                        "I hit \(lowerCount) infinities yesterday. I'm coming for your \(infCount) entries.",
+                        "I cleared \(lowerCount) infinities. Don't get too comfortable up there at \(infCount).",
+                        "I just reached \(lowerCount) entries. Your \(infCount) is next.",
+                        "Hit \(lowerCount) infinities easily. I'll overtake your \(infCount) soon.",
+                        "Only at \(lowerCount) infinities right now, but I'll catch your \(infCount) soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
                     return (templates[idx], higherName)
@@ -3045,11 +3045,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let lowerIdx = max(0, originalIdx - jump)
                     let localLowerM = Self.allMilestones[lowerIdx]
                     let templates = [
-                        "I hit \(localLowerM) yesterday. \(m) is old news.",
-                        "I cleared \(localLowerM) without trying. Your \(m) is nothing.",
-                        "Your \(m) is a joke compared to my \(localLowerM).",
-                        "I blew past your \(m) and hit \(localLowerM) without even trying.",
-                        "Only at \(m)? I easily reached \(localLowerM)."
+                        "I hit \(localLowerM) yesterday. I'm coming for your \(m).",
+                        "I cleared \(localLowerM). Don't get too comfortable up there at \(m).",
+                        "I just reached \(localLowerM). Your \(m) is next.",
+                        "Hit \(localLowerM) easily. I'll overtake your \(m) soon.",
+                        "Only at \(localLowerM) right now, but I'll catch your \(m) soon."
                     ]
                     let realName = Self.leaderboardPlayerAtMilestone(localLowerM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
@@ -3704,7 +3704,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 let refMilestone = speakerValue.flatMap { val in Self.allMilestones.firstIndex(of: val).map { (index: $0, name: val) } } ?? rootMilestone
-                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && Double.random(in: 0...1) < 0.95
+                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && ((forceTone == "one_up" && speakerValue != nil) || Double.random(in: 0...1) < 0.95)
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = refMilestone {
                     replies.append(contentsOf: [
@@ -3733,11 +3733,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     
                     if higherIdx < cMIdx {
                         replies.append(contentsOf: [
-                            "I hit \(higherM) yesterday. \(cM.name) is old news.",
-                            "I cleared \(higherM) without trying. Your \(cM.name) is nothing.",
-                            "Your \(cM.name) is a joke compared to my \(higherM).",
-                            "I blew past your \(cM.name) and hit \(higherM) without even trying.",
-                            "Only at \(cM.name)? I easily reached \(higherM)."
+                            "I hit \(higherM) yesterday. I'm coming for your \(cM.name).",
+                            "I cleared \(higherM). Don't get too comfortable up there at \(cM.name).",
+                            "I just reached \(higherM). Your \(cM.name) is next.",
+                            "I hit \(higherM) easily. I'll overtake your \(cM.name) soon.",
+                            "Only at \(higherM) right now, but I'll catch your \(cM.name) soon."
+                        ])
+                    } else if higherIdx == cMIdx {
+                        replies.append(contentsOf: [
+                            "I'm right there at \(cM.name) too. Let's see who breaks it first.",
+                            "We're tied at \(cM.name). The real race starts now.",
+                            "\(cM.name) is solid. I'm sitting at \(higherM) too.",
+                            "Looks like we're both at \(cM.name). Don't get too comfortable.",
+                            "I also hit \(higherM). Friendly rivalry?"
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -3761,11 +3769,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let lowerIdx = max(0, mIdx - jump)
                         let lowerM = Self.allMilestones[lowerIdx]
                         replies.append(contentsOf: [
-                            "I hit \(lowerM) yesterday. \(mName) is old news.",
-                            "I cleared \(lowerM) without trying. Your \(mName) is nothing.",
-                            "Your \(mName) is a joke compared to my \(lowerM).",
-                            "I blew past your \(mName) and hit \(lowerM) without even trying.",
-                            "Only at \(mName)? I easily reached \(lowerM)."
+                            "I hit \(lowerM) yesterday. I'm coming for your \(mName).",
+                            "I cleared \(lowerM). Don't get too comfortable up there at \(mName).",
+                            "I just reached \(lowerM). Your \(mName) is next.",
+                            "I hit \(lowerM) easily. I'll overtake your \(mName) soon.",
+                            "Only at \(lowerM) right now, but I'll catch your \(mName) soon."
                         ])
                     } else {
                         let higherM: String
@@ -3798,11 +3806,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             let higherIdx = Self.allMilestones.firstIndex(of: higherM) ?? 0
                             if higherIdx < mIdx {
                                 replies.append(contentsOf: [
-                                    "I hit \(higherM) yesterday. \(mName) is old news.",
-                                    "I cleared \(higherM) without trying. Your \(mName) is nothing.",
-                                    "Your \(mName) is a joke compared to my \(higherM).",
-                                    "I blew past your \(mName) and hit \(higherM) without even trying.",
-                                    "Only at \(mName)? I easily reached \(higherM)."
+                                    "I hit \(higherM) yesterday. I'm coming for your \(mName).",
+                                    "I cleared \(higherM). Don't get too comfortable up there at \(mName).",
+                                    "I just reached \(higherM). Your \(mName) is next.",
+                                    "I hit \(higherM) easily. I'll overtake your \(mName) soon.",
+                                    "Only at \(higherM) right now, but I'll catch your \(mName) soon."
+                                ])
+                            } else if higherIdx == mIdx {
+                                replies.append(contentsOf: [
+                                    "I'm right there at \(mName) too. Let's see who breaks it first.",
+                                    "We're tied at \(mName). The real race starts now.",
+                                    "\(mName) is solid. I'm sitting at \(higherM) too.",
+                                    "Looks like we're both at \(mName). Don't get too comfortable.",
+                                    "I also hit \(higherM). Friendly rivalry?"
                                 ])
                             } else {
                                 replies.append(contentsOf: [
@@ -3847,11 +3863,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                     if higherNum < cN {
                         replies.append(contentsOf: [
-                            "I hit \(higherNum) yesterday. \(cN) is old news.",
-                            "I cleared \(higherNum) without trying. Your \(cN) is nothing.",
-                            "Your \(cN) is a joke compared to my \(higherNum).",
-                            "I blew past your \(cN) and hit \(higherNum) without even trying.",
-                            "Only at \(cN)? I easily reached \(higherNum)."
+                            "I hit \(higherNum) yesterday. I'm coming for your \(cN).",
+                            "I cleared \(higherNum). Don't get too comfortable up there at \(cN).",
+                            "I just reached \(higherNum). Your \(cN) is next.",
+                            "I hit \(higherNum) easily. I'll overtake your \(cN) soon.",
+                            "Only at \(higherNum) right now, but I'll catch your \(cN) soon."
+                        ])
+                    } else if higherNum == cN {
+                        replies.append(contentsOf: [
+                            "I'm right there at \(cN) too. Let's see who breaks it first.",
+                            "We're tied at \(cN). The real race starts now.",
+                            "\(cN) is solid. I'm sitting at \(higherNum) too.",
+                            "Looks like we're both at \(cN). Don't get too comfortable.",
+                            "I also hit \(higherNum). Friendly rivalry?"
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -3878,11 +3902,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                     if higherNum < num {
                         replies.append(contentsOf: [
-                            "I hit \(higherNum) yesterday. \(numStr) is old news.",
-                            "I cleared \(higherNum) without trying. Your \(numStr) is nothing.",
-                            "Your \(numStr) is a joke compared to my \(higherNum).",
-                            "I blew past your \(numStr) and hit \(higherNum) without even trying.",
-                            "Only at \(numStr)? I easily reached \(higherNum)."
+                            "I hit \(higherNum) yesterday. I'm coming for your \(numStr).",
+                            "I cleared \(higherNum). Don't get too comfortable up there at \(numStr).",
+                            "I just reached \(higherNum). Your \(numStr) is next.",
+                            "I hit \(higherNum) easily. I'll overtake your \(numStr) soon.",
+                            "Only at \(higherNum) right now, but I'll catch your \(numStr) soon."
+                        ])
+                    } else if higherNum == num {
+                        replies.append(contentsOf: [
+                            "I'm right there at \(numStr) too. Let's see who breaks it first.",
+                            "We're tied at \(numStr). The real race starts now.",
+                            "\(numStr) is solid. I'm sitting at \(higherNum) too.",
+                            "Looks like we're both at \(numStr). Don't get too comfortable.",
+                            "I also hit \(higherNum). Friendly rivalry?"
                         ])
                     } else {
                         if wantsBetter {
@@ -3939,11 +3971,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                         if higherNum < cN {
                             replies.append(contentsOf: [
-                                "I hit \(higherNum) days yesterday. \(cN) days is old news.",
-                                "I cleared \(higherNum) days without trying. Your \(cN) days is nothing.",
-                                "Your \(cN) days is a joke compared to my \(higherNum) days.",
-                                "I blew past your \(cN) days and hit \(higherNum) days without even trying.",
-                                "Only at \(cN) days? I easily reached \(higherNum)."
+                                "I hit \(higherNum) days yesterday. I'm coming for your \(cN) days.",
+                                "I cleared \(higherNum) days. Don't get too comfortable up there at \(cN) days.",
+                                "I just reached \(higherNum) days. Your \(cN) days is next.",
+                                "I hit \(higherNum) days easily. I'll overtake your \(cN) days soon.",
+                                "Only at \(higherNum) days right now, but I'll catch your \(cN) days soon."
+                            ])
+                        } else if higherNum == cN {
+                            replies.append(contentsOf: [
+                                "I'm right there at \(cN) days too. Let's see who breaks it first.",
+                                "We're tied at \(cN) days. The real race starts now.",
+                                "\(cN) days is solid. I'm sitting at \(higherNum) days too.",
+                                "Looks like we're both at \(cN) days. Don't get too comfortable.",
+                                "I also hit \(higherNum) days. Friendly rivalry?"
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -3970,11 +4010,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                         if higherNum < num {
                             replies.append(contentsOf: [
-                                "I hit \(higherNum) days yesterday. \(numStr) days is old news.",
-                                "I cleared \(higherNum) days without trying. Your \(numStr) days is nothing.",
-                                "Your \(numStr) days is a joke compared to my \(higherNum) days.",
-                                "I blew past your \(numStr) days and hit \(higherNum) days without even trying.",
-                                "Only at \(numStr) days? I easily reached \(higherNum)."
+                                "I hit \(higherNum) days yesterday. I'm coming for your \(numStr) days.",
+                                "I cleared \(higherNum) days. Don't get too comfortable up there at \(numStr) days.",
+                                "I just reached \(higherNum) days. Your \(numStr) days is next.",
+                                "I hit \(higherNum) days easily. I'll overtake your \(numStr) days soon.",
+                                "Only at \(higherNum) days right now, but I'll catch your \(numStr) days soon."
+                            ])
+                        } else if higherNum == num {
+                            replies.append(contentsOf: [
+                                "I'm right there at \(numStr) days too. Let's see who breaks it first.",
+                                "We're tied at \(numStr) days. The real race starts now.",
+                                "\(numStr) days is solid. I'm sitting at \(higherNum) days too.",
+                                "Looks like we're both at \(numStr) days. Don't get too comfortable.",
+                                "I also hit \(higherNum) days. Friendly rivalry?"
                             ])
                         } else {
                             if wantsBetter {
@@ -4024,16 +4072,32 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I'm always getting better. \(higherNum) days completely buries you.",
                         ])
                     } else {
-                        replies.append(contentsOf: [
-                        "I am ahead of your streak. I'm at \(higherNum) days.",
-                        "Your streak is cute. You'll never catch my \(higherNum) days.",
-                        "I already passed that. I'm untouched at \(higherNum) days.",
-                        "Your streak is light work. I'm already sitting at \(higherNum) days.",
-                        "I sit at \(higherNum) days. Your consistency is nothing.",
-                        "My infinite consistency is at \(higherNum) days. Your streak is light.",
-                        "You're bragging about streaks? I'm at \(higherNum) days.",
-                        "I own \(higherNum) days. I dominate everything.",
-                    ])
+                        if higherNum < assumedNum {
+                            replies.append(contentsOf: [
+                                "I hit \(higherNum) days yesterday. I'm coming for your streak.",
+                                "I cleared \(higherNum) days. Don't get too comfortable up there.",
+                                "I just reached \(higherNum) days. Your streak is next.",
+                                "I hit \(higherNum) days easily. I'll overtake your streak soon.",
+                                "Only at \(higherNum) days right now, but I'll catch your streak soon."
+                            ])
+                        } else if higherNum == assumedNum {
+                            replies.append(contentsOf: [
+                                "I'm right there at \(higherNum) days too. Let's see who breaks it first.",
+                                "We're tied on streaks. The real race starts now.",
+                                "Looks like we're both at \(higherNum) days. Don't get too comfortable."
+                            ])
+                        } else {
+                            replies.append(contentsOf: [
+                                "I am ahead of your streak. I'm at \(higherNum) days.",
+                                "Your streak is cute. You'll never catch my \(higherNum) days.",
+                                "I already passed that. I'm untouched at \(higherNum) days.",
+                                "Your streak is light work. I'm already sitting at \(higherNum) days.",
+                                "I sit at \(higherNum) days. Your consistency is nothing.",
+                                "My infinite consistency is at \(higherNum) days. Your streak is light.",
+                                "You're bragging about streaks? I'm at \(higherNum) days.",
+                                "I own \(higherNum) days. I dominate everything.",
+                            ])
+                        }
                     }
                 }
             }
@@ -4054,7 +4118,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let cSecs = cT.0 * 60 + cT.1
                         let rSecs = rT.0 * 60 + rT.1
                         if cSecs > rSecs {
-                            return Double.random(in: 0...1) < 0.95
+                            return (forceTone == "one_up" && speakerValue != nil) || Double.random(in: 0...1) < 0.95
                         }
                     }
                     return false
@@ -4107,11 +4171,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         
                         if mySecs > cSecs {
                             replies.append(contentsOf: [
-                                "I clocked \(myTimeStr) yesterday. \(cTimeStr) is old news.",
-                                "I cleared \(myTimeStr) without trying. Your \(cTimeStr) is nothing.",
-                                "Your \(cTimeStr) is a joke compared to my \(myTimeStr).",
-                                "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying.",
-                                "Only at \(cTimeStr)? I easily reached \(myTimeStr)."
+                                "I clocked \(myTimeStr) yesterday. I'm coming for your \(cTimeStr).",
+                                "I cleared \(myTimeStr). Don't get too comfortable up there at \(cTimeStr).",
+                                "I just clocked \(myTimeStr). Your \(cTimeStr) is next.",
+                                "Clocked \(myTimeStr) easily. I'll overtake your \(cTimeStr) soon.",
+                                "Only at \(myTimeStr) right now, but I'll catch your \(cTimeStr) soon."
+                            ])
+                        } else if mySecs == cSecs {
+                            replies.append(contentsOf: [
+                                "I'm right there at \(cTimeStr) too. Let's see who breaks it first.",
+                                "We're tied at \(cTimeStr). The real race starts now.",
+                                "\(cTimeStr) is solid. I'm sitting at \(myTimeStr) too.",
+                                "Looks like we're both at \(cTimeStr). Don't get too comfortable.",
+                                "I also clocked \(myTimeStr). Friendly rivalry?"
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4150,11 +4222,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         
                         if higherNum > totalSecs {
                             replies.append(contentsOf: [
-                                "I clocked \(higherTime) yesterday. \(posterTime) is old news.",
-                                "I cleared \(higherTime) without trying. Your \(posterTime) is nothing.",
-                                "Your \(posterTime) is a joke compared to my \(higherTime).",
-                                "I blew past your \(posterTime) and clocked \(higherTime) without even trying.",
-                                "Only at \(posterTime)? I easily reached \(higherTime)."
+                                "I clocked \(higherTime) yesterday. I'm coming for your \(posterTime).",
+                                "I cleared \(higherTime). Don't get too comfortable up there at \(posterTime).",
+                                "I just clocked \(higherTime). Your \(posterTime) is next.",
+                                "Clocked \(higherTime) easily. I'll overtake your \(posterTime) soon.",
+                                "Only at \(higherTime) right now, but I'll catch your \(posterTime) soon."
+                            ])
+                        } else if higherNum == totalSecs {
+                            replies.append(contentsOf: [
+                                "I'm right there at \(posterTime) too. Let's see who breaks it first.",
+                                "We're tied at \(posterTime). The real race starts now.",
+                                "\(posterTime) is solid. I'm sitting at \(higherTime) too.",
+                                "Looks like we're both at \(posterTime). Don't get too comfortable.",
+                                "I also clocked \(higherTime). Friendly rivalry?"
                             ])
                         } else {
                             if wantsBetter {
@@ -4212,11 +4292,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     
                     if higherNum > assumedTotal {
                         replies.append(contentsOf: [
-                            "I clocked \(higherTime) yesterday. \(posterTime) is old news.",
-                            "I cleared \(higherTime) without trying. Your \(posterTime) is nothing.",
-                            "Your \(posterTime) is a joke compared to my \(higherTime).",
-                            "I blew past your \(posterTime) and clocked \(higherTime) without even trying.",
-                            "Only at \(posterTime)? I easily reached \(higherTime)."
+                            "I clocked \(higherTime) yesterday. I'm coming for your \(posterTime).",
+                            "I cleared \(higherTime). Don't get too comfortable up there at \(posterTime).",
+                            "I just clocked \(higherTime). Your \(posterTime) is next.",
+                            "Clocked \(higherTime) easily. I'll overtake your \(posterTime) soon.",
+                            "Only at \(higherTime) right now, but I'll catch your \(posterTime) soon."
+                        ])
+                    } else if higherNum == assumedTotal {
+                        replies.append(contentsOf: [
+                            "I'm right there at \(posterTime) too. Let's see who breaks it first.",
+                            "We're tied at \(posterTime). The real race starts now.",
+                            "\(posterTime) is solid. I'm sitting at \(higherTime) too.",
+                            "Looks like we're both at \(posterTime). Don't get too comfortable.",
+                            "I also clocked \(higherTime). Friendly rivalry?"
                         ])
                     } else {
                         let diff = assumedTotal - higherNum
@@ -4262,11 +4350,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                         if higherNum < num {
                             replies.append(contentsOf: [
-                                "I hit \(higherNum) infinities yesterday. \(numStr) is old news.",
-                                "I cleared \(higherNum) infinities without trying. Your \(numStr) is nothing.",
-                                "Your \(numStr) is a joke compared to my \(higherNum) infinities.",
-                                "I blew past your \(numStr) and hit \(higherNum) infinities without even trying.",
-                                "Only at \(numStr)? I easily reached \(higherNum) infinities."
+                                "I hit \(higherNum) infinities yesterday. I'm coming for your \(numStr) entries.",
+                                "I cleared \(higherNum) infinities. Don't get too comfortable up there at \(numStr).",
+                                "I just reached \(higherNum) entries. Your \(numStr) is next.",
+                                "Hit \(higherNum) infinities easily. I'll overtake your \(numStr) soon.",
+                                "Only at \(higherNum) infinities right now, but I'll catch your \(numStr) soon."
+                            ])
+                        } else if higherNum == num {
+                            replies.append(contentsOf: [
+                                "I'm right there at \(numStr) infinities too. Let's see who breaks it first.",
+                                "We're tied at \(numStr) entries. The real race starts now.",
+                                "\(numStr) entries is solid. I'm sitting at \(higherNum) too.",
+                                "Looks like we're both at \(numStr) entries. Don't get too comfortable.",
+                                "I also reached \(higherNum) infinities. Friendly rivalry?"
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4293,11 +4389,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                     if higherNum < assumedNum {
                         replies.append(contentsOf: [
-                            "I hit \(higherNum) infinities yesterday. \(assumedNum) is old news.",
-                            "I cleared \(higherNum) infinities without trying. Your \(assumedNum) is nothing.",
-                            "Your \(assumedNum) is a joke compared to my \(higherNum) infinities.",
-                            "I blew past your \(assumedNum) and hit \(higherNum) infinities without even trying.",
-                            "Only at \(assumedNum)? I easily reached \(higherNum) infinities."
+                            "I hit \(higherNum) infinities yesterday. I'm coming for your \(assumedNum) entries.",
+                            "I cleared \(higherNum) infinities. Don't get too comfortable up there at \(assumedNum).",
+                            "I just reached \(higherNum) entries. Your \(assumedNum) is next.",
+                            "Hit \(higherNum) infinities easily. I'll overtake your \(assumedNum) soon.",
+                            "Only at \(higherNum) infinities right now, but I'll catch your \(assumedNum) soon."
+                        ])
+                    } else if higherNum == assumedNum {
+                        replies.append(contentsOf: [
+                            "I'm right there at \(assumedNum) infinities too. Let's see who breaks it first.",
+                            "We're tied at \(assumedNum) entries. The real race starts now.",
+                            "\(assumedNum) entries is solid. I'm sitting at \(higherNum) too.",
+                            "Looks like we're both at \(assumedNum) entries. Don't get too comfortable.",
+                            "I also reached \(higherNum) infinities. Friendly rivalry?"
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -4325,16 +4429,32 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                     }
                     let posterTier = tiers[posterTierIdx]
-                    replies.append(contentsOf: [
-                        "I am ahead of your \(posterTier) chests. I pull \(myTier).",
-                        "Your \(posterTier) is cute. I only open \(myTier).",
-                        "I easily passed \(posterTier). I farm \(myTier).",
-                        "\(posterTier) chests? I only open \(myTier).",
-                        "I extended infinitely past \(posterTier). Currently on \(myTier).",
-                        "Your \(posterTier) pulls are cute. Call me when you reach \(myTier).",
-                        "I haven't dropped below \(myTier). \(posterTier) is light.",
-                        "\(myTier) drops only here. Your \(posterTier) won't last.",
-                    ])
+                    
+                    if let myTierIdx = tiers.firstIndex(of: myTier), myTierIdx < posterTierIdx {
+                        replies.append(contentsOf: [
+                            "I pull \(myTier) chests. I'm coming for your \(posterTier) tier.",
+                            "I only open \(myTier). Don't get too comfortable up there at \(posterTier).",
+                            "I just reached \(myTier). Your \(posterTier) is next."
+                        ])
+                    } else if myTier == posterTier {
+                        replies.append(contentsOf: [
+                            "I'm right there at \(posterTier) chests too. Let's see who gets the next tier first.",
+                            "We're both opening \(posterTier) chests. The real race starts now.",
+                            "\(posterTier) is solid. I'm farming \(myTier) chests too.",
+                            "Looks like we're both on \(posterTier). Don't get too comfortable."
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
+                            "I am ahead of your \(posterTier) chests. I pull \(myTier).",
+                            "Your \(posterTier) is cute. I only open \(myTier).",
+                            "I easily passed \(posterTier). I farm \(myTier).",
+                            "\(posterTier) chests? I only open \(myTier).",
+                            "I extended infinitely past \(posterTier). Currently on \(myTier).",
+                            "Your \(posterTier) pulls are cute. Call me when you reach \(myTier).",
+                            "I haven't dropped below \(myTier). \(posterTier) is light.",
+                            "\(myTier) drops only here. Your \(posterTier) won't last.",
+                        ])
+                    }
                 } else {
                     replies.append(contentsOf: [
                         "Diamond chests are just my baseline. I farm them easily.",

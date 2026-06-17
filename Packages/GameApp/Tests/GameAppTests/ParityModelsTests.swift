@@ -515,6 +515,10 @@ struct ParityModelsTests {
             
             // Verify record consistency only for competitive threads (chains of length >= 3)
             for chain in chains where chain.count >= 3 {
+                print("DEBUG CHAIN (\(topic)):")
+                for comment in chain {
+                    print("  [\(comment.authorName)]: \(comment.text)")
+                }
                 var playerRecords: [String: String] = [:]
                 for comment in chain {
                     let author = comment.authorName
@@ -540,7 +544,7 @@ struct ParityModelsTests {
         
         let reply = service.generateContextualReply(to: commentText, message: "Unlocked milestone 17ad.", forceTone: "one_up", speakerValue: "17ad")
         
-        #expect(reply.contains("too low") || reply.contains("laughing") || reply.contains("dust") || reply.contains("joke") || reply.contains("nothing") || reply.contains("floor"), "Reply should address the lower milestone brag: \(reply)")
+        #expect(isTooLowMilestoneReply(reply), "Reply should address the lower milestone brag: \(reply)")
     }
 
     @Test("Verify that 'don't get too comfortable' does not trigger target out-of-reach false positive")
