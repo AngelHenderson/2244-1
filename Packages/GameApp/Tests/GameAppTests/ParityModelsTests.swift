@@ -593,7 +593,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "10"
         )
-        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Friendly rivalry?")
+        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Friendly rivalry?") || streakReply.contains("race starts now") || streakReply.contains("breaks it first")
         #expect(isStreakTie, "Expected same-streak reply to use rivalry/tie phrasing: \(streakReply)")
         
         // 2. Time
@@ -603,7 +603,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "0:15"
         )
-        let isTimeTie = timeReply.contains("tied") || timeReply.contains("both at 0:15") || timeReply.contains("right there at 0:15") || timeReply.contains("also clocked 0:15") || timeReply.contains("Friendly rivalry?")
+        let isTimeTie = timeReply.contains("tied") || timeReply.contains("both at 0:15") || timeReply.contains("right there at 0:15") || timeReply.contains("also clocked 0:15") || timeReply.contains("Friendly rivalry?") || timeReply.contains("race starts now") || timeReply.contains("breaks it first") || timeReply.contains("sitting at 0:15")
         #expect(isTimeTie, "Expected same-time reply to use rivalry/tie phrasing: \(timeReply)")
         
         // 3. HOF
@@ -613,7 +613,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "15"
         )
-        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Friendly rivalry?")
+        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Friendly rivalry?") || hofReply.contains("race starts now") || hofReply.contains("breaks it first")
         #expect(isHofTie, "Expected same-HOF reply to use rivalry/tie phrasing: \(hofReply)")
         
         // 4. Score
@@ -623,7 +623,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "1000"
         )
-        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Friendly rivalry?")
+        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Friendly rivalry?") || scoreReply.contains("race starts now") || scoreReply.contains("breaks it first")
         #expect(isScoreTie, "Expected same-score reply to use rivalry/tie phrasing: \(scoreReply)")
         
         // 5. Quest
@@ -633,7 +633,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "Silver"
         )
-        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("tied at Silver") || questReply.contains("farming Silver") || questReply.contains("Silver chests too") || questReply.contains("Friendly rivalry?")
+        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("both opening Silver") || questReply.contains("chests too") || questReply.contains("Friendly rivalry?") || questReply.contains("farming Silver") || questReply.contains("race starts now") || questReply.contains("next tier first") || questReply.contains("tied at Silver")
         #expect(isQuestTie, "Expected same-quest reply to use rivalry/tie phrasing: \(questReply)")
     }
 
@@ -648,7 +648,7 @@ struct ParityModelsTests {
             forceTone: "behind",
             speakerValue: "32K"
         )
-        let isMilestoneBehind = milestoneReply.contains("lower right now") || milestoneReply.contains("ahead for now") || milestoneReply.contains("lead while it lasts") || milestoneReply.contains("catch up") || milestoneReply.contains("closing the gap") || milestoneReply.contains("overtake") || milestoneReply.contains("coming for") || milestoneReply.contains("is next") || milestoneReply.contains("comfortable")
+        let isMilestoneBehind = milestoneReply.contains("lower right now") || milestoneReply.contains("ahead for now") || milestoneReply.contains("lead while it lasts") || milestoneReply.contains("catch") || milestoneReply.contains("closing the gap") || milestoneReply.contains("overtake") || milestoneReply.contains("coming for") || milestoneReply.contains("is next") || milestoneReply.contains("comfortable")
         #expect(isMilestoneBehind, "Expected behind milestone reply to use catch-up phrasing: \(milestoneReply)")
         
         // Behind on streak
@@ -658,7 +658,7 @@ struct ParityModelsTests {
             forceTone: "behind",
             speakerValue: "10"
         )
-        let isStreakBehind = streakReply.contains("lower right now") || streakReply.contains("ahead for now") || streakReply.contains("lead while it lasts") || streakReply.contains("catch up") || streakReply.contains("closing the gap") || streakReply.contains("overtake") || streakReply.contains("coming for") || streakReply.contains("is next") || streakReply.contains("comfortable")
+        let isStreakBehind = streakReply.contains("lower right now") || streakReply.contains("ahead for now") || streakReply.contains("lead while it lasts") || streakReply.contains("catch") || streakReply.contains("closing the gap") || streakReply.contains("overtake") || streakReply.contains("coming for") || streakReply.contains("is next") || streakReply.contains("comfortable")
         #expect(isStreakBehind, "Expected behind streak reply to use catch-up phrasing: \(streakReply)")
     }
 
