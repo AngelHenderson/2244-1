@@ -531,6 +531,31 @@ struct ParityModelsTests {
             }
         }
     }
+
+    @Test("Verify that too-low reply is correctly generated when a comment has multiple milestones (e.g. 17ad and 4ad) and target is 17ad")
+    func testTooLowReplyWithMultipleMilestonesInComment() {
+        let service = MockSocialService()
+        
+        let commentText = "@Larissa Martins Of course you can't get to 17ad. That's child's play compared to my 4ad XDDDDDDD."
+        
+        let reply = service.generateContextualReply(to: commentText, message: "Unlocked milestone 17ad.", forceTone: "one_up", speakerValue: "17ad")
+        
+        #expect(reply.contains("too low") || reply.contains("laughing") || reply.contains("dust") || reply.contains("joke") || reply.contains("nothing") || reply.contains("floor"), "Reply should address the lower milestone brag: \(reply)")
+    }
+
+    @Test("Verify that 'don't get too comfortable' does not trigger target out-of-reach false positive")
+    func testGetTooComfortableDoesNotTriggerOutOfReach() {
+        let service = MockSocialService()
+        
+        let commentText = "@Sofia Nelson I might be lower right now. Don't get too comfortable up there. I will overtake you soon. !!"
+        
+        let reply = service.generateContextualReply(to: commentText, message: "Unlocked milestone 17ad.", forceTone: "behind", speakerValue: "4ad")
+        
+        // Since isTargetOutOfReach is false, it shouldn't generate the "If you can't even get to..." out-of-reach reply.
+        // It should generate a behind reply instead.
+        #expect(!reply.contains("can't even get to"), "Reply should not contain out-of-reach response: \(reply)")
+        #expect(!reply.contains("out of reach for you"), "Reply should not contain out-of-reach response: \(reply)")
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {

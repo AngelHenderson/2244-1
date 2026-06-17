@@ -843,7 +843,7 @@ public struct MockSocialService: SocialService, Sendable {
         let nsText = text as NSString
         
         switch topic {
-        case "hof", "streak":
+        case "hof", "streak", "score":
             if let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)") {
                 let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
                 for m in regexMatches {
@@ -1037,7 +1037,7 @@ public struct MockSocialService: SocialService, Sendable {
 
     static func isRecord(_ rec1: String, worseThan rec2: String, topic: String) -> Bool {
         switch topic {
-        case "hof", "streak":
+        case "hof", "streak", "score":
             guard let int1 = Int(rec1), let int2 = Int(rec2) else { return false }
             return int1 < int2
         case "quest":
@@ -3231,15 +3231,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         // ── Extract dynamic content from the comment ──
 
-        // Pull any milestone mentioned in the comment (find highest index for competitive progression)
-        var foundMilestones: [(index: Int, name: String)] = []
-        for (idx, m) in Self.allMilestones.enumerated() {
-            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
-            if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: strippedText, range: NSRange(strippedText.startIndex..., in: strippedText)) != nil {
-                foundMilestones.append((index: idx, name: m))
+        let commentMilestone: (index: Int, name: String)? = {
+            if let val = Self.extractValue(from: commentText, topic: "milestone"),
+               let idx = Self.allMilestones.firstIndex(of: val) {
+                return (index: idx, name: val)
             }
-        }
-        let commentMilestone = foundMilestones.max(by: { $0.index < $1.index })
+            var foundMilestones: [(index: Int, name: String)] = []
+            for (idx, m) in Self.allMilestones.enumerated() {
+                let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
+                if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: strippedText, range: NSRange(strippedText.startIndex..., in: strippedText)) != nil {
+                    foundMilestones.append((index: idx, name: m))
+                }
+            }
+            return foundMilestones.max(by: { $0.index < $1.index })
+        }()
         
         let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
         let rootMilestone = sortedMilestones.first(where: { entry in
@@ -3250,6 +3255,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         var mentionedMilestone = commentMilestone ?? rootMilestone
 
         let commentNumber: Int? = {
+            let topic = Self.determineTopic(message: message)
+            let queryTopic: String
+            if topic == "hof" {
+                queryTopic = "hof"
+            } else if topic == "streak" {
+                queryTopic = "streak"
+            } else {
+                queryTopic = "score"
+            }
+            if let val = Self.extractValue(from: commentText, topic: queryTopic),
+               let num = Int(val) {
+                return num
+            }
             let regex = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)", options: [])
             let range = NSRange(strippedText.startIndex..., in: strippedText)
             if let matches = regex?.matches(in: strippedText, range: range) {
@@ -3277,7 +3295,15 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         
         let mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
         
-        let commentTime = Self.extractTime(from: strippedLower)
+        let commentTime: (Int, Int)? = {
+            if let val = Self.extractValue(from: commentText, topic: "time") {
+                let parts = val.split(separator: ":")
+                if parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) {
+                    return (mins, secs)
+                }
+            }
+            return Self.extractTime(from: strippedLower)
+        }()
         let rootTime = Self.extractTime(from: message.lowercased())
 
         // Extract key phrases the commenter used for mirroring
@@ -3342,7 +3368,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past"]
+        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "childs play", "compared to"]
         var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -3495,7 +3521,33 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         if isCompetitive {
             let outOfReachPhrases = ["get to", "reach", "trying to", "stuck on", "can't even", "can never", "impossible", "struggling", "wish i could", "aiming for", "hard to", "hoping to"]
-            let isTargetOutOfReach = outOfReachPhrases.contains { strippedLower.contains($0) }
+            let isTargetOutOfReach = outOfReachPhrases.contains { phrase in
+                let pattern = "\\b\(NSRegularExpression.escapedPattern(for: phrase))\\b"
+                guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return false }
+                let nsText = strippedLower as NSString
+                let matches = regex.matches(in: strippedLower, range: NSRange(location: 0, length: nsText.length))
+                
+                for match in matches {
+                    let matchLoc = match.range.location
+                    var clauseStart = 0
+                    let separators: Set<Character> = [".", "!", "?", ";"]
+                    for idx in (0..<matchLoc).reversed() {
+                        let char = Character(UnicodeScalar(nsText.character(at: idx))!)
+                        if separators.contains(char) {
+                            clauseStart = idx + 1
+                            break
+                        }
+                    }
+                    let clauseRange = NSRange(location: clauseStart, length: matchLoc - clauseStart)
+                    let clausePrefix = nsText.substring(with: clauseRange).lowercased()
+                    let words = Set(clausePrefix.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
+                    let recipientPronouns = ["you", "you're", "you'll", "your", "u", "ur"]
+                    if words.isDisjoint(with: recipientPronouns) {
+                        return true
+                    }
+                }
+                return false
+            }
             let parentIsJealous = jealousKeywords.contains(where: { strippedLower.contains($0) }) || isTargetOutOfReach
             
             if parentIsJealous && forceTone != "behind" {
@@ -3758,7 +3810,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I'm way past \(mName). I am sitting at \(higherM).",
                                     "Your \(mName) is nothing compared to my \(higherM) record.",
                                     "I easily passed \(mName). I dominate \(higherM).",
-                                    "My \(higherM) run was completely easy. \(mName) is cute.",
+                                    "Your \(mName) is child's play compared to my \(higherM) record.",
                                     "\(mName) was light work. I'm already sitting at \(higherM).",
                                     "You're celebrating \(mName)? I just cleared \(higherM).",
                                     "I left \(mName) in the dust. \(higherM) is the new standard.",
@@ -4221,7 +4273,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I am ahead of your \(numStr) infinity count. I'm at \(higherNum).",
                                 "Your \(numStr) HoF entries are nothing. You'll never catch my \(higherNum).",
                                 "I already passed \(numStr) infinities. I'm at \(higherNum).",
-                                "My \(higherNum) run was completely easy. \(numStr) is cute.",
+                                "Your \(numStr) is child's play compared to my \(higherNum) entries.",
                                 "You're bragging about \(numStr)? \(higherNum) in the HoF completely buries you.",
                                 "I dominate the HoF with \(higherNum) entries. \(numStr) isn't enough.",
                                 "My Hall of Fame status speaks for itself. \(higherNum) > \(numStr)."
@@ -4252,7 +4304,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I am ahead of your \(assumedNum) infinity count. I'm at \(higherNum).",
                             "Your \(assumedNum) HoF entries are nothing. You'll never catch my \(higherNum).",
                             "I already passed \(assumedNum) infinities. I'm at \(higherNum).",
-                            "My \(higherNum) run was completely easy. \(assumedNum) is cute.",
+                            "Your \(assumedNum) is child's play compared to my \(higherNum) entries.",
                             "You're bragging about \(assumedNum)? \(higherNum) in the HoF completely buries you.",
                             "I dominate the HoF with \(higherNum) entries. \(assumedNum) isn't enough.",
                             "My Hall of Fame status speaks for itself. \(higherNum) > \(assumedNum)."
