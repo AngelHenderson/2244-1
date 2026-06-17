@@ -821,7 +821,7 @@ public struct MockSocialService: SocialService, Sendable {
 
         let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
         let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && !rootMilestoneExists)
-        let isMessageHoF = !msgWords.isDisjoint(with: ["hof", "infinity", "infinit"]) || msgLower.contains("hall of fame")
+        let isMessageHoF = msgLower.contains("hall of fame") || msgLower.contains("infinity") || msgLower.contains("infinities") || !msgWords.isDisjoint(with: ["hof", "infinit"])
         let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
         let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
 
@@ -2934,8 +2934,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let higherM = Self.allMilestones[higherIdx]
         let higherName = Self.leaderboardPlayerAtMilestone(higherM)
 
+        let topic = Self.determineTopic(message: message)
+
         // ── Streak posts: extract the day count, brag with a higher one ──
-        if lowered.contains("streak") {
+        if topic == "streak" {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
                 let isLowStreak = Double.random(in: 0...1) < 0.45
                 if isLowStreak && streakDays > 1 {
@@ -2978,8 +2980,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         // ── Timed challenge posts: extract time remaining, brag with more ──
-        let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil
-        if hasTimeFormat || lowered.contains("timed") || lowered.contains("challenge") || lowered.contains("speed") {
+        if topic == "time" {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
                 if totalSecs <= 2 {
@@ -3054,7 +3055,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
-        if lowered.contains("hall of fame") || lowered.contains("hof") || lowered.contains("infinity") {
+        if topic == "hof" {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
                 let isLowHoF = Double.random(in: 0...1) < 0.45
                 if isLowHoF && infCount > 1 {
@@ -3094,7 +3095,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         // ── Quest posts: brag about better chest tier or faster completion ──
-        if lowered.contains("quest") {
+        if topic == "quest" {
             let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
             if let posterTierIdx = tiers.firstIndex(where: { message.contains($0) }),
                posterTierIdx < tiers.count - 1 {
@@ -3120,7 +3121,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         // ── Milestone posts: find the tile, reference a higher one ──
-        if let foundIdx = sortedMilestones.firstIndex(where: { m in
+        if topic == "milestone", let foundIdx = sortedMilestones.firstIndex(where: { m in
             let pattern = "\\b\(NSRegularExpression.escapedPattern(for: m))\\b"
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
                 in: message,
@@ -3411,45 +3412,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let mentionedGems = !combinedWords.isDisjoint(with: ["gem", "gems"])
         var mentionedQuest = !combinedWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
 
-                // ── Mutually Exclusive Topic Priority & Thread Locking ──
-        let msgWords = Set(msgLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
-        let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
-        let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && rootMilestone == nil)
-        let isMessageHoF = msgLower.contains("hall of fame") || msgLower.contains("infinity") || msgLower.contains("infinities") || !msgWords.isDisjoint(with: ["hof", "infinit"])
-        let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
-        let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
+        // ── Mutually Exclusive Topic Priority & Thread Locking ──
+        let msgTopic = Self.determineTopic(message: message)
         
         // Strict topic inheritance from the original feed item
-        if isMessageHoF {
-            mentionedTime = false
-            mentionedQuest = false
+        mentionedHoF = (msgTopic == "hof")
+        mentionedTime = (msgTopic == "time")
+        mentionedQuest = (msgTopic == "quest")
+        mentionedStreak = (msgTopic == "streak")
+        if msgTopic != "milestone" {
             mentionedMilestone = nil
-            mentionedStreak = false
-            // mentionedHoF remains true
-        } else if isMessageTime {
-            mentionedHoF = false
-            mentionedQuest = false
-            mentionedMilestone = nil
-            mentionedStreak = false
-            // mentionedTime remains true
-        } else if isMessageQuest {
-            mentionedHoF = false
-            mentionedTime = false
-            mentionedMilestone = nil
-            mentionedStreak = false
-            // mentionedQuest remains true
-        } else if isMessageStreak {
-            mentionedHoF = false
-            mentionedTime = false
-            mentionedQuest = false
-            mentionedMilestone = nil
-            // mentionedStreak remains true
-        } else {
-            // Milestone base item
-            mentionedHoF = false
-            mentionedTime = false
-            mentionedQuest = false
-            mentionedStreak = false
         }
 
 
@@ -3481,7 +3453,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "Add me if you want to watch me stay ahead.",
                 "Sure, add me so you can stare at my infinite lead.",
                 "You can watch my stats from the bottom.",
-                "Go for it! I need an audience for my endless dominance.",
+                "Go for it—spectator tickets are free.",
                 "Yes! Add me and witness infinity.",
                 "For sure — watch me extend my lead.",
                 "Definitely! But don't expect to ever reach my tier.",
@@ -3872,6 +3844,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let higherM: String
                     if let speakerValue = speakerValue {
                         higherM = speakerValue
+                    } else if let rM = refMilestone {
+                        higherM = rM.name
                     } else {
                         let mIdx = cM.index
                         let jump = Int.random(in: 2...5)
@@ -3930,6 +3904,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherM: String
                         if let speakerValue = speakerValue {
                             higherM = speakerValue
+                        } else if let rM = refMilestone {
+                            higherM = rM.name
                         } else {
                             let jump: Int
                             if Double.random(in: 0...1) < 0.80 {
@@ -4009,6 +3985,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
+                    } else if let rN = refNumber {
+                        higherNum = rN
                     } else {
                         higherNum = cN + Int.random(in: 10...max(20, cN))
                     }
