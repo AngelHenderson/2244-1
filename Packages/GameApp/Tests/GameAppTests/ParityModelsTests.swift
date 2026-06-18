@@ -188,7 +188,7 @@ struct ParityModelsTests {
                     "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
                     "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
                     "watch your back", "watch me stay ahead", "watch my stats",
-                    "endless dominance", "witness infinity", "extend my lead"
+                    "sidelines", "witness infinity", "extend my lead"
                 ]
                 let isCompetitiveComment = competitivePhrases.contains { lowercasedText.contains($0) }
                 if isCompetitiveComment {

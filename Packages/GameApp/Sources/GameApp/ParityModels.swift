@@ -3453,7 +3453,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "Add me if you want to watch me stay ahead.",
                 "Sure, add me so you can stare at my infinite lead.",
                 "You can watch my stats from the bottom.",
-                "Go for it—spectator tickets are free.",
+                "Go for it—somebody has to watch from the sidelines.",
                 "Yes! Add me and witness infinity.",
                 "For sure — watch me extend my lead.",
                 "Definitely! But don't expect to ever reach my tier.",
@@ -4024,6 +4024,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
+                    } else if let rN = refNumber {
+                        higherNum = rN
                     } else if isLowScore && num > 20 {
                         higherNum = num - Int.random(in: 10...max(20, num / 2))
                     } else {
@@ -4095,6 +4097,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
+                        } else if let rN = refNumber {
+                            higherNum = rN
                         } else {
                             higherNum = cN + Int.random(in: 5...max(15, cN / 5))
                         }
@@ -4132,6 +4136,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
+                        } else if let rN = refNumber {
+                            higherNum = rN
                         } else if isLowStreak && num > 1 {
                             higherNum = num - Int.random(in: 1...max(5, num / 2))
                         } else {
