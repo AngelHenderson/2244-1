@@ -3439,7 +3439,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
         let isJealous = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
-        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "effortless", "this is entirely effortless"]
+        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "effortless"]
         let isPositive = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
