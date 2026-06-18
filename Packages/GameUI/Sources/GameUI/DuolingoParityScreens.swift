@@ -623,9 +623,6 @@ public struct FriendsView: View {
                         VStack(alignment: .leading) {
                             Text(currentProfile?.friendCode ?? localFriendCode ?? "...")
                                 .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
-                            Text("Share this code or profile link with friends.")
-                                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                                .foregroundStyle(.secondary)
                         }
                     }
                 }
