@@ -1971,21 +1971,50 @@ public struct MockSocialService: SocialService, Sendable {
             }
             return profiles
         } else {
-            // Search mode: generate a larger pool and filter by query
-            var seen = Set<String>()
-            var candidates: [AccountProfile] = []
-            var attempts = 0
-            while candidates.count < 50 && attempts < 500 {
-                attempts += 1
-                let name = generateDynamicName()
-                guard !seen.contains(name) else { continue }
-                seen.insert(name)
-                if name.localizedCaseInsensitiveContains(query) {
-                    let playerIndex = Int.random(in: 1...100000)
-                    candidates.append(makeProfile(name: name, playerIndex: playerIndex))
+            // Search mode: build the full name pool and filter exhaustively
+            var fullPool = Set<String>()
+
+            // Add all gamertag base names (stripped of digits)
+            for tag in Self.leaderboardGamertags {
+                var base = tag
+                while let last = base.last, last.isNumber { base.removeLast() }
+                fullPool.insert(base)
+            }
+
+            // Add all region-matched firstName + lastName combos
+            let regionRanges: [(firstStart: Int, firstCount: Int, lastStart: Int, lastCount: Int)] = [
+                (0, 40, 0, 40),     // English
+                (40, 20, 40, 20),   // Hispanic
+                (60, 20, 60, 20),   // German
+                (80, 20, 80, 20),   // French
+                (100, 20, 100, 20), // Italian
+                (120, 20, 120, 20), // Japanese
+                (140, 20, 140, 20), // Korean
+                (160, 20, 160, 20), // Chinese
+                (180, 20, 180, 20), // Indian
+                (200, 20, 200, 20), // Brazilian/Portuguese
+                (220, 20, 220, 20), // Russian
+                (240, 20, 240, 20), // Arabic
+                (260, 20, 260, 20), // Scandinavian
+            ]
+            for region in regionRanges {
+                let firstEnd = min(region.firstStart + region.firstCount, Self.leaderboardRealNames.count)
+                let lastEnd = min(region.lastStart + region.lastCount, Self.leaderboardLastNames.count)
+                for fi in region.firstStart..<firstEnd {
+                    for li in region.lastStart..<lastEnd {
+                        fullPool.insert("\(Self.leaderboardRealNames[fi]) \(Self.leaderboardLastNames[li])")
+                    }
                 }
             }
-            return candidates
+
+            // Filter the full pool by the query
+            let filtered = fullPool.filter { $0.localizedCaseInsensitiveContains(query) }
+
+            return filtered.map { name in
+                // Deterministic player index from name for avatar consistency
+                let playerIndex = abs(name.hashValue) % 100000
+                return makeProfile(name: name, playerIndex: playerIndex)
+            }
         }
     }
 

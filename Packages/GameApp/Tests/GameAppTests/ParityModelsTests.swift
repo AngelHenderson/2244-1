@@ -85,14 +85,15 @@ struct ParityModelsTests {
         let service = MockSocialService()
         let feed = try await service.feed()
         let browseResults = try await service.searchFriends(query: "")
-        let searchResults = try await service.searchFriends(query: "test")
+        let searchResults = try await service.searchFriends(query: "Carlos")
 
         #expect(!feed.isEmpty)
         #expect(browseResults.count == 20)
         // Browse results should have real avatars, not SF Symbol fallbacks
         #expect(browseResults.allSatisfy { !$0.avatarID.contains("systemName") })
-        // Search may or may not find matches — just ensure it doesn't crash
-        #expect(searchResults.count >= 0)
+        // Search should find all matching names exhaustively
+        #expect(searchResults.count > 0, "Searching for 'Carlos' should return results")
+        #expect(searchResults.allSatisfy { $0.displayName.localizedCaseInsensitiveContains("Carlos") })
     }
 
     @Test("Bot competitive comments and replies do not contain finite-match word 'competition'")
