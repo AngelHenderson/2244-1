@@ -525,13 +525,21 @@ struct ParityModelsTests {
                     if let val = MockSocialService.extractValue(from: comment.text, topic: topic) {
                         if let establishedVal = playerRecords[author] {
                             let textLower = comment.text.lowercased()
-                            let isCatchUpReply = textLower.contains("catch up") || textLower.contains("ahead now") || textLower.contains("passed you") || textLower.contains("overtake") || textLower.contains("watch your back") || textLower.contains("beat your") || textLower.contains("clocked faster than") || textLower.contains("caught up") || textLower.contains("got ahead")
+                            let isCatchUpReply = textLower.contains("just beat your") ||
+                                                 textLower.contains("ahead now") ||
+                                                 textLower.contains("blew past your") ||
+                                                 textLower.contains("caught up and passed") ||
+                                                 textLower.contains("clocked faster than") ||
+                                                 textLower.contains("just passed your")
                             
                             let isBetter = MockSocialService.isRecord(establishedVal, worseThan: val, topic: topic)
                             if isCatchUpReply {
                                 #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
                             } else {
                                 #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            }
+                            if isBetter {
+                                playerRecords[author] = val
                             }
                         } else {
                             playerRecords[author] = val
