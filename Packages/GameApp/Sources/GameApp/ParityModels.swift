@@ -927,7 +927,22 @@ public struct MockSocialService: SocialService, Sendable {
             let pattern = "^@[a-zA-Z0-9\\-]+(?:\\s+[a-zA-Z0-9\\-]+)?\\s*"
             if let regex = try? NSRegularExpression(pattern: pattern),
                let match = regex.firstMatch(in: text, range: NSRange(location: 0, length: nsText.length)) {
-                mentionLength = match.range.length
+                let matchedStr = nsText.substring(with: match.range)
+                let parts = matchedStr.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ")
+                if parts.count == 2 {
+                    let secondWord = String(parts[1])
+                    if Self.leaderboardLastNames.contains(secondWord) {
+                        mentionLength = match.range.length
+                    } else {
+                        let firstWordPattern = "^@[a-zA-Z0-9\\-]+\\s*"
+                        if let firstRegex = try? NSRegularExpression(pattern: firstWordPattern),
+                           let firstMatch = firstRegex.firstMatch(in: text, range: NSRange(location: 0, length: nsText.length)) {
+                            mentionLength = firstMatch.range.length
+                        }
+                    }
+                } else {
+                    mentionLength = match.range.length
+                }
             }
             filteredMatches = uniqueMatches.filter { $0.range.location >= mentionLength }
         } else {
@@ -3334,7 +3349,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let nsText = commentText as NSString
                 if let regex = try? NSRegularExpression(pattern: pattern),
                    let match = regex.firstMatch(in: commentText, range: NSRange(location: 0, length: nsText.length)) {
-                    return nsText.substring(from: match.range.upperBound)
+                    let matchedStr = nsText.substring(with: match.range)
+                    let parts = matchedStr.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ")
+                    if parts.count == 2 {
+                        let secondWord = String(parts[1])
+                        if Self.leaderboardLastNames.contains(secondWord) {
+                            return nsText.substring(from: match.range.upperBound)
+                        } else {
+                            let firstWordPattern = "^@[a-zA-Z0-9\\-]+\\s*"
+                            if let firstRegex = try? NSRegularExpression(pattern: firstWordPattern),
+                               let firstMatch = firstRegex.firstMatch(in: commentText, range: NSRange(location: 0, length: nsText.length)) {
+                                return nsText.substring(from: firstMatch.range.upperBound)
+                            }
+                        }
+                    } else {
+                        return nsText.substring(from: match.range.upperBound)
+                    }
                 }
             }
             return commentText
