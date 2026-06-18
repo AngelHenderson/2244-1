@@ -936,12 +936,7 @@ public struct MockSocialService: SocialService, Sendable {
         
         guard !filteredMatches.isEmpty else { return nil }
         
-        if !text.hasPrefix("@") {
-            // Base comment/post: return the best value
-            return bestValue(among: filteredMatches.map { $0.val }, topic: topic)
-        }
-        
-        // Reply comment: score each candidate based on context
+        // Score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
         let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "passed"]
         let otherKeywords = ["your", "you're", "about", "celebrating", "only", "thought"]
@@ -971,19 +966,16 @@ public struct MockSocialService: SocialService, Sendable {
             scoredMatches.append((val: match.val, netScore: netScore))
         }
         
-        if let maxScore = scoredMatches.map({ $0.netScore }).max() {
+        if let maxScore = scoredMatches.map({ $0.netScore }).max(), maxScore > 0 {
             let bestMatches = scoredMatches.filter { $0.netScore == maxScore }
             if bestMatches.count == 1 {
-                if bestMatches[0].netScore < 0 {
-                    return nil
-                }
                 return bestMatches[0].val
             } else {
                 return bestValue(among: bestMatches.map { $0.val }, topic: topic)
             }
         }
         
-        return nil
+        return bestValue(among: filteredMatches.map { $0.val }, topic: topic)
     }
 
     static func oneUpValue(for val: String?, topic: String) -> String {
@@ -4343,6 +4335,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherNum: Int
                         if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
                             higherNum = sMins * 60 + sSecs
+                        } else if let rT = refTime {
+                            higherNum = rT.0 * 60 + rT.1
                         } else {
                             if totalSecs <= 10 {
                                 higherNum = max(2, totalSecs - Int.random(in: 1...3))
@@ -4480,6 +4474,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
+                        } else if let rN = refNumber {
+                            higherNum = rN
                         } else {
                             higherNum = num + Int.random(in: 1...max(3, num/2))
                         }
@@ -4514,9 +4510,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     let isLowHoF = speakerValue == nil && Double.random(in: 0...1) < 0.45
                     let assumedNum = Int.random(in: 8...15)
+                    let refNumber = speakerValue.flatMap(Int.init) ?? rootNumber
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
+                    } else if let rN = refNumber {
+                        higherNum = rN
                     } else if isLowHoF {
                         higherNum = max(1, assumedNum - Int.random(in: 2...5))
                       } else {
@@ -4560,6 +4559,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let myTier: String
                     if let speakerValue = speakerValue {
                         myTier = speakerValue
+                    } else if let refIdx = tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) {
+                        myTier = tiers[refIdx]
                     } else {
                         myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
                     }
