@@ -2861,8 +2861,8 @@ public struct MockSocialService: SocialService, Sendable {
                         "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
                         "No one comes close.", "Keep dreaming.",
                         "You're not even a threat.", "My scores speak for themselves.",
-                        "You're not on my level.", "I'm extending my lead.",
-                        "Stay down there.", "This record belongs to me.", "Enjoy the view from the bottom.", "You will never catch up.", "I am safely out of your reach."
+                        "You're not on my level.", "I'm out of your league.",
+                        "Stay down there.", "This record belongs to me.", "Don't bother looking up.", "You will never catch up.", "I am safely out of your reach."
                     ]
                     let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
                     if isTimeTopic {
@@ -4704,7 +4704,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Your efforts are pointless. \(genericHigherM) completely buries you.",
                         "I am already ahead of you. I'm pushing \(genericHigherM).",
                         "My record is flawless. \(genericHigherM) is completely out of your reach.",
-                        "Enjoy the view from the bottom. I'm way up at \(genericHigherM).",
+                        "Don't bother looking up. I'm way up at \(genericHigherM).",
                         "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
                     ])
                 }
