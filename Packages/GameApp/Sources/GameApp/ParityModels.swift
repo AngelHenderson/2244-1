@@ -2862,7 +2862,7 @@ public struct MockSocialService: SocialService, Sendable {
                         "No one comes close.", "Keep dreaming.",
                         "You're not even a threat.", "My scores speak for themselves.",
                         "You're not on my level.", "I'm extending my lead.",
-                        "Stay down there.", "This record belongs to me.", "Enjoy staring at my back.", "You will never catch up.", "I am safely out of your reach."
+                        "Stay down there.", "This record belongs to me.", "Enjoy the view from the bottom.", "You will never catch up.", "I am safely out of your reach."
                     ]
                     let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
                     if isTimeTopic {
@@ -3921,7 +3921,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(cM.name). The real race starts now.",
                             "\(cM.name) is solid. I'm sitting at \(higherM) too.",
                             "Looks like we're both at \(cM.name). Don't get too comfortable.",
-                            "I also hit \(higherM). Try to keep up."
+                            "I also hit \(higherM). Cute, but irrelevant."
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -3996,7 +3996,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "We're tied at \(mName). The real race starts now.",
                                     "\(mName) is solid. I'm sitting at \(higherM) too.",
                                     "Looks like we're both at \(mName). Don't get too comfortable.",
-                                    "I also hit \(higherM). Try to keep up."
+                                    "I also hit \(higherM). Cute, but irrelevant."
                                 ])
                             } else {
                                 replies.append(contentsOf: [
@@ -4055,7 +4055,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(cN). The real race starts now.",
                             "\(cN) is solid. I'm sitting at \(higherNum) too.",
                             "Looks like we're both at \(cN). Don't get too comfortable.",
-                            "I also hit \(higherNum). Try to keep up."
+                            "I also hit \(higherNum). Cute, but irrelevant."
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -4096,7 +4096,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(numStr). The real race starts now.",
                             "\(numStr) is solid. I'm sitting at \(higherNum) too.",
                             "Looks like we're both at \(numStr). Don't get too comfortable.",
-                            "I also hit \(higherNum). Try to keep up."
+                            "I also hit \(higherNum). Cute, but irrelevant."
                         ])
                     } else {
                         if wantsBetter {
@@ -4167,7 +4167,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(cN) days. The real race starts now.",
                                 "\(cN) days is solid. I'm sitting at \(higherNum) days too.",
                                 "Looks like we're both at \(cN) days. Don't get too comfortable.",
-                                "I also hit \(higherNum) days. Try to keep up."
+                                "I also hit \(higherNum) days. Cute, but irrelevant."
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4208,7 +4208,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(numStr) days. The real race starts now.",
                                 "\(numStr) days is solid. I'm sitting at \(higherNum) days too.",
                                 "Looks like we're both at \(numStr) days. Don't get too comfortable.",
-                                "I also hit \(higherNum) days. Try to keep up."
+                                "I also hit \(higherNum) days. Cute, but irrelevant."
                             ])
                         } else {
                             if wantsBetter {
@@ -4369,7 +4369,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(cTimeStr). The real race starts now.",
                                 "\(cTimeStr) is solid. I'm sitting at \(myTimeStr) too.",
                                 "Looks like we're both at \(cTimeStr). Don't get too comfortable.",
-                                "I also clocked \(myTimeStr). Try to keep up."
+                                "I also clocked \(myTimeStr). Cute, but irrelevant."
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4422,7 +4422,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(posterTime). The real race starts now.",
                                 "\(posterTime) is solid. I'm sitting at \(higherTime) too.",
                                 "Looks like we're both at \(posterTime). Don't get too comfortable.",
-                                "I also clocked \(higherTime). Try to keep up."
+                                "I also clocked \(higherTime). Cute, but irrelevant."
                             ])
                         } else {
                             if wantsBetter {
@@ -4492,7 +4492,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(posterTime). The real race starts now.",
                             "\(posterTime) is solid. I'm sitting at \(higherTime) too.",
                             "Looks like we're both at \(posterTime). Don't get too comfortable.",
-                            "I also clocked \(higherTime). Try to keep up."
+                            "I also clocked \(higherTime). Cute, but irrelevant."
                         ])
                     } else {
                         let diff = assumedTotal - higherNum
@@ -4552,7 +4552,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(numStr) entries. The real race starts now.",
                                 "\(numStr) entries is solid. I'm sitting at \(higherNum) too.",
                                 "Looks like we're both at \(numStr) entries. Don't get too comfortable.",
-                                "I also reached \(higherNum) infinities. Try to keep up."
+                                "I also reached \(higherNum) infinities. Cute, but irrelevant."
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4594,7 +4594,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(assumedNum) entries. The real race starts now.",
                             "\(assumedNum) entries is solid. I'm sitting at \(higherNum) too.",
                             "Looks like we're both at \(assumedNum) entries. Don't get too comfortable.",
-                            "I also reached \(higherNum) infinities. Try to keep up."
+                            "I also reached \(higherNum) infinities. Cute, but irrelevant."
                         ])
                     } else {
                         replies.append(contentsOf: [
