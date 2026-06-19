@@ -54,7 +54,7 @@ struct SideRailButton: View {
                             }
                         }
 
-                        if specialLabelInside, let specialLabel = specialLabel, !specialLabel.isEmpty {
+                        if specialLabelInside, !banned, !locked, let specialLabel = specialLabel, !specialLabel.isEmpty {
                             HStack(spacing: 2) {
                                 Image("gem")
                                     .resizable()

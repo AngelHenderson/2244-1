@@ -320,7 +320,7 @@ public final class PlayerReadinessStore {
         bonusSpins: Int,
         isPrivacyOptionsRequired: Bool
     ) -> NextBestAction {
-        if !snapshot.hasCompletedTutorial {
+        if !snapshot.hasCompletedTutorial && !snapshot.dismissedRecommendations.contains(.tutorial) {
             return .tutorial
         }
         if snapshot.completedRuns == 0 {

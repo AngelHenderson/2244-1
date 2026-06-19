@@ -334,6 +334,10 @@ public struct RootGameView: View {
                 saveProgress()
             },
             watchAd: {
+                guard !homeState.isBanned else {
+                    homeState.showBanAlert = true
+                    return 0
+                }
                 guard !purchaseService.isAdFreePurchased else { return 0 }
                 let reward = homeState.adReward
                 let key = "ad:home:\(reward):\(Int(Date().timeIntervalSince1970))"
