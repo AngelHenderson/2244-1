@@ -524,6 +524,7 @@ public struct HomeView: View {
                     id: "feed",
                     system: "bubble.left.and.bubble.right.fill",
                     title: "Feed",
+                    badgeCount: state.gems,
                     banned: state.isBanned,
                     action: {
                         if state.isBanned { state.showBanAlert = true }
