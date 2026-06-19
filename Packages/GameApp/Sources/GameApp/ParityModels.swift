@@ -953,11 +953,11 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
-        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "passed"]
+        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked"]
         let otherKeywords = ["your", "you're", "about", "celebrating", "only", "thought"]
         
         func getClausePrefix(from text: String, startLoc: Int, mentionLength: Int) -> String {
-            let prefixLen = min(35, startLoc - mentionLength)
+            let prefixLen = min(80, startLoc - mentionLength)
             guard prefixLen > 0 else { return "" }
             let prefixRange = NSRange(location: startLoc - prefixLen, length: prefixLen)
             let rawPrefix = (text as NSString).substring(with: prefixRange).lowercased()
@@ -981,7 +981,7 @@ public struct MockSocialService: SocialService, Sendable {
             scoredMatches.append((val: match.val, netScore: netScore))
         }
         
-        if let maxScore = scoredMatches.map({ $0.netScore }).max(), maxScore > 0 {
+        if let maxScore = scoredMatches.map({ $0.netScore }).max() {
             let bestMatches = scoredMatches.filter { $0.netScore == maxScore }
             if bestMatches.count == 1 {
                 return bestMatches[0].val
@@ -990,7 +990,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
         
-        return bestValue(among: filteredMatches.map { $0.val }, topic: topic)
+        return nil
     }
 
     static func oneUpValue(for val: String?, topic: String) -> String {
@@ -2820,7 +2820,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Don't get too comfortable up there.",
                     "I'm already closing the gap.",
                     "My next run is going to crush that.",
-                    "I'm coming for the top spot.",
+                    "I'm targeting the top spot.",
                     "Just give me a little more time."
                 ]
                 let bOpener = Self.drawFromBag(key: "comp_behind_opener_\(bagSuffix)", pool: compBehindOpeners)
@@ -3921,7 +3921,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(cM.name). The real race starts now.",
                             "\(cM.name) is solid. I'm sitting at \(higherM) too.",
                             "Looks like we're both at \(cM.name). Don't get too comfortable.",
-                            "I also hit \(higherM). Friendly rivalry?"
+                            "I also hit \(higherM). Try to keep up."
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -3996,7 +3996,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "We're tied at \(mName). The real race starts now.",
                                     "\(mName) is solid. I'm sitting at \(higherM) too.",
                                     "Looks like we're both at \(mName). Don't get too comfortable.",
-                                    "I also hit \(higherM). Friendly rivalry?"
+                                    "I also hit \(higherM). Try to keep up."
                                 ])
                             } else {
                                 replies.append(contentsOf: [
@@ -4055,7 +4055,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(cN). The real race starts now.",
                             "\(cN) is solid. I'm sitting at \(higherNum) too.",
                             "Looks like we're both at \(cN). Don't get too comfortable.",
-                            "I also hit \(higherNum). Friendly rivalry?"
+                            "I also hit \(higherNum). Try to keep up."
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -4096,7 +4096,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(numStr). The real race starts now.",
                             "\(numStr) is solid. I'm sitting at \(higherNum) too.",
                             "Looks like we're both at \(numStr). Don't get too comfortable.",
-                            "I also hit \(higherNum). Friendly rivalry?"
+                            "I also hit \(higherNum). Try to keep up."
                         ])
                     } else {
                         if wantsBetter {
@@ -4167,7 +4167,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(cN) days. The real race starts now.",
                                 "\(cN) days is solid. I'm sitting at \(higherNum) days too.",
                                 "Looks like we're both at \(cN) days. Don't get too comfortable.",
-                                "I also hit \(higherNum) days. Friendly rivalry?"
+                                "I also hit \(higherNum) days. Try to keep up."
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4208,7 +4208,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(numStr) days. The real race starts now.",
                                 "\(numStr) days is solid. I'm sitting at \(higherNum) days too.",
                                 "Looks like we're both at \(numStr) days. Don't get too comfortable.",
-                                "I also hit \(higherNum) days. Friendly rivalry?"
+                                "I also hit \(higherNum) days. Try to keep up."
                             ])
                         } else {
                             if wantsBetter {
@@ -4369,7 +4369,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(cTimeStr). The real race starts now.",
                                 "\(cTimeStr) is solid. I'm sitting at \(myTimeStr) too.",
                                 "Looks like we're both at \(cTimeStr). Don't get too comfortable.",
-                                "I also clocked \(myTimeStr). Friendly rivalry?"
+                                "I also clocked \(myTimeStr). Try to keep up."
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4422,7 +4422,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(posterTime). The real race starts now.",
                                 "\(posterTime) is solid. I'm sitting at \(higherTime) too.",
                                 "Looks like we're both at \(posterTime). Don't get too comfortable.",
-                                "I also clocked \(higherTime). Friendly rivalry?"
+                                "I also clocked \(higherTime). Try to keep up."
                             ])
                         } else {
                             if wantsBetter {
@@ -4492,7 +4492,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(posterTime). The real race starts now.",
                             "\(posterTime) is solid. I'm sitting at \(higherTime) too.",
                             "Looks like we're both at \(posterTime). Don't get too comfortable.",
-                            "I also clocked \(higherTime). Friendly rivalry?"
+                            "I also clocked \(higherTime). Try to keep up."
                         ])
                     } else {
                         let diff = assumedTotal - higherNum
@@ -4552,7 +4552,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "We're tied at \(numStr) entries. The real race starts now.",
                                 "\(numStr) entries is solid. I'm sitting at \(higherNum) too.",
                                 "Looks like we're both at \(numStr) entries. Don't get too comfortable.",
-                                "I also reached \(higherNum) infinities. Friendly rivalry?"
+                                "I also reached \(higherNum) infinities. Try to keep up."
                             ])
                         } else {
                             replies.append(contentsOf: [
@@ -4594,7 +4594,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We're tied at \(assumedNum) entries. The real race starts now.",
                             "\(assumedNum) entries is solid. I'm sitting at \(higherNum) too.",
                             "Looks like we're both at \(assumedNum) entries. Don't get too comfortable.",
-                            "I also reached \(higherNum) infinities. Friendly rivalry?"
+                            "I also reached \(higherNum) infinities. Try to keep up."
                         ])
                     } else {
                         replies.append(contentsOf: [
@@ -4669,38 +4669,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
             // Generic competitive
             if replies.isEmpty {
-                let fallbackIdx = mentionedMilestone?.index ?? 15
-                let genericJump = Int.random(in: 1...5)
-                let genericHigherM: String
-                if let speakerValue = speakerValue {
-                    genericHigherM = speakerValue
-                } else {
-                    let genericHigherIdx = min(fallbackIdx + genericJump, Self.allMilestones.count - 1)
-                    genericHigherM = Self.allMilestones[genericHigherIdx]
-                }
-
-                replies.append(contentsOf: [
-                    "Talk to me when you reach \(genericHigherM).",
-                    "None of you are anywhere near my \(genericHigherM) record.",
-                    "I'm ignoring this and focusing on my \(genericHigherM) grind.",
-                    "I am safely ahead, I'm already pushing \(genericHigherM).",
-                    "Your efforts are pointless. \(genericHigherM) completely buries you.",
-                    "I am already ahead of you. I'm pushing \(genericHigherM).",
-                    "My record is flawless. \(genericHigherM) is completely out of your reach.",
-                    "Enjoy the view from the bottom. I'm way up at \(genericHigherM).",
-                    "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
-                ])
-                if commentText == message {
-                    replies = replies.filter { r in
-                        let l = r.lowercased()
-                        return !l.contains("too low") && !l.contains("too slow") && !l.contains("dust") && !l.contains("fast enough")
-                    }
-                }
-            }
-            var reply = replies.randomElement()!
-            if (canBeBehind || forceTone == "behind") {
-                let isLowerBragSelected = speakerValue != nil && replies.contains(reply)
-                if !isLowerBragSelected || Double.random(in: 0...1) < 0.50 {
+                if forceTone == "behind" {
                     let compBehindOpeners = [
                         "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                     ]
@@ -4712,12 +4681,41 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Don't get too comfortable up there.",
                         "I'm already closing the gap.",
                         "My next run is going to crush that.",
-                        "I'm coming for the top spot.",
+                        "I'm targeting the top spot.",
                         "Just give me a little more time."
                     ]
-                    reply = "\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)"
+                    replies.append("\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)")
+                } else {
+                    let fallbackIdx = mentionedMilestone?.index ?? 15
+                    let genericJump = Int.random(in: 1...5)
+                    let genericHigherM: String
+                    if let speakerValue = speakerValue {
+                        genericHigherM = speakerValue
+                    } else {
+                        let genericHigherIdx = min(fallbackIdx + genericJump, Self.allMilestones.count - 1)
+                        genericHigherM = Self.allMilestones[genericHigherIdx]
+                    }
+
+                    replies.append(contentsOf: [
+                        "Talk to me when you reach \(genericHigherM).",
+                        "None of you are anywhere near my \(genericHigherM) record.",
+                        "I'm ignoring this and focusing on my \(genericHigherM) grind.",
+                        "I am safely ahead, I'm already pushing \(genericHigherM).",
+                        "Your efforts are pointless. \(genericHigherM) completely buries you.",
+                        "I am already ahead of you. I'm pushing \(genericHigherM).",
+                        "My record is flawless. \(genericHigherM) is completely out of your reach.",
+                        "Enjoy the view from the bottom. I'm way up at \(genericHigherM).",
+                        "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
+                    ])
+                }
+                if commentText == message {
+                    replies = replies.filter { r in
+                        let l = r.lowercased()
+                        return !l.contains("too low") && !l.contains("too slow") && !l.contains("dust") && !l.contains("fast enough")
+                    }
                 }
             }
+            var reply = replies.randomElement()!
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
         }

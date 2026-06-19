@@ -587,7 +587,7 @@ struct ParityModelsTests {
             speakerValue: "383n"
         )
         
-        let isTieReply = reply.contains("tied") || reply.contains("both at 383n") || reply.contains("right there at 383n") || reply.contains("also hit 383n") || reply.contains("sitting at 383n too") || reply.contains("Friendly rivalry?")
+        let isTieReply = reply.contains("tied") || reply.contains("both at 383n") || reply.contains("right there at 383n") || reply.contains("also hit 383n") || reply.contains("sitting at 383n too") || reply.contains("Try to keep up.")
         #expect(isTieReply, "Expected same-milestone reply to use rivalry/tie phrasing: \(reply)")
     }
 
@@ -602,7 +602,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "10"
         )
-        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Friendly rivalry?") || streakReply.contains("race starts now") || streakReply.contains("breaks it first")
+        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Try to keep up.") || streakReply.contains("race starts now") || streakReply.contains("breaks it first")
         #expect(isStreakTie, "Expected same-streak reply to use rivalry/tie phrasing: \(streakReply)")
         
         // 2. Time
@@ -612,7 +612,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "0:15"
         )
-        let isTimeTie = timeReply.contains("tied") || timeReply.contains("both at 0:15") || timeReply.contains("right there at 0:15") || timeReply.contains("also clocked 0:15") || timeReply.contains("Friendly rivalry?") || timeReply.contains("race starts now") || timeReply.contains("breaks it first") || timeReply.contains("sitting at 0:15")
+        let isTimeTie = timeReply.contains("tied") || timeReply.contains("both at 0:15") || timeReply.contains("right there at 0:15") || timeReply.contains("also clocked 0:15") || timeReply.contains("Try to keep up.") || timeReply.contains("race starts now") || timeReply.contains("breaks it first") || timeReply.contains("sitting at 0:15")
         #expect(isTimeTie, "Expected same-time reply to use rivalry/tie phrasing: \(timeReply)")
         
         // 3. HOF
@@ -622,7 +622,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "15"
         )
-        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Friendly rivalry?") || hofReply.contains("race starts now") || hofReply.contains("breaks it first")
+        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Try to keep up.") || hofReply.contains("race starts now") || hofReply.contains("breaks it first")
         #expect(isHofTie, "Expected same-HOF reply to use rivalry/tie phrasing: \(hofReply)")
         
         // 4. Score
@@ -632,7 +632,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "1000"
         )
-        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Friendly rivalry?") || scoreReply.contains("race starts now") || scoreReply.contains("breaks it first")
+        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Try to keep up.") || scoreReply.contains("race starts now") || scoreReply.contains("breaks it first")
         #expect(isScoreTie, "Expected same-score reply to use rivalry/tie phrasing: \(scoreReply)")
         
         // 5. Quest
@@ -642,7 +642,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "Silver"
         )
-        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("both opening Silver") || questReply.contains("chests too") || questReply.contains("Friendly rivalry?") || questReply.contains("farming Silver") || questReply.contains("race starts now") || questReply.contains("next tier first") || questReply.contains("tied at Silver")
+        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("both opening Silver") || questReply.contains("chests too") || questReply.contains("Try to keep up.") || questReply.contains("farming Silver") || questReply.contains("race starts now") || questReply.contains("next tier first") || questReply.contains("tied at Silver")
         #expect(isQuestTie, "Expected same-quest reply to use rivalry/tie phrasing: \(questReply)")
     }
 
