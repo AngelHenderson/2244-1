@@ -2838,7 +2838,7 @@ public struct MockSocialService: SocialService, Sendable {
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let compOpeners = [
-                        "I flew right past this.", "Barely had to try.", "Light work.",
+                        "I flew right past this.", "Barely had to try.", "Laughable.",
                         "This is entirely average.", "Pretty basic.", "Unimpressive.",
                         "Not impressed.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",
@@ -4005,7 +4005,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "Your \(mName) is nothing compared to my \(higherM) record.",
                                     "I easily passed \(mName). I dominate \(higherM).",
                                     "Your \(mName) is child's play compared to my \(higherM) record.",
-                                    "\(mName) was light work. I'm already sitting at \(higherM).",
+                                    "\(mName) is a joke. I'm already sitting at \(higherM).",
                                     "You're celebrating \(mName)? I just cleared \(higherM).",
                                     "I left \(mName) in the dust. \(higherM) is the new standard.",
                                     "Don't brag about \(mName) when \(higherM) is completely out of your reach.",
@@ -4119,7 +4119,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "\(numStr) is just the beginning. I'm already at \(higherNum).",
                                 "I left your \(numStr) score in the dust. I'm already at \(higherNum).",
                                 "You thought \(numStr) was good? I'm laughing from \(higherNum).",
-                                "\(numStr) points is light work. \(higherNum) is completely out of your reach.",
+                                "\(numStr) points is a joke. \(higherNum) is completely out of your reach.",
                                 "I passed \(numStr) without even looking. I'm at \(higherNum).",
                                 "\(higherNum) is my floor. Your \(numStr) is my ceiling."
                             ])
@@ -4229,9 +4229,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I am ahead of your \(numStr) days. I'm at \(higherNum).",
                                     "Your \(numStr) day streak is cute. You'll never catch my \(higherNum) days.",
                                     "I already passed \(numStr) days. I'm untouched at \(higherNum).",
-                                    "Your \(numStr) days is light work. I'm already sitting at \(higherNum) days.",
+                                    "Your \(numStr) days is a joke. I'm already sitting at \(higherNum) days.",
                                     "\(higherNum) days leaves you behind. Your \(numStr) is nothing.",
-                                    "My infinite consistency is at \(higherNum) days. \(numStr) is light.",
+                                    "My infinite consistency is at \(higherNum) days. \(numStr) is a joke.",
                                     "You're bragging about \(numStr) days? I'm at \(higherNum).",
                                     "I own \(higherNum) days. \(higherNum) > \(numStr)."
                                 ])
@@ -4277,9 +4277,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I am ahead of your streak. I'm at \(higherNum) days.",
                                 "Your streak is cute. You'll never catch my \(higherNum) days.",
                                 "I already passed that. I'm untouched at \(higherNum) days.",
-                                "Your streak is light work. I'm already sitting at \(higherNum) days.",
+                                "Your streak is a joke. I'm already sitting at \(higherNum) days.",
                                 "I sit at \(higherNum) days. Your consistency is nothing.",
-                                "My infinite consistency is at \(higherNum) days. Your streak is light.",
+                                "My infinite consistency is at \(higherNum) days. Your streak is nothing.",
                                 "You're bragging about streaks? I'm at \(higherNum) days.",
                                 "I own \(higherNum) days. I dominate everything.",
                             ])
@@ -4646,7 +4646,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "\(posterTier) chests? I only open \(myTier).",
                             "I extended infinitely past \(posterTier). Currently on \(myTier).",
                             "Your \(posterTier) pulls are cute. Call me when you reach \(myTier).",
-                            "I haven't dropped below \(myTier). \(posterTier) is light.",
+                            "I haven't dropped below \(myTier). \(posterTier) is a joke.",
                             "\(myTier) drops only here. Your \(posterTier) won't last.",
                         ])
                     }
