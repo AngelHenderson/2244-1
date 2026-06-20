@@ -523,19 +523,45 @@ struct ParityModelsTests {
                 var playerRecords: [String: String] = [:]
                 for comment in chain {
                     let author = comment.authorName
-                    if let val = MockSocialService.extractValue(from: comment.text, topic: topic) {
+                    let textLower = comment.text.lowercased()
+                    let isCatchUpReply = textLower.contains("just beat your") ||
+                                         textLower.contains("got ahead") ||
+                                         textLower.contains("ahead now") ||
+                                         textLower.contains("blew past your") ||
+                                         textLower.contains("caught up and passed") ||
+                                         textLower.contains("clocked faster than") ||
+                                         (textLower.contains("overtake you") && !textLower.contains("overtake your")) ||
+                                         (textLower.contains("passed you") && !textLower.contains("passed your")) ||
+                                         textLower.contains("just passed your")
+                    
+                    var val = MockSocialService.extractValue(from: comment.text, topic: topic)
+                    if val == nil && isCatchUpReply {
+                        if let prevIdx = chain.firstIndex(where: { $0.id == comment.id }),
+                           prevIdx > 0 {
+                            let competitor = chain[prevIdx - 1].authorName
+                            if let compVal = playerRecords[competitor] {
+                                val = MockSocialService.oneUpValue(for: compVal, topic: topic)
+                            }
+                        }
+                    }
+                    
+                    if let val = val {
                         if let establishedVal = playerRecords[author] {
-                            let textLower = comment.text.lowercased()
-                            let isCatchUpReply = textLower.contains("just beat your") ||
-                                                 textLower.contains("ahead now") ||
-                                                 textLower.contains("blew past your") ||
-                                                 textLower.contains("caught up and passed") ||
-                                                 textLower.contains("clocked faster than") ||
-                                                 textLower.contains("just passed your")
-                            
                             let isBetter = MockSocialService.isRecord(establishedVal, worseThan: val, topic: topic)
-                            if isCatchUpReply {
-                                #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            
+                            var isAheadOfCompetitor = false
+                            if let prevIdx = chain.firstIndex(where: { $0.id == comment.id }),
+                               prevIdx > 0 {
+                                let competitor = chain[prevIdx - 1].authorName
+                                if let compVal = playerRecords[competitor] {
+                                    isAheadOfCompetitor = MockSocialService.isRecord(compVal, worseThan: val, topic: topic)
+                                }
+                            }
+                            
+                            if isCatchUpReply || isAheadOfCompetitor {
+                                if isCatchUpReply {
+                                    #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                                }
                             } else {
                                 #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
                             }
@@ -696,6 +722,67 @@ struct ParityModelsTests {
         #expect(streakReply.contains("50"), "Expected caught-up reply to mention commenter record: \(streakReply)")
         let isStreakBeat = streakReply.contains("catch up") || streakReply.contains("ahead now") || streakReply.contains("passed you") || streakReply.contains("overtake") || streakReply.contains("beat your")
         #expect(isStreakBeat, "Expected streak caught-up reply to use beat/ahead phrasing: \(streakReply)")
+    }
+
+    @Test("HomeState npcRepliesBadgeCount counts replies from NPCs correctly")
+    @MainActor
+    func testNpcRepliesBadgeCount() async throws {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "profilePlayerName")
+        defaults.removeObject(forKey: "player.displayName")
+        
+        let homeState = HomeState()
+        #expect(homeState.npcRepliesBadgeCount == 0)
+        
+        // Let's mock a user post in socialFeed.userPosts.v2
+        let post1 = SocialFeedItem(
+            id: UUID(),
+            authorName: "Player",
+            message: "Just hit 2048!",
+            statText: "New tile",
+            comments: [
+                SocialFeedComment(authorName: "NPC1", text: "Nice work!", createdAt: Date().addingTimeInterval(-60)),
+                SocialFeedComment(authorName: "Player", text: "Thanks!", createdAt: Date()),
+                // Future comment - should not be counted yet
+                SocialFeedComment(authorName: "NPC2", text: "Amazing!", createdAt: Date().addingTimeInterval(3600))
+            ]
+        )
+        
+        // Mock an NPC post that the user commented on and got a reply
+        let post2 = SocialFeedItem(
+            id: UUID(),
+            authorName: "NPC3",
+            message: "I hit 1024!",
+            statText: "New tile",
+            comments: [
+                SocialFeedComment(authorName: "Player", text: "Nice!", createdAt: Date().addingTimeInterval(-120)),
+                SocialFeedComment(authorName: "NPC3", text: "@Player thanks buddy!", createdAt: Date().addingTimeInterval(-60)),
+                SocialFeedComment(authorName: "NPC4", text: "Cool", createdAt: Date().addingTimeInterval(-30)) // Does not mention Player, should not count as reply to Player
+            ]
+        )
+        
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode([post1, post2]) {
+            defaults.set(data, forKey: "socialFeed.userPosts.v2")
+        }
+        
+        homeState.updateNpcRepliesBadgeCount()
+        
+        // Total should be:
+        // From post1 (Player's post):
+        // - NPC1 comment (Nice work!): 1 (NPC comment, <= now)
+        // - Player comment (Thanks!): 0 (Player comment)
+        // - NPC2 comment (Amazing!): 0 (Future comment)
+        // From post2 (NPC3's post):
+        // - Player comment: 0 (Player comment)
+        // - NPC3 comment (@Player thanks buddy!): 1 (NPC comment, mentions @Player, <= now)
+        // - NPC4 comment (Cool): 0 (NPC comment, does not mention Player)
+        // Total = 1 + 1 = 2
+        #expect(homeState.npcRepliesBadgeCount == 2)
+        
+        // Clean up
+        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
     }
 }
 

@@ -191,6 +191,7 @@ public struct HomeView: View {
         }
         // Update achievements badge count + auto-present weekly offer once per ISO week
         .onAppear {
+            state.updateNpcRepliesBadgeCount()
             state.achievementsBadgeCount = achievementStore.claimableCount + dailyQuestStore.claimableCount
             if WeeklyOfferManager.shouldAutoPresent() {
                 WeeklyOfferManager.markAutoPresented()
@@ -239,6 +240,11 @@ public struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("You have \(state.warningsRemaining) chances left! After that, you are banned!")
+        }
+        .onChange(of: presentedSheet) { _, newValue in
+            if newValue == nil {
+                state.updateNpcRepliesBadgeCount()
+            }
         }
         .trackScreen(.home)
     }
@@ -524,7 +530,7 @@ public struct HomeView: View {
                     id: "feed",
                     system: "bubble.left.and.bubble.right.fill",
                     title: "Feed",
-                    badgeCount: state.gems,
+                    badgeCount: state.npcRepliesBadgeCount,
                     banned: state.isBanned,
                     action: {
                         if state.isBanned { state.showBanAlert = true }
