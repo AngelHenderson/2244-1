@@ -1432,7 +1432,7 @@ public struct MockSocialService: SocialService, Sendable {
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                 let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
-                while currentDepth < targetDepth {
+                while currentDepth < targetDepth || npc1WasBehind || npc2WasBehind {
                     if npc2 == nil {
                         let replyIndex = Int.random(in: 1...100000)
                         var rName = generateDynamicName()
@@ -1800,7 +1800,7 @@ public struct MockSocialService: SocialService, Sendable {
                     } else {
                         targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...10) : 0
                     }
-                    while currentDepth < targetDepth {
+                    while currentDepth < targetDepth || npc1WasBehind || npc2WasBehind {
                         if npc2 == nil {
                             let replyIndex = Int.random(in: 1...100000)
                             npc2 = (name: generateDynamicName(), avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
