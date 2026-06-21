@@ -3636,50 +3636,86 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if forceTone == "caught_up" {
                 var replies: [String] = []
                 if let m = mentionedMilestone {
+                    let higherM: String
+                    if let speakerValue = speakerValue {
+                        higherM = speakerValue
+                    } else {
+                        let jump = Int.random(in: 1...3)
+                        let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
+                        higherM = Self.allMilestones[higherIdx]
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(m.name) and got ahead.",
-                        "Look who's ahead now! I blew past your \(m.name) record.",
-                        "Caught up and passed you! Finally ahead of your \(m.name) record.",
-                        "I told you I would overtake you. I just beat your \(m.name)!",
-                        "Told you to watch your back! I just passed your \(m.name) record."
+                        "I told you I'd catch up! Just beat your \(m.name) and got ahead. I'm now at \(higherM).",
+                        "Look who's ahead now! I blew past your \(m.name) record and hit \(higherM).",
+                        "Caught up and passed you! Finally ahead of your \(m.name) record at \(higherM).",
+                        "I told you I would overtake you. I just beat your \(m.name) and reached \(higherM)!",
+                        "Told you to watch your back! I just passed your \(m.name) record and hit \(higherM)."
                     ])
-                } else if mentionedStreak, let numStr = mentionedNumber {
+                } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 1...5)
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) days and got ahead.",
-                        "Look who's ahead now! I blew past your \(numStr) day streak.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) day streak.",
-                        "I told you I would overtake you. I just beat your \(numStr) days!"
+                        "I told you I'd catch up! Just beat your \(numStr) days and got ahead. I'm at \(higherNum) days.",
+                        "Look who's ahead now! I blew past your \(numStr) day streak and hit \(higherNum) days.",
+                        "Caught up and passed you! Finally ahead of your \(numStr) day streak at \(higherNum) days.",
+                        "I told you I would overtake you. I just beat your \(numStr) days and reached \(higherNum)!"
                     ])
                 } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                    let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                    let higherTime: String
+                    if let speakerValue = speakerValue {
+                        higherTime = speakerValue
+                    } else {
+                        let mySecs = max(2, totalSecs - Int.random(in: 2...15))
+                        higherTime = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(posterTime) and got ahead.",
-                        "Look who's ahead now! I clocked faster than your \(posterTime).",
-                        "Caught up and passed you! Finally clocked faster than your \(posterTime).",
-                        "I told you I would overtake you. I just beat your \(posterTime)!"
+                        "I told you I'd catch up! Just beat your \(posterTime) and got ahead. I'm now at \(higherTime).",
+                        "Look who's ahead now! I clocked faster than your \(posterTime) at \(higherTime).",
+                        "Caught up and passed you! Finally clocked faster than your \(posterTime) and hit \(higherTime).",
+                        "I told you I would overtake you. I just beat your \(posterTime) and clocked \(higherTime)!"
                     ])
-                } else if mentionedHoF, let numStr = mentionedNumber {
+                } else if mentionedHoF, let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 1...5)
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) infinities and got ahead.",
-                        "Look who's ahead now! I blew past your \(numStr) HoF entries.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) HoF entries.",
-                        "I told you I would overtake you. I just beat your \(numStr) infinities!"
+                        "I told you I'd catch up! Just beat your \(numStr) infinities and got ahead. I'm at \(higherNum).",
+                        "Look who's ahead now! I blew past your \(numStr) HoF entries and hit \(higherNum).",
+                        "Caught up and passed you! Finally ahead of your \(numStr) HoF entries at \(higherNum).",
+                        "I told you I would overtake you. I just beat your \(numStr) infinities and reached \(higherNum)!"
                     ])
                 } else if mentionedQuest {
                     let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
                     let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
                     let posterTier = tiers[posterTierIdx]
+                    let higherTierIdx = min(posterTierIdx + 1, tiers.count - 1)
+                    let higherTier = tiers[higherTierIdx]
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(posterTier) chests and got ahead.",
-                        "Look who's ahead now! I blew past your \(posterTier) tier.",
-                        "Caught up and passed you! Finally ahead of your \(posterTier) tier."
+                        "I told you I'd catch up! Just beat your \(posterTier) chests and got ahead. I'm at \(higherTier).",
+                        "Look who's ahead now! I blew past your \(posterTier) tier and reached \(higherTier).",
+                        "Caught up and passed you! Finally ahead of your \(posterTier) tier at \(higherTier)."
                     ])
-                } else if let numStr = mentionedNumber {
+                } else if let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 100...1000)
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) and got ahead.",
-                        "Look who's ahead now! I blew past your \(numStr) score.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) score.",
-                        "I told you I would overtake you. I just beat your \(numStr)!"
+                        "I told you I'd catch up! Just beat your \(numStr) and got ahead. My record is \(higherNum).",
+                        "Look who's ahead now! I blew past your \(numStr) score and hit \(higherNum).",
+                        "Caught up and passed you! Finally ahead of your \(numStr) score at \(higherNum).",
+                        "I told you I would overtake you. I just beat your \(numStr) and reached \(higherNum)!"
                     ])
                 } else {
                     replies.append(contentsOf: [
