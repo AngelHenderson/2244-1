@@ -953,8 +953,8 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
-        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked"]
-        let otherKeywords = ["your", "you're", "about", "celebrating", "only", "thought"]
+        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "posted"]
+        let otherKeywords = ["your", "you're", "celebrating"]
         
         func getClausePrefix(from text: String, startLoc: Int, mentionLength: Int) -> String {
             let prefixLen = min(80, startLoc - mentionLength)
@@ -3444,7 +3444,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     return (mins, secs)
                 }
             }
-            return Self.extractTime(from: strippedLower)
+            return nil
         }()
         let rootTime = Self.extractTime(from: message.lowercased())
 
@@ -3836,7 +3836,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("I cleared \(higherNum). Don't get too comfortable up there at \(num).")
                         }
                     }
-                } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
+                } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     if totalSecs <= 2 {
                         replies.append(contentsOf: [
