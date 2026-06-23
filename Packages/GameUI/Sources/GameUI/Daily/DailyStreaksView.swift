@@ -133,11 +133,11 @@ public struct DailyStreaksView: View {
                         .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
                         .foregroundStyle(.primary)
 
-                    if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked })?.day {
-                        Text("\(nextMilestone - store.currentClaimDay) days until next milestone")
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                            .foregroundStyle(.secondary)
-                    }
+                    let cycleEnd = ((store.currentClaimDay / 365) + 1) * 365
+                    let daysRemaining = cycleEnd - store.currentClaimDay
+                    Text("\(daysRemaining) days until next milestone")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
+                        .foregroundStyle(.secondary)
                 }
                 
                 if let timeRemaining = store.getTimeUntilNextClaim(), !store.canClaimToday {
@@ -222,55 +222,59 @@ public struct DailyStreaksView: View {
     }
     
     private var progressSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let cycleIndex = store.currentClaimDay / 365
+        let cycleStart = cycleIndex * 365
+        let cycleEnd = (cycleIndex + 1) * 365
+        let progress = CGFloat(store.currentClaimDay - cycleStart) / CGFloat(cycleEnd - cycleStart)
+
+        return VStack(alignment: .leading, spacing: 12) {
             Text("Milestone Progress")
                 .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
 
-            // Progress bar to next milestone
-            if let nextMilestone = store.dailyStreaks.first(where: { !$0.isUnlocked }) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("\(store.currentClaimDay)")
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text("\(nextMilestone.day)")
-                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
-                            .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("\(store.currentClaimDay)")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(cycleEnd)")
+                        .font(.avenirNext(size: GameFonts.caption1Size, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(.gray.opacity(0.2))
+                            .frame(height: 8)
+
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ))
+                            .frame(
+                                width: geometry.size.width * min(1, progress),
+                                height: 8
+                            )
                     }
+                }
+                .frame(height: 8)
 
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.gray.opacity(0.2))
-                                .frame(height: 8)
-
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(LinearGradient(
-                                    colors: [.orange, .red],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                ))
-                                .frame(
-                                    width: geometry.size.width * min(1, CGFloat(store.currentClaimDay) / CGFloat(nextMilestone.day)),
-                                    height: 8
-                                )
-                        }
-                    }
-                    .frame(height: 8)
-
-                    // Next reward preview
+                // Yearly milestone reward preview
+                if let yearlyMilestone = store.dailyClaims.first(where: { $0.day == cycleEnd }) {
                     HStack {
-                        Text("Next Reward:")
+                        Text("Day \(cycleEnd) Reward:")
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                             .foregroundStyle(.secondary)
-                        RewardsDisplay(rewards: nextMilestone.rewards)
+                        RewardsDisplay(rewards: yearlyMilestone.rewards)
                             .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     }
                 }
-                .padding()
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
             }
+            .padding()
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
         }
     }
     
