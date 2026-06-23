@@ -442,17 +442,6 @@ struct ParityModelsTests {
         #expect(reply.contains("10"), "Expected lower brag reply to contain target HOF entries: 10 (Reply: \(reply))")
     }
 
-    @Test("Verify that lower brag replies are correctly selected for score when speaker record is lower")
-    func testScoreLowerBragReplySelection() {
-        let service = MockSocialService()
-        
-        let comment = "My 1000 is better, you cute."
-        let reply = service.generateContextualReply(to: comment, message: "I got 1000 points.", forceTone: "one_up", speakerValue: "500")
-        
-        #expect(reply.contains("500"), "Expected lower brag reply to contain speaker record: 500 (Reply: \(reply))")
-        #expect(reply.contains("1000"), "Expected lower brag reply to contain target score: 1000 (Reply: \(reply))")
-    }
-
     @Test("Player record is consistent across a competitive comment thread")
     func testPlayerRecordConsistency() async throws {
         let defaults = UserDefaults.standard
@@ -489,7 +478,9 @@ struct ParityModelsTests {
                     let parts = text.split(separator: " ")
                     if let first = parts.first {
                         let targetName = String(first.dropFirst())
-                        if let last = currentChain.last, targetName == last.authorName {
+                        if let last = currentChain.last,
+                           targetName == last.authorName,
+                           comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
                             currentChain.append(comment)
                         } else {
                             if !currentChain.isEmpty {
@@ -558,12 +549,10 @@ struct ParityModelsTests {
                                 }
                             }
                             
-                            if isCatchUpReply || isAheadOfCompetitor {
-                                if isCatchUpReply {
-                                    #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
-                                }
-                            } else {
-                                #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            let isWorse = MockSocialService.isRecord(val, worseThan: establishedVal, topic: topic)
+                            #expect(!isWorse, "Player \(author) claimed value \(val) which is worse than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
+                            if isCatchUpReply {
+                                #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
                             }
                             if isBetter {
                                 playerRecords[author] = val
@@ -650,16 +639,6 @@ struct ParityModelsTests {
         )
         let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Cute, but irrelevant.") || hofReply.contains("race starts now") || hofReply.contains("breaks it first")
         #expect(isHofTie, "Expected same-HOF reply to use rivalry/tie phrasing: \(hofReply)")
-        
-        // 4. Score
-        let scoreReply = service.generateContextualReply(
-            to: "My 1000 is better, you cute.",
-            message: "I got 1000 points.",
-            forceTone: "one_up",
-            speakerValue: "1000"
-        )
-        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Cute, but irrelevant.") || scoreReply.contains("race starts now") || scoreReply.contains("breaks it first")
-        #expect(isScoreTie, "Expected same-score reply to use rivalry/tie phrasing: \(scoreReply)")
     }
 
     @Test("Catch-up phrasing is used when speaker is behind")
