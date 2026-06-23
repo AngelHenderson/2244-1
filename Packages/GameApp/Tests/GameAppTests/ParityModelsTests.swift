@@ -660,16 +660,6 @@ struct ParityModelsTests {
         )
         let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Cute, but irrelevant.") || scoreReply.contains("race starts now") || scoreReply.contains("breaks it first")
         #expect(isScoreTie, "Expected same-score reply to use rivalry/tie phrasing: \(scoreReply)")
-        
-        // 5. Quest
-        let questReply = service.generateContextualReply(
-            to: "My Silver is better, you cute.",
-            message: "I pull Silver chests.",
-            forceTone: "one_up",
-            speakerValue: "Silver"
-        )
-        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("both opening Silver") || questReply.contains("chests too") || questReply.contains("Cute, but irrelevant.") || questReply.contains("farming Silver") || questReply.contains("race starts now") || questReply.contains("next tier first") || questReply.contains("tied at Silver")
-        #expect(isQuestTie, "Expected same-quest reply to use rivalry/tie phrasing: \(questReply)")
     }
 
     @Test("Catch-up phrasing is used when speaker is behind")

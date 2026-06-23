@@ -822,15 +822,12 @@ public struct MockSocialService: SocialService, Sendable {
         let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
         let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && !rootMilestoneExists)
         let isMessageHoF = msgLower.contains("hall of fame") || msgLower.contains("infinity") || msgLower.contains("infinities") || !msgWords.isDisjoint(with: ["hof", "infinit"])
-        let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
         let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
 
         if isMessageHoF {
             return "hof"
         } else if isMessageTime {
             return "time"
-        } else if isMessageQuest {
-            return "quest"
         } else if isMessageStreak {
             return "streak"
         } else {
@@ -864,22 +861,7 @@ public struct MockSocialService: SocialService, Sendable {
                 }
             }
             
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            for tier in tiers {
-                var searchRange = NSRange(location: 0, length: nsText.length)
-                while searchRange.location < nsText.length {
-                    let foundRange = nsText.range(of: tier, options: .caseInsensitive, range: searchRange)
-                    if foundRange.location != NSNotFound {
-                        matches.append((val: tier, range: foundRange))
-                        searchRange.location = foundRange.location + foundRange.length
-                        searchRange.length = nsText.length - searchRange.location
-                    } else {
-                        break
-                    }
-                }
-            }
-            
+
         case "milestone":
             let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
             for m in sortedMilestones {
@@ -1020,15 +1002,7 @@ public struct MockSocialService: SocialService, Sendable {
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
             
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            guard let currentVal = val, let idx = tiers.firstIndex(of: currentVal) else { return "Silver" }
-            if idx < tiers.count - 1 {
-                return tiers[idx + 1]
-            } else {
-                return "Diamond"
-            }
-            
+
         case "milestone":
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(10)
@@ -1064,15 +1038,7 @@ public struct MockSocialService: SocialService, Sendable {
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
             
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            guard let currentVal = val, let idx = tiers.firstIndex(of: currentVal) else { return "Bronze" }
-            if idx > 0 {
-                return tiers[idx - 1]
-            } else {
-                return "Bronze"
-            }
-            
+
         case "milestone":
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(4)
@@ -1091,10 +1057,7 @@ public struct MockSocialService: SocialService, Sendable {
         case "hof", "streak", "score":
             guard let int1 = Int(rec1), let int2 = Int(rec2) else { return false }
             return int1 < int2
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            guard let idx1 = tiers.firstIndex(of: rec1), let idx2 = tiers.firstIndex(of: rec2) else { return false }
-            return idx1 < idx2
+
         case "time":
             func timeToSeconds(_ timeStr: String) -> Int? {
                 let parts = timeStr.split(separator: ":")
@@ -2255,8 +2218,6 @@ public struct MockSocialService: SocialService, Sendable {
         } else {
             eventType = 3 // HOF (15%)
         }
-        let themeNames = ["Classic", "Simple Sage", "Mellow Yellow", "Relaxed Rust", "Cozy Coral"]
-        
         switch eventType {
         case 0:
             // Reached a new tile in Endless
@@ -2390,7 +2351,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
             return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
-        case 3:
+        default:
             // Joined the Hall of Fame
             let infinityCount = Int.random(in: 1...50)
             
@@ -2456,88 +2417,6 @@ public struct MockSocialService: SocialService, Sendable {
                     "Hall of Fame · Debut", "HoF · Entry #1",
                 ]
             }
-            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
-            
-        case 4:
-            // Unlocked a new theme
-            let theme = themeNames.randomElement()!
-            
-            let openers = [
-                "Unlocked", "Grabbed", "Activated", "Equipped",
-                "Switched to", "Just got", "Earned", "Picked up",
-                "Finally unlocked", "Snagged",
-            ]
-            let subjects = [
-                "the \(theme) theme", "\(theme)", "the \(theme) board theme",
-                "the \(theme) look", "the \(theme) style",
-                "the \(theme) aesthetic", "\(theme) vibes",
-                "the \(theme) board", "a fresh \(theme) theme",
-                "the \(theme) color palette",
-            ]
-            let closers = [
-                "!", ". The board looks amazing!",
-                " — time to play in style.", "! Worth every gem.",
-                " and it changes the whole vibe.", ". Even better than I expected!",
-                ". Fresh look alert!", ". New look, who dis?",
-                ". So clean!", " — best theme in the game.",
-            ]
-            
-            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
-            
-            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "cloud.sun.fill", "bell"]
-            let statLabels = [
-                "Theme unlocked · \(theme)", "New theme · \(theme)",
-                "Customization · \(theme)", "\(theme) · Unlocked",
-                "New style · \(theme)", "Board theme · \(theme)",
-                "Theme equipped · \(theme)", "Fresh look · \(theme)",
-                "\(theme) · Activated", "Style update · \(theme)",
-            ]
-            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
-            
-        default:
-            // Completed the Daily Quest
-            let questTier = ["Bronze", "Silver", "Gold", "Diamond"].randomElement()!
-            let gemsEarned = [50, 100, 150, 200, 250, 300, 500].randomElement()!
-            
-            let openers = [
-                "Completed", "Finished", "Cleared", "Knocked out",
-                "Wrapped up", "Crushed", "Done with", "Conquered",
-                "Smashed through", "Swept",
-            ]
-            let subjects = [
-                "the Daily Quest", "the daily quests", "all daily quests",
-                "the Daily Quest log", "every quest objective",
-                "the daily objectives", "the quest log",
-                "the full quest line", "all three quests",
-                "the daily mission set",
-            ]
-            let mins = Int.random(in: 1...45)
-            let secs = Int.random(in: 0...59)
-            let timeStr = "\(mins):\(String(format: "%02d", secs))"
-
-            let details = [
-                "! \(questTier) chest earned in \(timeStr).",
-                " in \(timeStr) — \(questTier) reward chest grabbed.",
-                "! +\(gemsEarned) gems in \(timeStr).",
-                " in \(timeStr). \(questTier) tier. Easy gems.",
-                " in \(timeStr)! \(questTier) chest.",
-                " in \(timeStr) — all objectives done!",
-                ". \(questTier) chest opened in \(timeStr).",
-                " in \(timeStr). That \(questTier) chest was worth it.",
-                "! \(gemsEarned) gems richer in \(timeStr).",
-                " in \(timeStr). \(questTier) chest in the bag!",
-            ]
-            
-            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
-            
-            let statEmojis = ["timer", "hourglass", "wind", "medal", "figure.run", "suit.diamond.fill", "target"]
-            let statLabels = [
-                "Quests cleared · \(timeStr)", "Daily Quest · \(timeStr)",
-                "All objectives · \(timeStr)", "\(questTier) quest · \(timeStr)",
-                "Quest time · \(timeStr)", "Speed run · \(timeStr)",
-                "Daily objectives · \(timeStr)", "Quests finished · \(timeStr)",
-                "\(questTier) chest · \(timeStr)", "Quest log · \(timeStr)",
-            ]
             return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
         }
     }
@@ -2701,20 +2580,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "your reaction speed", "the clutch finish", "that speedrun",
                 "your timed performance", "beating the clock", "that pace",
             ])
-        } else if message.contains("theme") {
-            subjects.append(contentsOf: [
-                "that new theme", "your new aesthetic", "the customization",
-                "the new board look", "your style choice", "that color palette",
-                "the fresh vibes", "that theme swap", "the new visual",
-                "your board makeover",
-            ])
-        } else if message.contains("Quest") {
-            subjects.append(contentsOf: [
-                "that quest completion", "finishing the dailies", "getting those rewards",
-                "clearing all objectives", "that quest grind", "the daily hustle",
-                "knocking out quests", "that chest pull", "completing every quest",
-                "the quest speedrun",
-            ])
+
         }
         
         // Dynamically inject topic-specific reactions based on the feed item's message
@@ -2822,69 +2688,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Do you go for speed or safety?", "Was that your first attempt today?",
             ])
 
-        } else if message.contains("theme") {
-            positiveReactions.append(contentsOf: [
-                "Love that theme!", "Looks so fresh.", "Best theme in the game.",
-                "So pretty.", "That theme hits different.", "Clean aesthetic!",
-                "Your board looks amazing now!", "Perfect choice!",
-                "That theme is gorgeous.", "10/10 theme pick!",
-            ])
-            jealousReactions.append(contentsOf: [
-                "I'm still trying to unlock that one", "I want that theme so bad",
-                "I don't have enough gems for it", "That's the theme I've been saving for",
-                "Why do the best themes cost so much", "I'm still on the default theme",
-                "Gem grind for that theme is real", "I need more gems for themes",
-                "Saving every gem for that exact theme", "I keep spending gems on perks instead",
-            ])
 
-            competitiveReactions.append(contentsOf: [
-                "Your theme is irrelevant to my absolute dominance.",
-                "You play dress-up while I establish infinity.",
-                "Themes are meaningless compared to my progression.",
-                "A new theme won't make you any less irrelevant.",
-                "Themes are for players who can't reach infinity.",
-                "Keep staring at colors. I'll keep dominating.",
-            ])
-
-            questions.append(contentsOf: [
-                "Which theme is that?", "How much did that cost?",
-                "How many gems was it?", "Is that your favorite theme?",
-                "Do you switch themes often?", "Which theme do you use most?",
-                "How many themes have you unlocked?", "Was it worth the gems?",
-                "What's the rarest theme?", "Does it change the tile colors too?",
-            ])
-
-        } else if message.contains("Quest") {
-            positiveReactions.append(contentsOf: [
-                "Quest complete!", "Enjoy the rewards!", "Easy gems.",
-                "Clean sweep!", "Dailies crushed!", "Nice haul!",
-                "Quest master!", "That chest was earned!",
-                "Objectives demolished!", "Well played on the quests!",
-            ])
-            jealousReactions.append(contentsOf: [
-                "I'm only halfway done with mine", "Those quests were so hard today",
-                "I never finish all the quests", "My quests are always impossible",
-                "I got stuck on the last objective", "I keep running out of time for quests",
-                "The quest RNG hates me", "I got the hardest quests today",
-                "I can never finish before reset", "Wish my quests were that easy",
-            ])
-
-            competitiveReactions.append(contentsOf: [
-                "Your quest rewards are entirely irrelevant to my loot.",
-                "I will claim better rewards.",
-                "It's over.",
-                "My quest efficiency will remain unmatched.",
-                "I dominate quests without a single thought.",
-                "My quest efficiency is high.",
-            ])
-
-            questions.append(contentsOf: [
-                "What did you get from the chest?", "Were your quests hard?",
-                "What tier chest was it?", "How long did the quests take?",
-                "Do you do quests first thing?", "Which quest was the hardest?",
-                "Did you get any good gems?", "What's the best chest you've ever pulled?",
-                "Do you always finish all three?", "Any quest tips for new players?",
-            ])
 
         }
         
@@ -2944,10 +2748,7 @@ public struct MockSocialService: SocialService, Sendable {
             contextKey += "_streak"
         } else if msgLower.contains("time") || msgLower.contains("speed") || msgLower.contains("timed challenge") {
             contextKey += "_time"
-        } else if msgLower.contains("theme") || msgLower.contains("style") || msgLower.contains("aesthetic") {
-            contextKey += "_theme"
-        } else if msgLower.contains("chest") || msgLower.contains("quest") || msgLower.contains("objective") {
-            contextKey += "_chest"
+
         }
         
         if let foundMilestone = sortedMilestones.first(where: { message.contains(" \($0) ") }) {
@@ -3623,11 +3424,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: combinedLower, range: NSRange(combinedLower.startIndex..., in: combinedLower)) != nil
         var mentionedTime = hasTimeFormat || !combinedWords.isDisjoint(with: ["time", "fast", "speed", "quick", "sec", "min", "mins", "clock", "timed", "seconds", "minutes"])
         var mentionedStreak = !combinedWords.isDisjoint(with: ["streak", "day", "days", "consecutive"])
-        let mentionedTheme = !combinedWords.isDisjoint(with: ["theme", "style", "aesthetic"])
         var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("infinity") || combinedLower.contains("infinities") || !combinedWords.isDisjoint(with: ["hof", "infinit"])
         let mentionedPerk = !combinedWords.isDisjoint(with: ["hammer", "swap", "magnet", "perk", "perks"])
         let mentionedGems = !combinedWords.isDisjoint(with: ["gem", "gems"])
-        var mentionedQuest = !combinedWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
 
         // ── Mutually Exclusive Topic Priority & Thread Locking ──
         let msgTopic = Self.determineTopic(message: message)
@@ -3635,7 +3434,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // Strict topic inheritance from the original feed item
         mentionedHoF = (msgTopic == "hof")
         mentionedTime = (msgTopic == "time")
-        mentionedQuest = (msgTopic == "quest")
         mentionedStreak = (msgTopic == "streak")
         if msgTopic != "milestone" {
             mentionedMilestone = nil
@@ -3751,23 +3549,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ])
             }
 
-            if mentionedTheme {
-                answers.append(contentsOf: [
-                    "Worth every gem, honestly!",
-                    "It changes the whole feel of the game.",
-                    "The colors on this one are so soothing.",
-                    "I've been saving up for weeks for this one.",
-                ])
-            }
 
-            if mentionedQuest {
-                answers.append(contentsOf: [
-                    "I always start with the hardest quest first.",
-                    "The quests were actually pretty easy.",
-                    "The chest rewards are so worth the effort.",
-                    "I try to knock them out in my first session.",
-                ])
-            }
 
             if mentionedPerk {
                 answers.append(contentsOf: [
@@ -3858,17 +3640,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Look who's ahead now! I blew past your \(numStr) HoF entries and hit \(higherNum).",
                         "Caught up and passed you! Finally ahead of your \(numStr) HoF entries at \(higherNum).",
                         "I told you I would overtake you. I just beat your \(numStr) infinities and reached \(higherNum)!"
-                    ])
-                } else if mentionedQuest {
-                    let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-                    let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
-                    let posterTier = tiers[posterTierIdx]
-                    let higherTierIdx = min(posterTierIdx + 1, tiers.count - 1)
-                    let higherTier = tiers[higherTierIdx]
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(posterTier) chests and got ahead. I'm at \(higherTier).",
-                        "Look who's ahead now! I blew past your \(posterTier) tier and reached \(higherTier).",
-                        "Caught up and passed you! Finally ahead of your \(posterTier) tier at \(higherTier)."
                     ])
                 } else if let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum: Int
@@ -4085,9 +3856,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("I cleared \(higherNum) days. Don't get too comfortable up there at \(num) days.")
                         }
                     }
-                } else if mentionedQuest {
-                    replies.append("Quests? I easily reach Diamond tier.")
-                    replies.append("I farm Diamond chests easily.")
                 } else if mentionedHoF, let infCount = Self.extractNumber(from: strippedLower, near: ["infinity", "infinit", "hof", "count"]) {
                     let myCount: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
@@ -4878,55 +4646,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
             }
 
-            if mentionedQuest {
-                let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-                let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
-                
-                if posterTierIdx < tiers.count - 1 {
-                    let myTier: String
-                    if let speakerValue = speakerValue {
-                        myTier = speakerValue
-                    } else if let refIdx = tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) {
-                        myTier = tiers[refIdx]
-                    } else {
-                        myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
-                    }
-                    let posterTier = tiers[posterTierIdx]
-                    
-                    if let myTierIdx = tiers.firstIndex(of: myTier), myTierIdx < posterTierIdx {
-                        replies.append(contentsOf: [
-                            "I pull \(myTier) chests. I'm coming for your \(posterTier) tier.",
-                            "I only open \(myTier). Don't get too comfortable up there at \(posterTier).",
-                            "I just reached \(myTier). Your \(posterTier) is next."
-                        ])
-                    } else if myTier == posterTier {
-                        replies.append(contentsOf: [
-                            "I'm right there at \(posterTier) chests too. Let's see who gets the next tier first.",
-                            "We're both opening \(posterTier) chests. The real race starts now.",
-                            "\(posterTier) is solid. I'm farming \(myTier) chests too.",
-                            "Looks like we're both on \(posterTier). Don't get too comfortable."
-                        ])
-                    } else {
-                        replies.append(contentsOf: [
-                            "I am ahead of your \(posterTier) chests. I pull \(myTier).",
-                            "Your \(posterTier) is cute. I only open \(myTier).",
-                            "I easily passed \(posterTier). I farm \(myTier).",
-                            "\(posterTier) chests? I only open \(myTier).",
-                            "I extended infinitely past \(posterTier). Currently on \(myTier).",
-                            "Your \(posterTier) pulls are cute. Call me when you reach \(myTier).",
-                            "I haven't dropped below \(myTier). \(posterTier) is a joke.",
-                            "\(myTier) drops only here. Your \(posterTier) won't last.",
-                        ])
-                    }
-                } else {
-                    replies.append(contentsOf: [
-                        "Diamond chests are just my baseline. I farm them easily.",
-                        "You finally got a Diamond chest? I open them daily.",
-                        "I already passed that phase. Diamond is standard for me.",
-                        "Diamond? I hoard them effortlessly.",
-                    ])
-                }
-            }
+
 
             if commentText == message {
                 replies = replies.filter { r in
@@ -5011,10 +4731,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 replies.append("You'll always struggle to keep a streak. I never miss.")
             }
 
-            if mentionedTheme {
-                replies.append("You'll never get that theme. Your gem count is pathetic.")
-                replies.append("Keep dreaming. That theme belongs to top-tier players.")
-            }
+
 
             // Generic dismissal
             replies.append(contentsOf: [
@@ -5048,9 +4765,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 replies.append("Streak crew! We don't miss days ")
             }
 
-            if mentionedTheme {
-                replies.append("Right? The aesthetics here are top tier!")
-            }
+
 
             if mentionedHoF {
                 replies.append("HoF is the dream. Thanks for the love! ")
