@@ -1427,12 +1427,11 @@ public struct MockSocialService: SocialService, Sendable {
                 var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                 var npc2Value: String? = nil
                 
-                var npc1WasBehind = false
-                var npc2WasBehind = false
+                var isNpc2Turn = true
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                 let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
-                while currentDepth < targetDepth || npc1WasBehind || npc2WasBehind {
+                while currentDepth < targetDepth {
                     if npc2 == nil {
                         let replyIndex = Int.random(in: 1...100000)
                         var rName = generateDynamicName()
@@ -1441,10 +1440,8 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                     }
-                    let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                     
-                    let replyText: String
-                    if currentDepth % 2 == 0 {
+                    if isNpc2Turn {
                         if npc2Value == nil {
                             if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
                                 npc2Value = Self.lowerValue(for: n1Val, topic: topic)
@@ -1453,69 +1450,153 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
-                        if npc2WasBehind {
-                            npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
-                        }
-                        
                         let isBehind: Bool
-                        if let n1Val = npc1Value, let n2Val = npc2Value {
-                            isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
+                        if let sVal = npc2Value, let oVal = npc1Value {
+                            isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
                         } else {
                             isBehind = false
                         }
                         
                         if isBehind {
-                            npc2WasBehind = true
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
-                        } else if npc2WasBehind {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc2Value)
-                            npc2WasBehind = false
+                            let opponentName = lastComment.authorName
+                            let opponentText = lastComment.text
+                            
+                            // 1. First reply: "behind"
+                            let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc2Value)
+                            if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                npc2Value = newVal
+                            }
+                            
+                            let replyOffset1 = Double.random(in: 60...90)
+                            let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                            
+                            let replyComment1 = SocialFeedComment(
+                                authorName: npc2!.name,
+                                avatarID: npc2!.avatar,
+                                text: replyText1,
+                                createdAt: replyCreatedAt1,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment1)
+                            lastComment = replyComment1
+                            currentDepth += 1
+                            
+                            // 2. Second reply: "caught_up". First update value to be oneUp of npc1Value
+                            npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                            let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc2Value)
+                            if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                npc2Value = newVal
+                            }
+                            
+                            let replyOffset2 = Double.random(in: 60...90)
+                            let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                            
+                            let replyComment2 = SocialFeedComment(
+                                authorName: npc2!.name,
+                                avatarID: npc2!.avatar,
+                                text: replyText2,
+                                createdAt: replyCreatedAt2,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment2)
+                            lastComment = replyComment2
+                            currentDepth += 1
                         } else {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
-                        }
-                        if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                            npc2Value = newVal
+                            // Just one reply: "one_up"
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
+                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                npc2Value = newVal
+                            }
+                            
+                            let replyOffset = Double.random(in: 60...90)
+                            let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                            
+                            let replyComment = SocialFeedComment(
+                                authorName: npc2!.name,
+                                avatarID: npc2!.avatar,
+                                text: replyText,
+                                createdAt: replyCreatedAt,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment)
+                            lastComment = replyComment
+                            currentDepth += 1
                         }
                     } else {
-                        if npc1WasBehind {
-                            npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
-                        }
-                        
                         let isBehind: Bool
-                        if let n1Val = npc1Value, let n2Val = npc2Value {
-                            isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
+                        if let sVal = npc1Value, let oVal = npc2Value {
+                            isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
                         } else {
                             isBehind = false
                         }
                         
                         if isBehind {
-                            npc1WasBehind = true
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
-                        } else if npc1WasBehind {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc1Value)
-                            npc1WasBehind = false
+                            let opponentName = lastComment.authorName
+                            let opponentText = lastComment.text
+                            
+                            // 1. First reply: "behind"
+                            let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc1Value)
+                            if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                npc1Value = newVal
+                            }
+                            
+                            let replyOffset1 = Double.random(in: 60...90)
+                            let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                            
+                            let replyComment1 = SocialFeedComment(
+                                authorName: npc1.name,
+                                avatarID: npc1.avatar,
+                                text: replyText1,
+                                createdAt: replyCreatedAt1,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment1)
+                            lastComment = replyComment1
+                            currentDepth += 1
+                            
+                            // 2. Second reply: "caught_up". First update value to be oneUp of npc2Value
+                            npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                            let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc1Value)
+                            if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                npc1Value = newVal
+                            }
+                            
+                            let replyOffset2 = Double.random(in: 60...90)
+                            let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                            
+                            let replyComment2 = SocialFeedComment(
+                                authorName: npc1.name,
+                                avatarID: npc1.avatar,
+                                text: replyText2,
+                                createdAt: replyCreatedAt2,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment2)
+                            lastComment = replyComment2
+                            currentDepth += 1
                         } else {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
-                        }
-                        if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                            npc1Value = newVal
+                            // Just one reply: "one_up"
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
+                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                npc1Value = newVal
+                            }
+                            
+                            let replyOffset = Double.random(in: 60...90)
+                            let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                            
+                            let replyComment = SocialFeedComment(
+                                authorName: npc1.name,
+                                avatarID: npc1.avatar,
+                                text: replyText,
+                                createdAt: replyCreatedAt,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment)
+                            lastComment = replyComment
+                            currentDepth += 1
                         }
                     }
-                    
-                    // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
-                    let replyOffset = Double.random(in: 60...90)
-                    let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
-                    
-                    let replyComment = SocialFeedComment(
-                        authorName: currentSpeaker.name,
-                        avatarID: currentSpeaker.avatar,
-                        text: replyText,
-                        createdAt: replyCreatedAt,
-                        likes: Int.random(in: 0...5)
-                    )
-                    comments.append(replyComment)
-                    lastComment = replyComment
-                    currentDepth += 1
+                    isNpc2Turn.toggle()
                 }
             } else {
                 if Double.random(in: 0...1) < 0.30 {
@@ -1790,8 +1871,7 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                     var npc2Value: String? = nil
                     
-                    var npc1WasBehind = false
-                    var npc2WasBehind = false
+                    var isNpc2Turn = true
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                     let targetDepth: Int
@@ -1800,25 +1880,23 @@ public struct MockSocialService: SocialService, Sendable {
                     } else {
                         targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...10) : 0
                     }
-                    while currentDepth < targetDepth || npc1WasBehind || npc2WasBehind {
+                    while currentDepth < targetDepth {
                         if npc2 == nil {
                             let replyIndex = Int.random(in: 1...100000)
-                            npc2 = (name: generateDynamicName(), avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
+                            var rName = generateDynamicName()
+                            while rName == npc1.name {
+                                rName = generateDynamicName()
+                            }
+                            npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                         }
-                        let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                         
-                        let replyText: String
-                        if currentDepth % 2 == 0 {
+                        if isNpc2Turn {
                             if npc2Value == nil {
                                 if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
                                     npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                 } else {
                                     npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                                 }
-                            }
-                            
-                            if npc2WasBehind {
-                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                             }
                             
                             let isBehind: Bool
@@ -1829,57 +1907,145 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             if isBehind {
-                                npc2WasBehind = true
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
-                            } else if npc2WasBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc2Value)
-                                npc2WasBehind = false
+                                let opponentName = lastComment.authorName
+                                let opponentText = lastComment.text
+                                
+                                // 1. First reply: "behind"
+                                let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset1 = Double.random(in: 60...90)
+                                let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                                
+                                let replyComment1 = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText1,
+                                    createdAt: replyCreatedAt1,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment1)
+                                lastComment = replyComment1
+                                currentDepth += 1
+                                
+                                // 2. Second reply: "caught_up". First update value to be oneUp of npc1Value
+                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset2 = Double.random(in: 60...90)
+                                let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                                
+                                let replyComment2 = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText2,
+                                    createdAt: replyCreatedAt2,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment2)
+                                lastComment = replyComment2
+                                currentDepth += 1
                             } else {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
-                            }
-                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                                npc2Value = newVal
+                                // Just one reply: "one_up"
+                                let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset = Double.random(in: 60...90)
+                                let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                
+                                let replyComment = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText,
+                                    createdAt: replyCreatedAt,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment)
+                                lastComment = replyComment
+                                currentDepth += 1
                             }
                         } else {
-                            if npc1WasBehind {
-                                npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
-                            }
-                            
                             let isBehind: Bool
-                            if let n1Val = npc1Value, let n2Val = npc2Value {
-                                isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
+                            if let sVal = npc1Value, let oVal = npc2Value {
+                                isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
                             } else {
                                 isBehind = false
                             }
                             
                             if isBehind {
-                                npc1WasBehind = true
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
-                            } else if npc1WasBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc1Value)
-                                npc1WasBehind = false
+                                let opponentName = lastComment.authorName
+                                let opponentText = lastComment.text
+                                
+                                // 1. First reply: "behind"
+                                let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset1 = Double.random(in: 60...90)
+                                let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                                
+                                let replyComment1 = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText1,
+                                    createdAt: replyCreatedAt1,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment1)
+                                lastComment = replyComment1
+                                currentDepth += 1
+                                
+                                // 2. Second reply: "caught_up". First update value to be oneUp of npc2Value
+                                npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                                let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset2 = Double.random(in: 60...90)
+                                let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                                
+                                let replyComment2 = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText2,
+                                    createdAt: replyCreatedAt2,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment2)
+                                lastComment = replyComment2
+                                currentDepth += 1
                             } else {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
-                            }
-                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                                npc1Value = newVal
+                                // Just one reply: "one_up"
+                                let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset = Double.random(in: 60...90)
+                                let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                
+                                let replyComment = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText,
+                                    createdAt: replyCreatedAt,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment)
+                                lastComment = replyComment
+                                currentDepth += 1
                             }
                         }
-                        
-                        // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
-                        let replyOffset = Double.random(in: 60...90)
-                        let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
-                        
-                        let replyComment = SocialFeedComment(
-                            authorName: currentSpeaker.name,
-                            avatarID: currentSpeaker.avatar,
-                            text: replyText,
-                            createdAt: replyCreatedAt,
-                            likes: Int.random(in: 0...5)
-                        )
-                        comments.append(replyComment)
-                        lastComment = replyComment
-                        currentDepth += 1
+                        isNpc2Turn.toggle()
                     }
                 } else {
                     // For non-competitive comments, small chance for a standard reply

@@ -317,6 +317,8 @@ public final class HomeState {
             return
         }
         
+        let lastViewed = defaults.object(forKey: "socialFeed.lastViewedDate") as? Date ?? Date.distantPast
+        
         let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
         let playerDisplayNameAlt = defaults.string(forKey: "player.displayName") ?? "Player"
         
@@ -334,6 +336,7 @@ public final class HomeState {
         for post in items {
             for comment in post.comments {
                 guard comment.createdAt <= now else { continue }
+                guard comment.createdAt > lastViewed else { continue }
                 if isPlayer(comment.authorName) { continue }
                 
                 if isPlayer(post.authorName) {

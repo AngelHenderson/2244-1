@@ -780,9 +780,15 @@ struct ParityModelsTests {
         // - NPC4 comment (Cool): 0 (NPC comment, does not mention Player)
         // Total = 1 + 1 = 2
         #expect(homeState.npcRepliesBadgeCount == 2)
+
+        // Verify setting lastViewedDate filters out older comments and resets badge count to 0
+        defaults.set(Date(), forKey: "socialFeed.lastViewedDate")
+        homeState.updateNpcRepliesBadgeCount()
+        #expect(homeState.npcRepliesBadgeCount == 0)
         
         // Clean up
         defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "socialFeed.lastViewedDate")
     }
 }
 

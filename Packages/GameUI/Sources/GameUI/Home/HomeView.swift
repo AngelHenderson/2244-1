@@ -534,7 +534,11 @@ public struct HomeView: View {
                     banned: state.isBanned,
                     action: {
                         if state.isBanned { state.showBanAlert = true }
-                        else { presentedSheet = .feed }
+                        else {
+                            UserDefaults.standard.set(Date(), forKey: "socialFeed.lastViewedDate")
+                            state.npcRepliesBadgeCount = 0
+                            presentedSheet = .feed
+                        }
                     }
                 )
             )
@@ -695,7 +699,11 @@ public struct HomeView: View {
             presentedSheet = .modes
         case .feed:
             if state.isBanned { state.showBanAlert = true }
-            else { presentedSheet = .feed }
+            else {
+                UserDefaults.standard.set(Date(), forKey: "socialFeed.lastViewedDate")
+                state.npcRepliesBadgeCount = 0
+                presentedSheet = .feed
+            }
         case .friends:
             if state.isBanned { state.showBanAlert = true }
             else { presentedSheet = .friends }
