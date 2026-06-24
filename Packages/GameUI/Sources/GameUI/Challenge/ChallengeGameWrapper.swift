@@ -19,7 +19,7 @@ public struct ChallengeGameWrapper: View {
 
     // Timer state
     @State private var startTime = Date()
-    private let totalDuration: Int
+    private let totalDuration: Int?
 
     // Challenge outcome
     @State private var showResult = false
@@ -61,13 +61,14 @@ public struct ChallengeGameWrapper: View {
 
     // MARK: - Timer
 
-    private func timeRemainingAt(_ date: Date) -> Int {
+    private func timeRemainingAt(_ date: Date) -> Int? {
+        guard let totalDuration = totalDuration else { return nil }
         if let frozen = frozenTimeRemaining { return frozen }
         let elapsed = Int(date.timeIntervalSince(startTime))
         return max(0, totalDuration - elapsed)
     }
 
-    private var timeRemaining: Int {
+    private var timeRemaining: Int? {
         timeRemainingAt(Date())
     }
 
@@ -174,16 +175,18 @@ public struct ChallengeGameWrapper: View {
             let remaining = timeRemainingAt(context.date)
             HStack(spacing: 16) {
                 // Timer
-                HStack(spacing: 6) {
-                    Image(systemName: "timer")
-                        .font(.system(size: 14, weight: .bold))
-                    Text(formatTime(remaining))
-                        .font(.system(.subheadline, design: .monospaced).bold())
-                        .contentTransition(.numericText())
-                }
-                .foregroundStyle(remaining <= 10 ? .red : .white)
+                if let remaining = remaining {
+                    HStack(spacing: 6) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 14, weight: .bold))
+                        Text(formatTime(remaining))
+                            .font(.system(.subheadline, design: .monospaced).bold())
+                            .contentTransition(.numericText())
+                    }
+                    .foregroundStyle(remaining <= 10 ? .red : .white)
 
-                Spacer()
+                    Spacer()
+                }
 
                 // Target
                 HStack(spacing: 6) {
@@ -202,13 +205,13 @@ public struct ChallengeGameWrapper: View {
                     .fill(Color.black.opacity(0.55))
                     .overlay(
                         Capsule()
-                            .strokeBorder(remaining <= 10 ? Color.red.opacity(0.6) : Color.white.opacity(0.15), lineWidth: 1)
+                            .strokeBorder((remaining ?? 99) <= 10 ? Color.red.opacity(0.6) : Color.white.opacity(0.15), lineWidth: 1)
                     )
             )
             .padding(.horizontal, 16)
             .padding(.top, 4)
-            .onChange(of: remaining <= 0) { _, isExpired in
-                if isExpired && !challengeEnded {
+            .onChange(of: remaining) { _, newRemaining in
+                if let remaining = newRemaining, remaining <= 0 && !challengeEnded {
                     if checkWinCondition() {
                         endChallenge(won: true)
                     } else if !hasUsedTimeRecovery {
@@ -336,7 +339,9 @@ public struct ChallengeGameWrapper: View {
         isShowingTimeRecovery = false
 
         // Reset timer so remaining = exactly timeRecoveryBonus seconds from now
-        startTime = Date().addingTimeInterval(-Double(totalDuration - timeRecoveryBonus))
+        if let totalDuration = totalDuration {
+            startTime = Date().addingTimeInterval(-Double(totalDuration - timeRecoveryBonus))
+        }
         frozenTimeRemaining = nil
 
         haptics.success()
@@ -556,7 +561,12 @@ public struct ChallengeGameWrapper: View {
         challengeWon = won
 
         if won {
-            let elapsed = totalDuration - (frozenTimeRemaining ?? 0)
+            let elapsed: Int
+            if let totalDuration = totalDuration {
+                elapsed = totalDuration - (frozenTimeRemaining ?? 0)
+            } else {
+                elapsed = Int(Date().timeIntervalSince(startTime))
+            }
             let mins = elapsed / 60
             let secs = elapsed % 60
             let timeStr = "\(mins):\(String(format: "%02d", secs))"

@@ -60,7 +60,7 @@ public struct CustomChallengeGameScreen: View {
         self.onDismiss = onDismiss
         self.playerHighestTile = playerHighestTile
         self.playerHighestTileStep = playerHighestTileStep
-        self.totalDuration = config.timeLimitSeconds
+        self.totalDuration = config.timeLimitSeconds ?? 180
 
         // Use sandboxed GameStore with player's actual highest tile step for consistent pricing
         self._challengeGameStore = State(initialValue: GameStore.sandboxed(initialGems: initialGems, playerHighestTile: playerHighestTile, playerHighestTileStep: playerHighestTileStep))

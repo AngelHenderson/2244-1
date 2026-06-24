@@ -23,7 +23,7 @@ public enum TileBucket: String, CaseIterable, Codable, Sendable {
 
 public struct CustomChallengeConfig: Hashable, Codable, Sendable {
     public var target: ChallengeTarget
-    public var timeLimitSeconds: Int
+    public var timeLimitSeconds: Int?
     public var minTileLevel: Int
     public var levels: Int
     public var tileAssignments: [Int: TileBucket]
@@ -40,7 +40,7 @@ public struct CustomChallengeConfig: Hashable, Codable, Sendable {
 
     public init(
         target: ChallengeTarget,
-        timeLimitSeconds: Int,
+        timeLimitSeconds: Int?,
         minTileLevel: Int,
         levels: Int,
         tileAssignments: [Int: TileBucket],
@@ -87,7 +87,7 @@ public extension ChallengeTarget {
 public enum DifficultyEstimator {
     public static func estimateReward(
         target: ChallengeTarget,
-        timeLimit: Int,
+        timeLimit: Int?,
         minTileLevel: Int,
         levels: Int,
         assignments: [Int: TileBucket]
@@ -108,7 +108,7 @@ public enum DifficultyEstimator {
             targetDifficulty = Double(length) / 5.0
         }
         
-        let timeFactor = clamp(baseTime / max(10.0, Double(timeLimit)), min: 0.3, max: 3.0)
+        let timeFactor = clamp(baseTime / max(10.0, Double(timeLimit ?? 300)), min: 0.3, max: 3.0)
         let levelFactor = pow(1.06, Double(max(0, levels - 1)))
         let minTileEase = pow(1.12, Double(max(0, minTileLevel - 10)))
         
