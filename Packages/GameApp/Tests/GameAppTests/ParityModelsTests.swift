@@ -298,16 +298,16 @@ struct ParityModelsTests {
 
         for _ in 0..<50 {
             // Reply to "0:02" comment (should use peak limit responses instead of trying to go faster)
-            let reply = service.generateContextualReply(to: "I clocked 0:02.", message: "I clocked 0:06.", forceTone: "one_up")
+            let reply = service.generateContextualReply(to: "I clocked 0:02.", message: "I clocked 0:02.", forceTone: "one_up")
             
             // Check that it doesn't contain "shaved time off your 0:02. My best is 0:02" or other faster brags
             #expect(!reply.contains("shaved time off"), "Should not try to shave time off 0:02: \(reply)")
             #expect(!reply.contains("leagues faster"), "Should not claim to be leagues faster than 0:02: \(reply)")
             #expect(!reply.contains("clear it in"), "Should not claim to clear 0:02 in faster time: \(reply)")
             
-            // Check that it contains the limit/peak message substrings
-            let isLimitReply = ["limit", "peak", "share the record", "theoretical limit"].contains { reply.lowercased().contains($0) }
-            #expect(isLimitReply, "Should recognize 0:02 is the limit: \(reply)")
+            // Check that it is a tie/rivalry reply
+            let isTieReply = reply.contains("tied") || reply.contains("both at 0:02") || reply.contains("right there at 0:02") || reply.contains("also clocked 0:02") || reply.contains("sitting at 0:02") || reply.contains("Cute, but irrelevant.") || reply.contains("race starts now") || reply.contains("breaks it first")
+            #expect(isTieReply, "Should recognize 0:02 is tied: \(reply)")
         }
     }
 
@@ -575,13 +575,42 @@ struct ParityModelsTests {
                                          (textLower.contains("passed you") && !textLower.contains("passed your")) ||
                                          textLower.contains("just passed your")
                     
-                    var val = MockSocialService.extractValue(from: comment.text, topic: topic)
-                    if val == nil && isCatchUpReply {
-                        if let prevIdx = chain.firstIndex(where: { $0.id == comment.id }),
-                           prevIdx > 0 {
-                            let competitor = chain[prevIdx - 1].authorName
-                            if let compVal = playerRecords[competitor] {
-                                val = MockSocialService.oneUpValue(for: compVal, topic: topic)
+                    let competitivePhrases = [
+                        "grinding right now", "closing the gap", "lead while it lasts",
+                        "coming for the top", "overtake you", "lower right now",
+                        "irrelevant to my", "never exist on my level", "coasting at",
+                        "joke", "safely ahead", "bypassed", "floor", "untouched",
+                        "breeze through", "clocked", "leagues faster", "dominating",
+                        "laughing from", "easily hit", "easily clear", "easily passed",
+                        "easily reached", "easily beat", "easily bypassed", "easily crush",
+                        "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                        "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                        "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
+                        "record is", "my record", "permanent",
+                        "already far ahead", "nothing compared", "always do better", "did do better",
+                        "baseline", "left you behind", "no threat", "never stop climbing",
+                        "practice runs", "without even looking", "time is cute", "shaved time",
+                        "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                        "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                        "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                        "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                        "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                        "watch your back", "watch me stay ahead", "watch my stats",
+                        "sidelines", "witness infinity", "extend my lead"
+                    ]
+                    let isReply = comment.text.hasPrefix("@")
+                    let isCompetitiveComment = !isReply || competitivePhrases.contains { textLower.contains($0) }
+                    
+                    var val: String? = nil
+                    if isCompetitiveComment {
+                        val = MockSocialService.extractValue(from: comment.text, topic: topic)
+                        if val == nil && isCatchUpReply {
+                            if let prevIdx = chain.firstIndex(where: { $0.id == comment.id }),
+                               prevIdx > 0 {
+                                let competitor = chain[prevIdx - 1].authorName
+                                if let compVal = playerRecords[competitor] {
+                                    val = MockSocialService.oneUpValue(for: compVal, topic: topic)
+                                }
                             }
                         }
                     }

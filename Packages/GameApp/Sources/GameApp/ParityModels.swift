@@ -3091,16 +3091,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         if topic == "time" {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
-                if totalSecs <= 2 {
-                    let templates = [
-                        "That is the absolute limit. We are both at the peak.",
-                        "No one can go faster than that. We share the record.",
-                        "I also clocked that. That's the theoretical limit.",
-                        "Solid. I'm right there at the limit too."
-                    ]
-                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], higherName)
-                }
                 let isLowTime = Double.random(in: 0...1) < 0.45
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 if isLowTime {
@@ -3837,14 +3827,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
                 } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
-                    if totalSecs <= 2 {
-                        replies.append(contentsOf: [
-                            "That is the absolute limit. We are both at the peak.",
-                            "No one can go faster than that. We share the record.",
-                            "I also clocked that. That's the theoretical limit.",
-                            "Solid. I'm right there at the limit too."
-                        ])
-                    } else {
                         let myTimeStr: String
                         let mySecs: Int
                         if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
@@ -3885,7 +3867,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append("Only at \(myTimeStr) right now, but I'll catch your \(posterTime) soon.")
                             }
                         }
-                    }
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
@@ -4200,14 +4181,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             if wantsBetter {
                                 replies.append(contentsOf: [
-                                    "Your progression is nothing compared to mine. \(higherNum) days proves it.",
-                                    "You wanted better? I'm already at \(higherNum) days.",
+                                    "I always do better. I'm already pushing \(higherNum) days.",
+                                    "You wanted better? I'm sitting at \(higherNum) days.",
                                     "I did do better. You're not catching \(higherNum) days.",
                                     "Done. I'm untouched at \(higherNum) days.",
                                     "I'm always climbing. \(higherNum) days completely buries you.",
-                                    "Better is my baseline. \(higherNum) days leaves you in the dust.",
-                                    "I already left you behind. \(higherNum) days is my new floor.",
-                                    "Watch me. I'm streak-running \(higherNum) days easily.",
+                                    "Better is my baseline. I'm at \(higherNum) days.",
+                                    "I already left you behind. \(higherNum) days is next.",
+                                    "Watch me. I'm clearing \(higherNum) days easily.",
                                     "You are no threat. I'm sitting comfortably at \(higherNum) days.",
                                     "I never stop climbing. \(higherNum) days is already done."
                                 ])
@@ -4238,11 +4219,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                     if wantsBetter {
                         replies.append(contentsOf: [
-                            "Your progression is nothing compared to mine. \(higherNum) days proves it.",
-                            "You wanted better? I'm already at \(higherNum) days.",
+                            "I always do better. I'm already pushing \(higherNum) days.",
+                            "You wanted better? I'm sitting at \(higherNum) days.",
                             "I did do better. You're not catching \(higherNum) days.",
                             "Done. I'm untouched at \(higherNum) days.",
-                            "I'm always getting better. \(higherNum) days completely buries you.",
+                            "I'm always climbing. \(higherNum) days completely buries you.",
+                            "Better is my baseline. I'm at \(higherNum) days.",
+                            "I already left you behind. \(higherNum) days is next.",
+                            "Watch me. I'm clearing \(higherNum) days easily.",
+                            "You are no threat. I'm sitting comfortably at \(higherNum) days.",
+                            "I never stop climbing. \(higherNum) days is already done."
                         ])
                     } else {
                         if higherNum < assumedNum {
@@ -4320,14 +4306,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else if rootIsJealous, let cT = commentTime {
                     let cSecs = cT.0 * 60 + cT.1
                     let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
-                    if cSecs <= 2 {
-                        replies.append(contentsOf: [
-                            "That is the absolute limit. We are both at the peak.",
-                            "No one can go faster than that. We share the record.",
-                            "I also clocked that. That's the theoretical limit.",
-                            "Solid. I'm right there at the limit too."
-                        ])
-                    } else {
                         let myTimeStr: String
                         let mySecs: Int
                         if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
@@ -4365,17 +4343,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying."
                             ])
                         }
-                    }
                 } else if let (mins, secs) = commentTime ?? rootTime {
                     let totalSecs = mins * 60 + secs
-                    if totalSecs <= 2 {
-                        replies.append(contentsOf: [
-                            "That is the absolute limit. We are both at the peak.",
-                            "No one can go faster than that. We share the record.",
-                            "I also clocked that. That's the theoretical limit.",
-                            "Solid. I'm right there at the limit too."
-                        ])
-                    } else {
                         let higherNum: Int
                         if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
                             higherNum = sMins * 60 + sSecs
@@ -4412,14 +4381,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             if wantsBetter {
                                 replies.append(contentsOf: [
-                                    "I always do better. \(higherTime) makes you look slow.",
-                                    "You wanted better? I'm already down to \(higherTime).",
+                                    "I always do better. I'm already pushing \(higherTime).",
+                                    "You wanted better? I'm sitting at \(higherTime).",
                                     "I did do better. You're not catching \(higherTime).",
                                     "Done. I'm untouched at \(higherTime).",
-                                    "I'm always getting faster. \(higherTime) makes you look slow.",
-                                    "Better is my baseline. I just cleared it in \(higherTime).",
-                                    "I already left you behind. \(higherTime) is my new floor.",
-                                    "Watch me. I'm clocking \(higherTime) easily.",
+                                    "I'm always climbing. \(higherTime) completely buries you.",
+                                    "Better is my baseline. I'm at \(higherTime).",
+                                    "I already left you behind. \(higherTime) is next.",
+                                    "Watch me. I'm clearing \(higherTime) easily.",
                                     "You are no threat. I'm sitting comfortably at \(higherTime).",
                                     "I never stop climbing. \(higherTime) is already done."
                                 ])
@@ -4444,7 +4413,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append(contentsOf: templates)
                             }
                         }
-                    }
                 } else {
                     let isLowTime = speakerValue == nil && Double.random(in: 0...1) < 0.45
                     let assumedTotal = Int.random(in: 60...120)
@@ -4578,7 +4546,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                       } else {
                         higherNum = assumedNum + Int.random(in: 2...8)
                     }
-                    if higherNum < assumedNum {
+                    if wantsBetter {
+                        replies.append(contentsOf: [
+                            "I always do better. I'm already pushing \(higherNum) infinities.",
+                            "You wanted better? I'm sitting at \(higherNum) infinities.",
+                            "I did do better. You're not catching \(higherNum) infinities.",
+                            "Done. I'm untouched at \(higherNum) infinities.",
+                            "I'm always climbing. \(higherNum) infinities completely buries you.",
+                            "Better is my baseline. I'm at \(higherNum) infinities.",
+                            "I already left you behind. \(higherNum) infinities is next.",
+                            "Watch me. I'm clearing \(higherNum) infinities easily.",
+                            "You are no threat. I'm sitting comfortably at \(higherNum) infinities.",
+                            "I never stop climbing. \(higherNum) infinities is already done."
+                        ])
+                    } else if higherNum < assumedNum {
                         replies.append(contentsOf: [
                             "I hit \(higherNum) infinities yesterday. I'm coming for your \(assumedNum) entries.",
                             "I cleared \(higherNum) infinities. Don't get too comfortable up there at \(assumedNum).",
