@@ -1997,9 +1997,17 @@ public struct MockSocialService: SocialService, Sendable {
                                 }
                             } else {
                                 // Just one reply: "one_up"
+                                var isUpdatedAhead = false
+                                if isBehind && Double.random(in: 0...1) < 0.50 {
+                                    npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                    isUpdatedAhead = true
+                                }
                                 let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
                                 if let newVal = Self.extractValue(from: replyText, topic: topic) {
                                     npc2Value = newVal
+                                }
+                                if isBehind && !isUpdatedAhead {
+                                    npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                                 }
                                 
                                 let replyOffset = Double.random(in: 60...90)
@@ -2093,9 +2101,17 @@ public struct MockSocialService: SocialService, Sendable {
                                 }
                             } else {
                                 // Just one reply: "one_up"
+                                var isUpdatedAhead = false
+                                if isBehind && Double.random(in: 0...1) < 0.50 {
+                                    npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                                    isUpdatedAhead = true
+                                }
                                 let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
                                 if let newVal = Self.extractValue(from: replyText, topic: topic) {
                                     npc1Value = newVal
+                                }
+                                if isBehind && !isUpdatedAhead {
+                                    npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
                                 }
                                 
                                 let replyOffset = Double.random(in: 60...90)
