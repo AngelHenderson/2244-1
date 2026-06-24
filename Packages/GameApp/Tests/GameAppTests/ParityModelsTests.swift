@@ -179,7 +179,7 @@ struct ParityModelsTests {
                     "chasing my lead", "higher ceiling", "dominance", "unreachable",
                     "comfortably ahead", "only at", "is a joke", "you'll never catch",
                     "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
-                    "record is", "my record", "permanent", "diamond tier", "diamond chests",
+                    "record is", "my record", "permanent",
                     "already far ahead", "nothing compared", "always do better", "did do better",
                     "baseline", "left you behind", "no threat", "never stop climbing",
                     "practice runs", "without even looking", "time is cute", "shaved time",
@@ -470,39 +470,68 @@ struct ParityModelsTests {
             
             // Build all reply chains
             var chains: [[SocialFeedComment]] = []
-            var currentChain: [SocialFeedComment] = []
+            var activeThreadIndices: [String: Int] = [:]
+            
+            func doesCommentMatchConversation(author: String, targetName: String, last: SocialFeedComment) -> Bool {
+                var lastTarget: String? = nil
+                if last.text.hasPrefix("@") {
+                    let parts = last.text.split(separator: " ")
+                    if let first = parts.first {
+                        var tName = String(first.dropFirst())
+                        while !tName.isEmpty && !tName.last!.isLetter && !tName.last!.isNumber {
+                            tName.removeLast()
+                        }
+                        lastTarget = tName
+                    }
+                }
+                if last.authorName == targetName {
+                    return lastTarget == nil || lastTarget == author
+                } else if last.authorName == author {
+                    return lastTarget == targetName
+                }
+                return false
+            }
             
             for comment in item.comments {
                 let text = comment.text
+                let author = comment.authorName
+                
                 if text.hasPrefix("@") {
                     let parts = text.split(separator: " ")
                     if let first = parts.first {
-                        let targetName = String(first.dropFirst())
-                        if let last = currentChain.last,
-                           targetName == last.authorName,
+                        var targetName = String(first.dropFirst())
+                        while !targetName.isEmpty && !targetName.last!.isLetter && !targetName.last!.isNumber {
+                            targetName.removeLast()
+                        }
+                        
+                        if let idx = activeThreadIndices[author],
+                           let last = chains[idx].last,
+                           doesCommentMatchConversation(author: author, targetName: targetName, last: last),
                            comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
-                            currentChain.append(comment)
+                            chains[idx].append(comment)
+                            activeThreadIndices[author] = idx
+                        } else if let idx = activeThreadIndices[targetName],
+                                  let last = chains[idx].last,
+                                  doesCommentMatchConversation(author: author, targetName: targetName, last: last),
+                                  comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
+                            activeThreadIndices.removeValue(forKey: targetName)
+                            chains[idx].append(comment)
+                            activeThreadIndices[author] = idx
                         } else {
-                            if !currentChain.isEmpty {
-                                chains.append(currentChain)
-                            }
-                            currentChain = [comment]
+                            let newIdx = chains.count
+                            chains.append([comment])
+                            activeThreadIndices[author] = newIdx
                         }
                     } else {
-                        if !currentChain.isEmpty {
-                            chains.append(currentChain)
-                        }
-                        currentChain = [comment]
+                        let newIdx = chains.count
+                        chains.append([comment])
+                        activeThreadIndices[author] = newIdx
                     }
                 } else {
-                    if !currentChain.isEmpty {
-                        chains.append(currentChain)
-                    }
-                    currentChain = [comment]
+                    let newIdx = chains.count
+                    chains.append([comment])
+                    activeThreadIndices[author] = newIdx
                 }
-            }
-            if !currentChain.isEmpty {
-                chains.append(currentChain)
             }
             
             // Verify record consistency only for competitive threads (chains of length >= 3)

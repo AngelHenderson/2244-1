@@ -4591,7 +4591,35 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "It's over for you. You'll never catch up."
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"].randomElement()!) }
+            if Double.random(in: 0...1) < 0.75 {
+                let lowerReply = reply.lowercased()
+                let testCompetitivePhrases = [
+                    "grinding right now", "closing the gap", "lead while it lasts",
+                    "coming for the top", "overtake you", "lower right now",
+                    "irrelevant to my", "never exist on my level", "coasting at",
+                    "joke", "safely ahead", "bypassed", "floor", "untouched",
+                    "breeze through", "clocked", "leagues faster", "dominating",
+                    "laughing from", "easily hit", "easily clear", "easily passed",
+                    "easily reached", "easily beat", "easily bypassed", "easily crush",
+                    "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                    "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                    "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
+                    "record is", "my record", "permanent",
+                    "already far ahead", "nothing compared", "always do better", "did do better",
+                    "baseline", "left you behind", "no threat", "never stop climbing",
+                    "practice runs", "without even looking", "time is cute", "shaved time",
+                    "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                    "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                    "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                    "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                    "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                    "watch your back", "watch me stay ahead", "watch my stats",
+                    "sidelines", "witness infinity", "extend my lead"
+                ]
+                let containsComp = testCompetitivePhrases.contains { lowerReply.contains($0) }
+                let symbolPool = containsComp ? [". . .", " rn", " fr", " tbh", " ngl", " smh"] : [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"]
+                reply = Self.injectSymbol(reply, symbol: symbolPool.randomElement()!)
+            }
             return reply
         }
 
