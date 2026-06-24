@@ -470,7 +470,17 @@ struct ParityModelsTests {
             
             // Build all reply chains
             var chains: [[SocialFeedComment]] = []
-            var activeThreadIndices: [String: Int] = [:]
+            
+            func extractNumbers(from text: String) -> Set<Int> {
+                let pattern = "\\b(\\d+)\\b"
+                guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+                let nsText = text as NSString
+                let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                let nums = matches.compactMap { match -> Int? in
+                    Int(nsText.substring(with: match.range))
+                }
+                return Set(nums)
+            }
             
             func doesCommentMatchConversation(author: String, targetName: String, last: SocialFeedComment) -> Bool {
                 var lastTarget: String? = nil
@@ -504,33 +514,44 @@ struct ParityModelsTests {
                             targetName.removeLast()
                         }
                         
-                        if let idx = activeThreadIndices[author],
-                           let last = chains[idx].last,
-                           doesCommentMatchConversation(author: author, targetName: targetName, last: last),
-                           comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
-                            chains[idx].append(comment)
-                            activeThreadIndices[author] = idx
-                        } else if let idx = activeThreadIndices[targetName],
-                                  let last = chains[idx].last,
-                                  doesCommentMatchConversation(author: author, targetName: targetName, last: last),
-                                  comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
-                            activeThreadIndices.removeValue(forKey: targetName)
-                            chains[idx].append(comment)
-                            activeThreadIndices[author] = idx
+                        // Find all candidate chains that match the conversation and are within 300 seconds
+                        var candidates: [(index: Int, last: SocialFeedComment)] = []
+                        for (idx, chain) in chains.enumerated() {
+                            if let last = chain.last,
+                               doesCommentMatchConversation(author: author, targetName: targetName, last: last),
+                               comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
+                                candidates.append((index: idx, last: last))
+                            }
+                        }
+                        
+                        if !candidates.isEmpty {
+                            var bestIdx = candidates[0].index
+                            if candidates.count > 1 {
+                                let commentNums = extractNumbers(from: text)
+                                var maxMatches = -1
+                                for candidate in candidates {
+                                    let chain = chains[candidate.index]
+                                    var matchCount = 0
+                                    for chainComment in chain {
+                                        let chainNums = extractNumbers(from: chainComment.text)
+                                        let intersection = commentNums.intersection(chainNums)
+                                        matchCount += intersection.count
+                                    }
+                                    if matchCount > maxMatches {
+                                        maxMatches = matchCount
+                                        bestIdx = candidate.index
+                                    }
+                                }
+                            }
+                            chains[bestIdx].append(comment)
                         } else {
-                            let newIdx = chains.count
                             chains.append([comment])
-                            activeThreadIndices[author] = newIdx
                         }
                     } else {
-                        let newIdx = chains.count
                         chains.append([comment])
-                        activeThreadIndices[author] = newIdx
                     }
                 } else {
-                    let newIdx = chains.count
                     chains.append([comment])
-                    activeThreadIndices[author] = newIdx
                 }
             }
             
