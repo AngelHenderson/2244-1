@@ -302,7 +302,23 @@ public struct PracticeHubView: View {
     private func open(_ mode: PracticeMode) {
         switch mode {
         case .dailyChallenge:
-            onOpenDailyChallenge()
+            moveStore.record(MoveReviewEntry(
+                boardSummary: mode.title,
+                moveSummary: "Practice session started",
+                explanation: "This daily objective focuses on merging your way to a target tile near your current milestone.",
+                outcome: "Ready for a full run"
+            ))
+            let step = max(2, gameStore.state.highestTileStep)
+            let config = CustomChallengeConfig(
+                target: .tileStep(step),
+                timeLimitSeconds: nil,
+                minTileLevel: 0,
+                levels: 7,
+                tileAssignments: [:],
+                predictedRewardGems: 50,
+                isPractice: true
+            )
+            onPlayPractice(config)
         case .customChallenge:
             onOpenCreate()
         case .guidebook:

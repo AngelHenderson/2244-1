@@ -306,5 +306,53 @@ public final class HomeState {
     public func addGems(_ amount: Int) { gems = max(0, gems + amount) }
     public func spendGems(_ amount: Int) { gems = max(0, gems - amount) }
     
-    public init() {}
+    // Badge calculation for NPC replies
+    public var npcRepliesBadgeCount: Int = 0
+
+    public func updateNpcRepliesBadgeCount() {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: "socialFeed.userPosts.v2"),
+              let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
+            self.npcRepliesBadgeCount = 0
+            return
+        }
+        
+        let lastViewed = defaults.object(forKey: "socialFeed.lastViewedDate") as? Date ?? Date.distantPast
+        
+        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        let playerDisplayNameAlt = defaults.string(forKey: "player.displayName") ?? "Player"
+        
+        let isPlayer: (String) -> Bool = { name in
+            name.lowercased() == playerName.lowercased() || name.lowercased() == playerDisplayNameAlt.lowercased()
+        }
+        
+        let mentionsPlayer: (String) -> Bool = { text in
+            let lower = text.lowercased()
+            return lower.contains("@\(playerName.lowercased())") || lower.contains("@\(playerDisplayNameAlt.lowercased())")
+        }
+        
+        var count = 0
+        let now = Date()
+        for post in items {
+            for comment in post.comments {
+                guard comment.createdAt <= now else { continue }
+                guard comment.createdAt > lastViewed else { continue }
+                if isPlayer(comment.authorName) { continue }
+                
+                if isPlayer(post.authorName) {
+                    count += 1
+                } else {
+                    if mentionsPlayer(comment.text) {
+                        count += 1
+                    }
+                }
+            }
+        }
+        self.npcRepliesBadgeCount = count
+    }
+    
+    public init() {
+        updateNpcRepliesBadgeCount()
+    }
 }
+

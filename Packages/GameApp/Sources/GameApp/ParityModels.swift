@@ -806,6 +806,19 @@ public struct MockSocialService: SocialService, Sendable {
         return max(0, Calendar.current.dateComponents([.day], from: startOfReference, to: startOfToday).day ?? 0)
     }
 
+    static func isTooLowOrSlowReply(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return lower.contains("too low") ||
+               lower.contains("too slow") ||
+               lower.contains("not fast enough") ||
+               lower.contains("laughing from") ||
+               lower.contains("in the dust") ||
+               lower.contains("acting like") ||
+               lower.contains("beneath my") ||
+               lower.contains("leaves you behind") ||
+               lower.contains("is a joke")
+    }
+
     static func determineTopic(message: String) -> String {
         let msgLower = message.lowercased()
         let msgWords = Set(msgLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
@@ -822,15 +835,12 @@ public struct MockSocialService: SocialService, Sendable {
         let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
         let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins"])) && !rootMilestoneExists)
         let isMessageHoF = msgLower.contains("hall of fame") || msgLower.contains("infinity") || msgLower.contains("infinities") || !msgWords.isDisjoint(with: ["hof", "infinit"])
-        let isMessageQuest = !msgWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
         let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
 
         if isMessageHoF {
             return "hof"
         } else if isMessageTime {
             return "time"
-        } else if isMessageQuest {
-            return "quest"
         } else if isMessageStreak {
             return "streak"
         } else {
@@ -843,7 +853,7 @@ public struct MockSocialService: SocialService, Sendable {
         let nsText = text as NSString
         
         switch topic {
-        case "hof", "streak", "score":
+        case "hof", "streak":
             if let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)") {
                 let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
                 for m in regexMatches {
@@ -864,22 +874,7 @@ public struct MockSocialService: SocialService, Sendable {
                 }
             }
             
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            for tier in tiers {
-                var searchRange = NSRange(location: 0, length: nsText.length)
-                while searchRange.location < nsText.length {
-                    let foundRange = nsText.range(of: tier, options: .caseInsensitive, range: searchRange)
-                    if foundRange.location != NSNotFound {
-                        matches.append((val: tier, range: foundRange))
-                        searchRange.location = foundRange.location + foundRange.length
-                        searchRange.length = nsText.length - searchRange.location
-                    } else {
-                        break
-                    }
-                }
-            }
-            
+
         case "milestone":
             let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
             for m in sortedMilestones {
@@ -953,8 +948,8 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
-        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked"]
-        let otherKeywords = ["your", "you're", "about", "celebrating", "only", "thought"]
+        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "posted"]
+        let otherKeywords = ["your", "you're", "celebrating"]
         
         func getClausePrefix(from text: String, startLoc: Int, mentionLength: Int) -> String {
             let prefixLen = min(80, startLoc - mentionLength)
@@ -981,7 +976,7 @@ public struct MockSocialService: SocialService, Sendable {
             scoredMatches.append((val: match.val, netScore: netScore))
         }
         
-        if let maxScore = scoredMatches.map({ $0.netScore }).max() {
+        if let maxScore = scoredMatches.map({ $0.netScore }).max(), maxScore >= 0 {
             let bestMatches = scoredMatches.filter { $0.netScore == maxScore }
             if bestMatches.count == 1 {
                 return bestMatches[0].val
@@ -1020,15 +1015,7 @@ public struct MockSocialService: SocialService, Sendable {
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
             
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            guard let currentVal = val, let idx = tiers.firstIndex(of: currentVal) else { return "Silver" }
-            if idx < tiers.count - 1 {
-                return tiers[idx + 1]
-            } else {
-                return "Diamond"
-            }
-            
+
         case "milestone":
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(10)
@@ -1064,15 +1051,7 @@ public struct MockSocialService: SocialService, Sendable {
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
             
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            guard let currentVal = val, let idx = tiers.firstIndex(of: currentVal) else { return "Bronze" }
-            if idx > 0 {
-                return tiers[idx - 1]
-            } else {
-                return "Bronze"
-            }
-            
+
         case "milestone":
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(4)
@@ -1088,13 +1067,10 @@ public struct MockSocialService: SocialService, Sendable {
 
     static func isRecord(_ rec1: String, worseThan rec2: String, topic: String) -> Bool {
         switch topic {
-        case "hof", "streak", "score":
+        case "hof", "streak":
             guard let int1 = Int(rec1), let int2 = Int(rec2) else { return false }
             return int1 < int2
-        case "quest":
-            let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-            guard let idx1 = tiers.firstIndex(of: rec1), let idx2 = tiers.firstIndex(of: rec2) else { return false }
-            return idx1 < idx2
+
         case "time":
             func timeToSeconds(_ timeStr: String) -> Int? {
                 let parts = timeStr.split(separator: ":")
@@ -1427,8 +1403,7 @@ public struct MockSocialService: SocialService, Sendable {
                 var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                 var npc2Value: String? = nil
                 
-                var npc1WasBehind = false
-                var npc2WasBehind = false
+                var isNpc2Turn = true
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                 let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
@@ -1441,10 +1416,8 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                     }
-                    let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                     
-                    let replyText: String
-                    if currentDepth % 2 == 0 {
+                    if isNpc2Turn {
                         if npc2Value == nil {
                             if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
                                 npc2Value = Self.lowerValue(for: n1Val, topic: topic)
@@ -1453,69 +1426,199 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
-                        if npc2WasBehind {
-                            npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
-                        }
-                        
                         let isBehind: Bool
-                        if let n1Val = npc1Value, let n2Val = npc2Value {
-                            isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
+                        if let sVal = npc2Value, let oVal = npc1Value {
+                            isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
                         } else {
                             isBehind = false
                         }
                         
-                        if isBehind {
-                            npc2WasBehind = true
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
-                        } else if npc2WasBehind {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc2Value)
-                            npc2WasBehind = false
+                        let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                        if isBehind && isOpponentTooLowOrSlow {
+                            if Double.random(in: 0...1) < 0.25 {
+                                let opponentName = lastComment.authorName
+                                let opponentText = lastComment.text
+                                
+                                // 1. First reply: "behind"
+                                let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset1 = Double.random(in: 60...90)
+                                let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                                
+                                let replyComment1 = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText1,
+                                    createdAt: replyCreatedAt1,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment1)
+                                lastComment = replyComment1
+                                currentDepth += 1
+                                
+                                // 2. Second reply: "caught_up". First update value to be oneUp of npc1Value
+                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset2 = Double.random(in: 60...90)
+                                let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                                
+                                let replyComment2 = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText2,
+                                    createdAt: replyCreatedAt2,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment2)
+                                lastComment = replyComment2
+                                currentDepth += 1
+                            } else {
+                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "wants_better", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset = Double.random(in: 60...90)
+                                let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                
+                                let replyComment = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText,
+                                    createdAt: replyCreatedAt,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment)
+                                lastComment = replyComment
+                                currentDepth += 1
+                            }
                         } else {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
-                        }
-                        if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                            npc2Value = newVal
+                            // Just one reply: "one_up"
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
+                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                npc2Value = newVal
+                            }
+                            
+                            let replyOffset = Double.random(in: 60...90)
+                            let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                            
+                            let replyComment = SocialFeedComment(
+                                authorName: npc2!.name,
+                                avatarID: npc2!.avatar,
+                                text: replyText,
+                                createdAt: replyCreatedAt,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment)
+                            lastComment = replyComment
+                            currentDepth += 1
                         }
                     } else {
-                        if npc1WasBehind {
-                            npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
-                        }
-                        
                         let isBehind: Bool
-                        if let n1Val = npc1Value, let n2Val = npc2Value {
-                            isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
+                        if let sVal = npc1Value, let oVal = npc2Value {
+                            isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
                         } else {
                             isBehind = false
                         }
                         
-                        if isBehind {
-                            npc1WasBehind = true
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
-                        } else if npc1WasBehind {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc1Value)
-                            npc1WasBehind = false
+                        let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                        if isBehind && isOpponentTooLowOrSlow {
+                            if Double.random(in: 0...1) < 0.25 {
+                                let opponentName = lastComment.authorName
+                                let opponentText = lastComment.text
+                                
+                                // 1. First reply: "behind"
+                                let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset1 = Double.random(in: 60...90)
+                                let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                                
+                                let replyComment1 = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText1,
+                                    createdAt: replyCreatedAt1,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment1)
+                                lastComment = replyComment1
+                                currentDepth += 1
+                                
+                                // 2. Second reply: "caught_up". First update value to be oneUp of npc2Value
+                                npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                                let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset2 = Double.random(in: 60...90)
+                                let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                                
+                                let replyComment2 = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText2,
+                                    createdAt: replyCreatedAt2,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment2)
+                                lastComment = replyComment2
+                                currentDepth += 1
+                            } else {
+                                npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                                let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "wants_better", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset = Double.random(in: 60...90)
+                                let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                
+                                let replyComment = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText,
+                                    createdAt: replyCreatedAt,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment)
+                                lastComment = replyComment
+                                currentDepth += 1
+                            }
                         } else {
-                            replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
-                        }
-                        if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                            npc1Value = newVal
+                            // Just one reply: "one_up"
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
+                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc1Value = newVal
+                            }
+                            
+                            let replyOffset = Double.random(in: 60...90)
+                            let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                            
+                            let replyComment = SocialFeedComment(
+                                authorName: npc1.name,
+                                avatarID: npc1.avatar,
+                                text: replyText,
+                                createdAt: replyCreatedAt,
+                                likes: Int.random(in: 0...5)
+                            )
+                            comments.append(replyComment)
+                            lastComment = replyComment
+                            currentDepth += 1
                         }
                     }
-                    
-                    // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
-                    let replyOffset = Double.random(in: 60...90)
-                    let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
-                    
-                    let replyComment = SocialFeedComment(
-                        authorName: currentSpeaker.name,
-                        avatarID: currentSpeaker.avatar,
-                        text: replyText,
-                        createdAt: replyCreatedAt,
-                        likes: Int.random(in: 0...5)
-                    )
-                    comments.append(replyComment)
-                    lastComment = replyComment
-                    currentDepth += 1
+                    isNpc2Turn.toggle()
                 }
             } else {
                 if Double.random(in: 0...1) < 0.30 {
@@ -1790,8 +1893,7 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                     var npc2Value: String? = nil
                     
-                    var npc1WasBehind = false
-                    var npc2WasBehind = false
+                    var isNpc2Turn = true
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                     let targetDepth: Int
@@ -1803,22 +1905,20 @@ public struct MockSocialService: SocialService, Sendable {
                     while currentDepth < targetDepth {
                         if npc2 == nil {
                             let replyIndex = Int.random(in: 1...100000)
-                            npc2 = (name: generateDynamicName(), avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
+                            var rName = generateDynamicName()
+                            while rName == npc1.name {
+                                rName = generateDynamicName()
+                            }
+                            npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                         }
-                        let currentSpeaker = currentDepth % 2 == 0 ? npc2! : npc1
                         
-                        let replyText: String
-                        if currentDepth % 2 == 0 {
+                        if isNpc2Turn {
                             if npc2Value == nil {
                                 if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
                                     npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                 } else {
                                     npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                                 }
-                            }
-                            
-                            if npc2WasBehind {
-                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
                             }
                             
                             let isBehind: Bool
@@ -1828,58 +1928,192 @@ public struct MockSocialService: SocialService, Sendable {
                                 isBehind = false
                             }
                             
-                            if isBehind {
-                                npc2WasBehind = true
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc2Value)
-                            } else if npc2WasBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc2Value)
-                                npc2WasBehind = false
+                            let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                            if isBehind && isOpponentTooLowOrSlow {
+                                if Double.random(in: 0...1) < 0.25 {
+                                    let opponentName = lastComment.authorName
+                                    let opponentText = lastComment.text
+                                    
+                                    // 1. First reply: "behind"
+                                    let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc2Value)
+                                    if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                        npc2Value = newVal
+                                    }
+                                    
+                                    let replyOffset1 = Double.random(in: 60...90)
+                                    let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                                    
+                                    let replyComment1 = SocialFeedComment(
+                                        authorName: npc2!.name,
+                                        avatarID: npc2!.avatar,
+                                        text: replyText1,
+                                        createdAt: replyCreatedAt1,
+                                        likes: Int.random(in: 0...5)
+                                    )
+                                    comments.append(replyComment1)
+                                    lastComment = replyComment1
+                                    currentDepth += 1
+                                    
+                                    // 2. Second reply: "caught_up". First update value to be oneUp of npc1Value
+                                    npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                    let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc2Value)
+                                    if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                        npc2Value = newVal
+                                    }
+                                    
+                                    let replyOffset2 = Double.random(in: 60...90)
+                                    let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                                    
+                                    let replyComment2 = SocialFeedComment(
+                                        authorName: npc2!.name,
+                                        avatarID: npc2!.avatar,
+                                        text: replyText2,
+                                        createdAt: replyCreatedAt2,
+                                        likes: Int.random(in: 0...5)
+                                    )
+                                    comments.append(replyComment2)
+                                    lastComment = replyComment2
+                                    currentDepth += 1
+                                } else {
+                                    npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                    let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "wants_better", speakerValue: npc2Value)
+                                    if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                        npc2Value = newVal
+                                    }
+                                    
+                                    let replyOffset = Double.random(in: 60...90)
+                                    let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                    
+                                    let replyComment = SocialFeedComment(
+                                        authorName: npc2!.name,
+                                        avatarID: npc2!.avatar,
+                                        text: replyText,
+                                        createdAt: replyCreatedAt,
+                                        likes: Int.random(in: 0...5)
+                                    )
+                                    comments.append(replyComment)
+                                    lastComment = replyComment
+                                    currentDepth += 1
+                                }
                             } else {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
-                            }
-                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                                npc2Value = newVal
+                                // Just one reply: "one_up"
+                                let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc2Value)
+                                if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc2Value = newVal
+                                }
+                                
+                                let replyOffset = Double.random(in: 60...90)
+                                let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                
+                                let replyComment = SocialFeedComment(
+                                    authorName: npc2!.name,
+                                    avatarID: npc2!.avatar,
+                                    text: replyText,
+                                    createdAt: replyCreatedAt,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment)
+                                lastComment = replyComment
+                                currentDepth += 1
                             }
                         } else {
-                            if npc1WasBehind {
-                                npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
-                            }
-                            
                             let isBehind: Bool
-                            if let n1Val = npc1Value, let n2Val = npc2Value {
-                                isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
+                            if let sVal = npc1Value, let oVal = npc2Value {
+                                isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
                             } else {
                                 isBehind = false
                             }
                             
-                            if isBehind {
-                                npc1WasBehind = true
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "behind", speakerValue: npc1Value)
-                            } else if npc1WasBehind {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "caught_up", speakerValue: npc1Value)
-                                npc1WasBehind = false
+                            let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                            if isBehind && isOpponentTooLowOrSlow {
+                                if Double.random(in: 0...1) < 0.25 {
+                                    let opponentName = lastComment.authorName
+                                    let opponentText = lastComment.text
+                                    
+                                    // 1. First reply: "behind"
+                                    let replyText1 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "behind", speakerValue: npc1Value)
+                                    if let newVal = Self.extractValue(from: replyText1, topic: topic) {
+                                        npc1Value = newVal
+                                    }
+                                    
+                                    let replyOffset1 = Double.random(in: 60...90)
+                                    let replyCreatedAt1 = lastComment.createdAt.addingTimeInterval(replyOffset1)
+                                    
+                                    let replyComment1 = SocialFeedComment(
+                                        authorName: npc1.name,
+                                        avatarID: npc1.avatar,
+                                        text: replyText1,
+                                        createdAt: replyCreatedAt1,
+                                        likes: Int.random(in: 0...5)
+                                    )
+                                    comments.append(replyComment1)
+                                    lastComment = replyComment1
+                                    currentDepth += 1
+                                    
+                                    // 2. Second reply: "caught_up". First update value to be oneUp of npc2Value
+                                    npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                                    let replyText2 = "@\(opponentName) " + generateContextualReply(to: opponentText, message: message, forceTone: "caught_up", speakerValue: npc1Value)
+                                    if let newVal = Self.extractValue(from: replyText2, topic: topic) {
+                                        npc1Value = newVal
+                                    }
+                                    
+                                    let replyOffset2 = Double.random(in: 60...90)
+                                    let replyCreatedAt2 = lastComment.createdAt.addingTimeInterval(replyOffset2)
+                                    
+                                    let replyComment2 = SocialFeedComment(
+                                        authorName: npc1.name,
+                                        avatarID: npc1.avatar,
+                                        text: replyText2,
+                                        createdAt: replyCreatedAt2,
+                                        likes: Int.random(in: 0...5)
+                                    )
+                                    comments.append(replyComment2)
+                                    lastComment = replyComment2
+                                    currentDepth += 1
+                                } else {
+                                    npc1Value = Self.oneUpValue(for: npc2Value, topic: topic)
+                                    let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "wants_better", speakerValue: npc1Value)
+                                    if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                        npc1Value = newVal
+                                    }
+                                    
+                                    let replyOffset = Double.random(in: 60...90)
+                                    let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                    
+                                    let replyComment = SocialFeedComment(
+                                        authorName: npc1.name,
+                                        avatarID: npc1.avatar,
+                                        text: replyText,
+                                        createdAt: replyCreatedAt,
+                                        likes: Int.random(in: 0...5)
+                                    )
+                                    comments.append(replyComment)
+                                    lastComment = replyComment
+                                    currentDepth += 1
+                                }
                             } else {
-                                replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
-                            }
-                            if let newVal = Self.extractValue(from: replyText, topic: topic) {
-                                npc1Value = newVal
+                                // Just one reply: "one_up"
+                                let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: "one_up", speakerValue: npc1Value)
+                                if let newVal = Self.extractValue(from: replyText, topic: topic) {
+                                    npc1Value = newVal
+                                }
+                                
+                                let replyOffset = Double.random(in: 60...90)
+                                let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
+                                
+                                let replyComment = SocialFeedComment(
+                                    authorName: npc1.name,
+                                    avatarID: npc1.avatar,
+                                    text: replyText,
+                                    createdAt: replyCreatedAt,
+                                    likes: Int.random(in: 0...5)
+                                )
+                                comments.append(replyComment)
+                                lastComment = replyComment
+                                currentDepth += 1
                             }
                         }
-                        
-                        // Threaded competitive replies happen fast (4 comments / 5 mins, so ~75s per brag)
-                        let replyOffset = Double.random(in: 60...90)
-                        let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
-                        
-                        let replyComment = SocialFeedComment(
-                            authorName: currentSpeaker.name,
-                            avatarID: currentSpeaker.avatar,
-                            text: replyText,
-                            createdAt: replyCreatedAt,
-                            likes: Int.random(in: 0...5)
-                        )
-                        comments.append(replyComment)
-                        lastComment = replyComment
-                        currentDepth += 1
+                        isNpc2Turn.toggle()
                     }
                 } else {
                     // For non-competitive comments, small chance for a standard reply
@@ -2089,8 +2323,6 @@ public struct MockSocialService: SocialService, Sendable {
         } else {
             eventType = 3 // HOF (15%)
         }
-        let themeNames = ["Classic", "Simple Sage", "Mellow Yellow", "Relaxed Rust", "Cozy Coral"]
-        
         switch eventType {
         case 0:
             // Reached a new tile in Endless
@@ -2224,7 +2456,7 @@ public struct MockSocialService: SocialService, Sendable {
             }
             return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
-        case 3:
+        default:
             // Joined the Hall of Fame
             let infinityCount = Int.random(in: 1...50)
             
@@ -2290,88 +2522,6 @@ public struct MockSocialService: SocialService, Sendable {
                     "Hall of Fame · Debut", "HoF · Entry #1",
                 ]
             }
-            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
-            
-        case 4:
-            // Unlocked a new theme
-            let theme = themeNames.randomElement()!
-            
-            let openers = [
-                "Unlocked", "Grabbed", "Activated", "Equipped",
-                "Switched to", "Just got", "Earned", "Picked up",
-                "Finally unlocked", "Snagged",
-            ]
-            let subjects = [
-                "the \(theme) theme", "\(theme)", "the \(theme) board theme",
-                "the \(theme) look", "the \(theme) style",
-                "the \(theme) aesthetic", "\(theme) vibes",
-                "the \(theme) board", "a fresh \(theme) theme",
-                "the \(theme) color palette",
-            ]
-            let closers = [
-                "!", ". The board looks amazing!",
-                " — time to play in style.", "! Worth every gem.",
-                " and it changes the whole vibe.", ". Even better than I expected!",
-                ". Fresh look alert!", ". New look, who dis?",
-                ". So clean!", " — best theme in the game.",
-            ]
-            
-            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(closers.randomElement()!)"
-            
-            let statEmojis = ["paintpalette", "sparkles", "paintbrush", "star.circle", "theatermasks", "cloud.sun.fill", "bell"]
-            let statLabels = [
-                "Theme unlocked · \(theme)", "New theme · \(theme)",
-                "Customization · \(theme)", "\(theme) · Unlocked",
-                "New style · \(theme)", "Board theme · \(theme)",
-                "Theme equipped · \(theme)", "Fresh look · \(theme)",
-                "\(theme) · Activated", "Style update · \(theme)",
-            ]
-            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
-            
-        default:
-            // Completed the Daily Quest
-            let questTier = ["Bronze", "Silver", "Gold", "Diamond"].randomElement()!
-            let gemsEarned = [50, 100, 150, 200, 250, 300, 500].randomElement()!
-            
-            let openers = [
-                "Completed", "Finished", "Cleared", "Knocked out",
-                "Wrapped up", "Crushed", "Done with", "Conquered",
-                "Smashed through", "Swept",
-            ]
-            let subjects = [
-                "the Daily Quest", "the daily quests", "all daily quests",
-                "the Daily Quest log", "every quest objective",
-                "the daily objectives", "the quest log",
-                "the full quest line", "all three quests",
-                "the daily mission set",
-            ]
-            let mins = Int.random(in: 1...45)
-            let secs = Int.random(in: 0...59)
-            let timeStr = "\(mins):\(String(format: "%02d", secs))"
-
-            let details = [
-                "! \(questTier) chest earned in \(timeStr).",
-                " in \(timeStr) — \(questTier) reward chest grabbed.",
-                "! +\(gemsEarned) gems in \(timeStr).",
-                " in \(timeStr). \(questTier) tier. Easy gems.",
-                " in \(timeStr)! \(questTier) chest.",
-                " in \(timeStr) — all objectives done!",
-                ". \(questTier) chest opened in \(timeStr).",
-                " in \(timeStr). That \(questTier) chest was worth it.",
-                "! \(gemsEarned) gems richer in \(timeStr).",
-                " in \(timeStr). \(questTier) chest in the bag!",
-            ]
-            
-            let message = "\(openers.randomElement()!) \(subjects.randomElement()!)\(details.randomElement()!)"
-            
-            let statEmojis = ["timer", "hourglass", "wind", "medal", "figure.run", "suit.diamond.fill", "target"]
-            let statLabels = [
-                "Quests cleared · \(timeStr)", "Daily Quest · \(timeStr)",
-                "All objectives · \(timeStr)", "\(questTier) quest · \(timeStr)",
-                "Quest time · \(timeStr)", "Speed run · \(timeStr)",
-                "Daily objectives · \(timeStr)", "Quests finished · \(timeStr)",
-                "\(questTier) chest · \(timeStr)", "Quest log · \(timeStr)",
-            ]
             return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
         }
     }
@@ -2456,7 +2606,7 @@ public struct MockSocialService: SocialService, Sendable {
             "",
         ]
         var subjects = [
-            "that run", "your board", "your progress", "that score", "this setup",
+            "that run", "your board", "your progress", "this setup",
             "your grid", "the late game", "your strategy", "that chain", "this result",
             "your merge path", "this endgame", "your tile placement",
         ]
@@ -2491,7 +2641,7 @@ public struct MockSocialService: SocialService, Sendable {
             "I keep choking at this point", "Why can't I do this",
         ]
         var competitiveReactions = [
-            "Your score is entirely irrelevant to my record.",
+            "Your progress is entirely irrelevant to my record.",
             "You will never exist on my level.", "Enjoy chasing my lead.",
             "My next run will just establish a higher ceiling.", "I'm comfortably ahead.",
             "You are nothing compared to my dominance.", "I dominate everything easily.",
@@ -2535,20 +2685,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "your reaction speed", "the clutch finish", "that speedrun",
                 "your timed performance", "beating the clock", "that pace",
             ])
-        } else if message.contains("theme") {
-            subjects.append(contentsOf: [
-                "that new theme", "your new aesthetic", "the customization",
-                "the new board look", "your style choice", "that color palette",
-                "the fresh vibes", "that theme swap", "the new visual",
-                "your board makeover",
-            ])
-        } else if message.contains("Quest") {
-            subjects.append(contentsOf: [
-                "that quest completion", "finishing the dailies", "getting those rewards",
-                "clearing all objectives", "that quest grind", "the daily hustle",
-                "knocking out quests", "that chest pull", "completing every quest",
-                "the quest speedrun",
-            ])
+
         }
         
         // Dynamically inject topic-specific reactions based on the feed item's message
@@ -2656,69 +2793,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Do you go for speed or safety?", "Was that your first attempt today?",
             ])
 
-        } else if message.contains("theme") {
-            positiveReactions.append(contentsOf: [
-                "Love that theme!", "Looks so fresh.", "Best theme in the game.",
-                "So pretty.", "That theme hits different.", "Clean aesthetic!",
-                "Your board looks amazing now!", "Perfect choice!",
-                "That theme is gorgeous.", "10/10 theme pick!",
-            ])
-            jealousReactions.append(contentsOf: [
-                "I'm still trying to unlock that one", "I want that theme so bad",
-                "I don't have enough gems for it", "That's the theme I've been saving for",
-                "Why do the best themes cost so much", "I'm still on the default theme",
-                "Gem grind for that theme is real", "I need more gems for themes",
-                "Saving every gem for that exact theme", "I keep spending gems on perks instead",
-            ])
 
-            competitiveReactions.append(contentsOf: [
-                "Your theme is irrelevant to my absolute dominance.",
-                "You play dress-up while I establish infinity.",
-                "Themes are meaningless compared to my progression.",
-                "A new theme won't make you any less irrelevant.",
-                "Themes are for players who can't reach infinity.",
-                "Keep staring at colors. I'll keep dominating.",
-            ])
-
-            questions.append(contentsOf: [
-                "Which theme is that?", "How much did that cost?",
-                "How many gems was it?", "Is that your favorite theme?",
-                "Do you switch themes often?", "Which theme do you use most?",
-                "How many themes have you unlocked?", "Was it worth the gems?",
-                "What's the rarest theme?", "Does it change the tile colors too?",
-            ])
-
-        } else if message.contains("Quest") {
-            positiveReactions.append(contentsOf: [
-                "Quest complete!", "Enjoy the rewards!", "Easy gems.",
-                "Clean sweep!", "Dailies crushed!", "Nice haul!",
-                "Quest master!", "That chest was earned!",
-                "Objectives demolished!", "Well played on the quests!",
-            ])
-            jealousReactions.append(contentsOf: [
-                "I'm only halfway done with mine", "Those quests were so hard today",
-                "I never finish all the quests", "My quests are always impossible",
-                "I got stuck on the last objective", "I keep running out of time for quests",
-                "The quest RNG hates me", "I got the hardest quests today",
-                "I can never finish before reset", "Wish my quests were that easy",
-            ])
-
-            competitiveReactions.append(contentsOf: [
-                "Your quest rewards are entirely irrelevant to my loot.",
-                "I will claim better rewards.",
-                "It's over.",
-                "My quest efficiency will remain unmatched.",
-                "I dominate quests without a single thought.",
-                "My quest efficiency is high.",
-            ])
-
-            questions.append(contentsOf: [
-                "What did you get from the chest?", "Were your quests hard?",
-                "What tier chest was it?", "How long did the quests take?",
-                "Do you do quests first thing?", "Which quest was the hardest?",
-                "Did you get any good gems?", "What's the best chest you've ever pulled?",
-                "Do you always finish all three?", "Any quest tips for new players?",
-            ])
 
         }
         
@@ -2778,10 +2853,7 @@ public struct MockSocialService: SocialService, Sendable {
             contextKey += "_streak"
         } else if msgLower.contains("time") || msgLower.contains("speed") || msgLower.contains("timed challenge") {
             contextKey += "_time"
-        } else if msgLower.contains("theme") || msgLower.contains("style") || msgLower.contains("aesthetic") {
-            contextKey += "_theme"
-        } else if msgLower.contains("chest") || msgLower.contains("quest") || msgLower.contains("objective") {
-            contextKey += "_chest"
+
         }
         
         if let foundMilestone = sortedMilestones.first(where: { message.contains(" \($0) ") }) {
@@ -2838,11 +2910,11 @@ public struct MockSocialService: SocialService, Sendable {
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let compOpeners = [
-                        "I flew right past this.", "Barely had to try.", "Light work.",
+                        "I flew right past this.", "Barely had to try.", "Laughable.",
                         "This is entirely average.", "Pretty basic.", "Unimpressive.",
                         "Not impressed.", "That's cute.", "Amateur.",
                         "What a joke.", "Not even trying.", "A child could do that.",
-                        "Is that all?", "I was asleep for this.", "Barely a hurdle.",
+                        "Is that all?", "I was asleep for this.", "Barely a milestone.",
                         "Are you even trying?"
                     ]
                     
@@ -3019,16 +3091,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         if topic == "time" {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
-                if totalSecs <= 2 {
-                    let templates = [
-                        "0:02 is the absolute limit. We are both at the peak.",
-                        "No one can go faster than 0:02. We share the record.",
-                        "I also clocked 0:02. That's the theoretical limit.",
-                        "0:02? Solid. I'm right there at the limit too."
-                    ]
-                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], higherName)
-                }
                 let isLowTime = Double.random(in: 0...1) < 0.45
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 if isLowTime {
@@ -3398,15 +3460,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         let commentNumber: Int? = {
             let topic = Self.determineTopic(message: message)
-            let queryTopic: String
+            let queryTopic: String?
             if topic == "hof" {
                 queryTopic = "hof"
             } else if topic == "streak" {
                 queryTopic = "streak"
             } else {
-                queryTopic = "score"
+                queryTopic = nil
             }
-            if let val = Self.extractValue(from: commentText, topic: queryTopic),
+            if let queryTopic = queryTopic,
+               let val = Self.extractValue(from: commentText, topic: queryTopic),
                let num = Int(val) {
                 return num
             }
@@ -3444,7 +3507,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     return (mins, secs)
                 }
             }
-            return Self.extractTime(from: strippedLower)
+            return nil
         }()
         let rootTime = Self.extractTime(from: message.lowercased())
 
@@ -3457,11 +3520,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: combinedLower, range: NSRange(combinedLower.startIndex..., in: combinedLower)) != nil
         var mentionedTime = hasTimeFormat || !combinedWords.isDisjoint(with: ["time", "fast", "speed", "quick", "sec", "min", "mins", "clock", "timed", "seconds", "minutes"])
         var mentionedStreak = !combinedWords.isDisjoint(with: ["streak", "day", "days", "consecutive"])
-        let mentionedTheme = !combinedWords.isDisjoint(with: ["theme", "style", "aesthetic"])
         var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("infinity") || combinedLower.contains("infinities") || !combinedWords.isDisjoint(with: ["hof", "infinit"])
         let mentionedPerk = !combinedWords.isDisjoint(with: ["hammer", "swap", "magnet", "perk", "perks"])
         let mentionedGems = !combinedWords.isDisjoint(with: ["gem", "gems"])
-        var mentionedQuest = !combinedWords.isDisjoint(with: ["quest", "quests", "objective", "objectives", "chest", "chests"])
 
         // ── Mutually Exclusive Topic Priority & Thread Locking ──
         let msgTopic = Self.determineTopic(message: message)
@@ -3469,7 +3530,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // Strict topic inheritance from the original feed item
         mentionedHoF = (msgTopic == "hof")
         mentionedTime = (msgTopic == "time")
-        mentionedQuest = (msgTopic == "quest")
         mentionedStreak = (msgTopic == "streak")
         if msgTopic != "milestone" {
             mentionedMilestone = nil
@@ -3482,7 +3542,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let isQuestion = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "childs play", "compared to"]
-        var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || forceTone == "caught_up" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || forceTone == "caught_up" || forceTone == "wants_better" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
         }
@@ -3585,23 +3645,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ])
             }
 
-            if mentionedTheme {
-                answers.append(contentsOf: [
-                    "Worth every gem, honestly!",
-                    "It changes the whole feel of the game.",
-                    "The colors on this one are so soothing.",
-                    "I've been saving up for weeks for this one.",
-                ])
-            }
 
-            if mentionedQuest {
-                answers.append(contentsOf: [
-                    "I always start with the hardest quest first.",
-                    "The quests were actually pretty easy.",
-                    "The chest rewards are so worth the effort.",
-                    "I try to knock them out in my first session.",
-                ])
-            }
 
             if mentionedPerk {
                 answers.append(contentsOf: [
@@ -3636,51 +3680,64 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if forceTone == "caught_up" {
                 var replies: [String] = []
                 if let m = mentionedMilestone {
+                    let higherM: String
+                    if let speakerValue = speakerValue {
+                        higherM = speakerValue
+                    } else {
+                        let jump = Int.random(in: 1...3)
+                        let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
+                        higherM = Self.allMilestones[higherIdx]
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(m.name) and got ahead.",
-                        "Look who's ahead now! I blew past your \(m.name) record.",
-                        "Caught up and passed you! Finally ahead of your \(m.name) record.",
-                        "I told you I would overtake you. I just beat your \(m.name)!",
-                        "Told you to watch your back! I just passed your \(m.name) record."
+                        "I told you I'd catch up! Just beat your \(m.name) and got ahead. I'm now at \(higherM).",
+                        "Look who's ahead now! I blew past your \(m.name) record and hit \(higherM).",
+                        "Caught up and passed you! Finally ahead of your \(m.name) record at \(higherM).",
+                        "I told you I would overtake you. I just beat your \(m.name) and reached \(higherM)!",
+                        "Told you to watch your back! I just passed your \(m.name) record and hit \(higherM)."
                     ])
-                } else if mentionedStreak, let numStr = mentionedNumber {
+                } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 1...5)
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) days and got ahead.",
-                        "Look who's ahead now! I blew past your \(numStr) day streak.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) day streak.",
-                        "I told you I would overtake you. I just beat your \(numStr) days!"
+                        "I told you I'd catch up! Just beat your \(numStr) days and got ahead. I'm at \(higherNum) days.",
+                        "Look who's ahead now! I blew past your \(numStr) day streak and hit \(higherNum) days.",
+                        "Caught up and passed you! Finally ahead of your \(numStr) day streak at \(higherNum) days.",
+                        "I told you I would overtake you. I just beat your \(numStr) days and reached \(higherNum)!"
                     ])
                 } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                    let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                    let higherTime: String
+                    if let speakerValue = speakerValue {
+                        higherTime = speakerValue
+                    } else {
+                        let mySecs = max(2, totalSecs - Int.random(in: 2...15))
+                        higherTime = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(posterTime) and got ahead.",
-                        "Look who's ahead now! I clocked faster than your \(posterTime).",
-                        "Caught up and passed you! Finally clocked faster than your \(posterTime).",
-                        "I told you I would overtake you. I just beat your \(posterTime)!"
+                        "I told you I'd catch up! Just beat your \(posterTime) and got ahead. I'm now at \(higherTime).",
+                        "Look who's ahead now! I clocked faster than your \(posterTime) at \(higherTime).",
+                        "Caught up and passed you! Finally clocked faster than your \(posterTime) and hit \(higherTime).",
+                        "I told you I would overtake you. I just beat your \(posterTime) and clocked \(higherTime)!"
                     ])
-                } else if mentionedHoF, let numStr = mentionedNumber {
+                } else if mentionedHoF, let numStr = mentionedNumber, let num = Int(numStr) {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = num + Int.random(in: 1...5)
+                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) infinities and got ahead.",
-                        "Look who's ahead now! I blew past your \(numStr) HoF entries.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) HoF entries.",
-                        "I told you I would overtake you. I just beat your \(numStr) infinities!"
+                        "I told you I'd catch up! Just beat your \(numStr) infinities and got ahead. I'm at \(higherNum).",
+                        "Look who's ahead now! I blew past your \(numStr) HoF entries and hit \(higherNum).",
+                        "Caught up and passed you! Finally ahead of your \(numStr) HoF entries at \(higherNum).",
+                        "I told you I would overtake you. I just beat your \(numStr) infinities and reached \(higherNum)!"
                     ])
-                } else if mentionedQuest {
-                    let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-                    let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
-                    let posterTier = tiers[posterTierIdx]
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(posterTier) chests and got ahead.",
-                        "Look who's ahead now! I blew past your \(posterTier) tier.",
-                        "Caught up and passed you! Finally ahead of your \(posterTier) tier."
-                    ])
-                } else if let numStr = mentionedNumber {
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) and got ahead.",
-                        "Look who's ahead now! I blew past your \(numStr) score.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) score.",
-                        "I told you I would overtake you. I just beat your \(numStr)!"
-                    ])
+
                 } else {
                     replies.append(contentsOf: [
                         "I told you I'd catch up! I just got ahead.",
@@ -3724,7 +3781,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
             let parentIsJealous = jealousKeywords.contains(where: { strippedLower.contains($0) }) || isTargetOutOfReach
             
-            if parentIsJealous && forceTone != "behind" {
+            if parentIsJealous && forceTone != "behind" && forceTone != "wants_better" {
                 var replies: [String] = []
                 
                 if let m = mentionedMilestone {
@@ -3747,51 +3804,39 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "Keep struggling with \(m.name). I'm sitting comfortably at \(higherM)."
                         ])
                     } else {
-                        replies.append("Only at \(m.name)? I easily reached \(higherM).")
-                        replies.append("You think \(m.name) is a big milestone? I'm already coasting at \(higherM).")
-                        replies.append("Your \(m.name) is a joke. You'll never catch my \(higherM).")
-                        replies.append("I easily bypassed \(m.name) and hit \(higherM).")
-                        replies.append("I'm laughing from \(higherM) while you're still at \(m.name).")
-                        replies.append("Celebrating \(m.name)? I easily clear \(higherM).")
-                    }
-                } else if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
-                    let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
-                        higherNum = valInt
-                    } else {
-                        higherNum = num + Int.random(in: 30...max(50, num)) // Huge jump
-                    }
-                    if isTargetOutOfReach {
-                        replies.append(contentsOf: [
-                            "If you can't even get to \(num), you'll never catch my \(higherNum).",
-                            "\(num) is out of reach for you? I'm at \(higherNum).",
-                            "You'll never get to \(num) anyway, let alone my \(higherNum)."
-                        ])
-                    } else {
-                        replies.append("Only \(num)? I easily reached \(higherNum).")
-                        replies.append("You actually think \(num) is a high score? I hit \(higherNum) without even looking.")
-                        replies.append("Your \(num) is a joke. I easily crush \(higherNum).")
-                        replies.append("I easily bypassed \(num) and hit \(higherNum) without trying.")
-                        replies.append("Only at \(num)? My floor is \(higherNum).")
-                        replies.append("Don't bother comparing. I'm safely ahead at \(higherNum).")
-                    }
-                } else if mentionedTime, let timeTuple = Self.extractTime(from: strippedLower) {
-                    let totalSecs = timeTuple.0 * 60 + timeTuple.1
-                    if totalSecs <= 2 {
-                        replies.append(contentsOf: [
-                            "0:02 is the absolute limit. We are both at the peak.",
-                            "No one can go faster than 0:02. We share the record.",
-                            "I also clocked 0:02. That's the theoretical limit.",
-                            "0:02? Solid. I'm right there at the limit too."
-                        ])
-                    } else {
-                        let myTimeStr: String
-                        if let speakerValue = speakerValue {
-                            myTimeStr = speakerValue
+                        let speakerIdx = Self.allMilestones.firstIndex(of: higherM) ?? 0
+                        if speakerIdx > m.index {
+                            replies.append("Only at \(m.name)? I easily reached \(higherM).")
+                            replies.append("You think \(m.name) is a big milestone? I'm already coasting at \(higherM).")
+                            replies.append("Your \(m.name) is a joke. You'll never catch my \(higherM).")
+                            replies.append("I easily bypassed \(m.name) and hit \(higherM).")
+                            replies.append("I'm laughing from \(higherM) while you're still at \(m.name).")
+                            replies.append("Celebrating \(m.name)? I easily clear \(higherM).")
+                        } else if speakerIdx == m.index {
+                            replies.append("I'm right there at \(m.name) too. Let's see who breaks it first.")
+                            replies.append("We're tied at \(m.name). The real race starts now.")
+                            replies.append("\(m.name) is solid. I'm sitting at \(higherM) too.")
+                            replies.append("Looks like we're both at \(m.name). Don't get too comfortable.")
+                            replies.append("I also clocked \(higherM). Cute, but irrelevant.")
                         } else {
-                            var mySecs = totalSecs / 3 // Ridiculously fast
-                            if mySecs <= 1 { mySecs = 2 }
-                            myTimeStr = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
+                            replies.append("Only at \(higherM) right now, but I'll catch your \(m.name) soon.")
+                            replies.append("I clocked \(higherM) yesterday. I'm coming for your \(m.name).")
+                            replies.append("I cleared \(higherM). Don't get too comfortable up there at \(m.name).")
+                        }
+                    }
+
+                } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                    let totalSecs = timeTuple.0 * 60 + timeTuple.1
+                        let myTimeStr: String
+                        let mySecs: Int
+                        if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
+                            myTimeStr = speakerValue
+                            mySecs = sMins * 60 + sSecs
+                        } else {
+                            var calculatedSecs = totalSecs / 3 // Ridiculously fast
+                            if calculatedSecs <= 1 { calculatedSecs = 2 }
+                            myTimeStr = "\(calculatedSecs / 60):\(String(format: "%02d", calculatedSecs % 60))"
+                            mySecs = calculatedSecs
                         }
                         let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
                         if isTargetOutOfReach {
@@ -3801,14 +3846,27 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "You'll never get to \(posterTime) anyway, let alone my \(myTimeStr)."
                             ])
                         } else {
-                            replies.append("Celebrating \(posterTime)? I easily reached \(myTimeStr).")
-                            replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTimeStr).")
-                            replies.append("Your \(posterTime) is a joke. I easily hit \(myTimeStr).")
-                            replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTimeStr).")
-                            replies.append("My record is \(myTimeStr) compared to your \(posterTime).")
-                            replies.append("I breeze through in \(myTimeStr) in my sleep.")
+                            if mySecs < totalSecs {
+                                replies.append("Celebrating \(posterTime)? I easily reached \(myTimeStr).")
+                                replies.append("You think \(posterTime) is fast? I'm already casually coasting at \(myTimeStr).")
+                                replies.append("Your \(posterTime) is a joke. I easily hit \(myTimeStr).")
+                                replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTimeStr).")
+                                replies.append("My record is \(myTimeStr) compared to your \(posterTime).")
+                                replies.append("I breeze through in \(myTimeStr) in my sleep.")
+                            } else if mySecs == totalSecs {
+                                replies.append("I'm right there at \(posterTime) too. Let's see who breaks it first.")
+                                replies.append("We're tied at \(posterTime). The real race starts now.")
+                                replies.append("\(posterTime) is solid. I'm sitting at \(myTimeStr) too.")
+                                replies.append("Looks like we're both at \(posterTime). Don't get too comfortable.")
+                                replies.append("I also clocked \(myTimeStr). Cute, but irrelevant.")
+                            } else {
+                                replies.append("I clocked \(myTimeStr) yesterday. I'm coming for your \(posterTime).")
+                                replies.append("I cleared \(myTimeStr). Don't get too comfortable up there at \(posterTime).")
+                                replies.append("I just clocked \(myTimeStr). Your \(posterTime) is next.")
+                                replies.append("Clocked \(myTimeStr) easily. I'll overtake your \(posterTime) soon.")
+                                replies.append("Only at \(myTimeStr) right now, but I'll catch your \(posterTime) soon.")
+                            }
                         }
-                    }
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
@@ -3823,15 +3881,24 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You'll never get to \(num) days anyway, let alone my \(higherNum) days."
                         ])
                     } else {
-                        replies.append("Only \(num) days? I easily reached \(higherNum).")
-                        replies.append("You think \(num) days is a high streak? I'm already casually coasting at \(higherNum).")
-                        replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
-                        replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
-                        replies.append("My \(higherNum) streak is permanent.")
+                        if higherNum > num {
+                            replies.append("Only \(num) days? I easily reached \(higherNum).")
+                            replies.append("You think \(num) days is a high streak? I'm already casually coasting at \(higherNum).")
+                            replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
+                            replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
+                            replies.append("My \(higherNum) streak is permanent.")
+                        } else if higherNum == num {
+                            replies.append("I'm right there at \(num) days too. Let's see who breaks it first.")
+                            replies.append("We're tied at \(num) days. The real race starts now.")
+                            replies.append("\(num) days is solid. I'm sitting at \(higherNum) days too.")
+                            replies.append("Looks like we're both at \(num) days. Don't get too comfortable.")
+                            replies.append("I also clocked \(higherNum) days. Cute, but irrelevant.")
+                        } else {
+                            replies.append("Only at \(higherNum) days right now, but I'll catch your \(num) days soon.")
+                            replies.append("I hit \(higherNum) days yesterday. I'm coming for your \(num) days.")
+                            replies.append("I cleared \(higherNum) days. Don't get too comfortable up there at \(num) days.")
+                        }
                     }
-                } else if mentionedQuest {
-                    replies.append("Quests? I easily reach Diamond tier.")
-                    replies.append("I farm Diamond chests easily.")
                 } else if mentionedHoF, let infCount = Self.extractNumber(from: strippedLower, near: ["infinity", "infinit", "hof", "count"]) {
                     let myCount: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
@@ -3846,10 +3913,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You'll never get to \(infCount) anyway, let alone my \(myCount)."
                         ])
                     } else {
-                        replies.append("Only \(infCount) infinities? I easily reached \(myCount).")
-                        replies.append("You think \(infCount) is a high count? I'm already casually coasting at \(myCount).")
-                        replies.append("Your \(infCount) is a joke. I easily hit \(myCount).")
-                        replies.append("I easily bypassed \(infCount) and am always climbing past \(myCount).")
+                        if myCount > infCount {
+                            replies.append("Only \(infCount) infinities? I easily reached \(myCount).")
+                            replies.append("You think \(infCount) is a high count? I'm already casually coasting at \(myCount).")
+                            replies.append("Your \(infCount) is a joke. I easily hit \(myCount).")
+                            replies.append("I easily bypassed \(infCount) and am always climbing past \(myCount).")
+                        } else if myCount == infCount {
+                            replies.append("I'm right there at \(infCount) infinities too. Let's see who breaks it first.")
+                            replies.append("We're tied at \(infCount) infinities. The real race starts now.")
+                            replies.append("\(infCount) infinities is solid. I'm sitting at \(myCount) infinities too.")
+                            replies.append("Looks like we're both at \(infCount) infinities. Don't get too comfortable.")
+                            replies.append("I also clocked \(myCount) infinities. Cute, but irrelevant.")
+                        } else {
+                            replies.append("Only at \(myCount) infinities right now, but I'll catch your \(infCount) infinities soon.")
+                            replies.append("I hit \(myCount) infinities yesterday. I'm coming for your \(infCount) infinities.")
+                            replies.append("I cleared \(myCount) infinities. Don't get too comfortable up there at \(infCount) infinities.")
+                        }
                     }
                 } else {
                     replies.append("I am comfortably ahead.")
@@ -3883,7 +3962,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 if isLowerBrag, let cM = commentMilestone, let rM = refMilestone {
                     replies.append(contentsOf: [
                         "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
-                        "\(cM.name) is nothing. I posted about \(rM.name). You're still too low to get ahead.",
                         "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
                         "Is this a joke? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
                         "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
@@ -4005,7 +4083,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "Your \(mName) is nothing compared to my \(higherM) record.",
                                     "I easily passed \(mName). I dominate \(higherM).",
                                     "Your \(mName) is child's play compared to my \(higherM) record.",
-                                    "\(mName) was light work. I'm already sitting at \(higherM).",
+                                    "\(mName) is a joke. I'm already sitting at \(higherM).",
                                     "You're celebrating \(mName)? I just cleared \(higherM).",
                                     "I left \(mName) in the dust. \(higherM) is the new standard.",
                                     "Don't brag about \(mName) when \(higherM) is completely out of your reach.",
@@ -4017,116 +4095,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
             }
 
-            if let numStr = mentionedNumber, let num = Int(numStr), !mentionedTime, !mentionedStreak, !mentionedHoF {
-                let refNumber = speakerValue.flatMap(Int.init) ?? rootNumber
-                let isLowerScoreBrag = commentText != message && commentIsCompetitive && commentNumber != nil && refNumber != nil && commentNumber! < refNumber!
-                
-                if isLowerScoreBrag, let cN = commentNumber, let rN = refNumber {
-                    replies.append(contentsOf: [
-                        "You're bragging about \(cN)? I'm already at \(rN). You're still too low to get ahead.",
-                        "\(cN) is nothing. I posted about \(rN). You're still too low to get ahead.",
-                        "You thought \(cN) would impress me? I'm at \(rN). You're still too low to get ahead.",
-                        "Is this a joke? \(cN) is beneath my \(rN). You're still too low to get ahead.",
-                        "I'm at \(rN) and you're bragging about \(cN)? You're still too low to get ahead.",
-                        "You're acting like \(cN) is a big deal? I easily passed \(rN).",
-                        "Only at \(cN)? I'm laughing from \(rN).",
-                        "I left \(cN) in the dust a long time ago. \(rN) is my new floor."
-                    ])
-                } else if rootIsJealous, let cN = commentNumber {
-                    let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
-                        higherNum = valInt
-                    } else if let rN = refNumber {
-                        higherNum = rN
-                    } else {
-                        higherNum = cN + Int.random(in: 10...max(20, cN))
-                    }
-                    if higherNum < cN {
-                        replies.append(contentsOf: [
-                            "I hit \(higherNum) yesterday. I'm coming for your \(cN).",
-                            "I cleared \(higherNum). Don't get too comfortable up there at \(cN).",
-                            "I just reached \(higherNum). Your \(cN) is next.",
-                            "I hit \(higherNum) easily. I'll overtake your \(cN) soon.",
-                            "Only at \(higherNum) right now, but I'll catch your \(cN) soon."
-                        ])
-                    } else if higherNum == cN {
-                        replies.append(contentsOf: [
-                            "I'm right there at \(cN) too. Let's see who breaks it first.",
-                            "We're tied at \(cN). The real race starts now.",
-                            "\(cN) is solid. I'm sitting at \(higherNum) too.",
-                            "Looks like we're both at \(cN). Don't get too comfortable.",
-                            "I also hit \(higherNum). Cute, but irrelevant."
-                        ])
-                    } else {
-                        replies.append(contentsOf: [
-                            "I easily passed your \(cN). I'm at \(higherNum).",
-                            "I let you think you had the lead. Your \(cN) is nothing. I'm at \(higherNum).",
-                            "You fell for it. I easily beat your \(cN). My real record is \(higherNum).",
-                            "I was just warming up. Your \(cN) is a joke compared to my \(higherNum).",
-                            "I blew past your \(cN) and hit \(higherNum) without even trying.",
-                            "Only at \(cN)? I easily reached \(higherNum).",
-                            "Your \(cN) is a joke compared to my \(higherNum).",
-                            "I cleared \(higherNum) without trying.",
-                            "I was just toying with you. I'm actually at \(higherNum)."
-                        ])
-                    }
-                } else {
-                    let isLowScore = speakerValue == nil && Double.random(in: 0...1) < 0.45
-                    let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
-                        higherNum = valInt
-                    } else if let rN = refNumber {
-                        higherNum = rN
-                    } else if isLowScore && num > 20 {
-                        higherNum = num - Int.random(in: 10...max(20, num / 2))
-                    } else {
-                        higherNum = num + Int.random(in: 10...max(20, num))
-                    }
-                    if higherNum < num {
-                        replies.append(contentsOf: [
-                            "I hit \(higherNum) yesterday. I'm coming for your \(numStr).",
-                            "I cleared \(higherNum). Don't get too comfortable up there at \(numStr).",
-                            "I just reached \(higherNum). Your \(numStr) is next.",
-                            "I hit \(higherNum) easily. I'll overtake your \(numStr) soon.",
-                            "Only at \(higherNum) right now, but I'll catch your \(numStr) soon."
-                        ])
-                    } else if higherNum == num {
-                        replies.append(contentsOf: [
-                            "I'm right there at \(numStr) too. Let's see who breaks it first.",
-                            "We're tied at \(numStr). The real race starts now.",
-                            "\(numStr) is solid. I'm sitting at \(higherNum) too.",
-                            "Looks like we're both at \(numStr). Don't get too comfortable.",
-                            "I also hit \(higherNum). Cute, but irrelevant."
-                        ])
-                    } else {
-                        if wantsBetter {
-                            replies.append(contentsOf: [
-                                "Your progression is nothing compared to mine. \(higherNum) proves it.",
-                                "You wanted better? I'm already at \(higherNum).",
-                                "I did do better. You're not catching \(higherNum).",
-                                "Done. I'm untouched at \(higherNum).",
-                                "I'm always climbing. \(higherNum) completely buries you.",
-                                "Better is my baseline. \(higherNum) leaves you in the dust.",
-                                "I already left you behind. \(higherNum) is my new floor.",
-                                "Watch me. I'm scoring \(higherNum) easily.",
-                                "You are no threat. I'm sitting comfortably at \(higherNum).",
-                                "I never stop climbing. \(higherNum) is already done."
-                            ])
-                        } else {
-                            replies.append(contentsOf: [
-                                "I am ahead of your \(numStr). I'm at \(higherNum).",
-                                "Your \(numStr) < My practice runs. I'll always be ahead at \(higherNum).",
-                                "\(numStr) is just the beginning. I'm already at \(higherNum).",
-                                "I left your \(numStr) score in the dust. I'm already at \(higherNum).",
-                                "You thought \(numStr) was good? I'm laughing from \(higherNum).",
-                                "\(numStr) points is light work. \(higherNum) is completely out of your reach.",
-                                "I passed \(numStr) without even looking. I'm at \(higherNum).",
-                                "\(higherNum) is my floor. Your \(numStr) is my ceiling."
-                            ])
-                        }
-                    }
-                }
-            }
+
 
             if mentionedStreak {
                 if let numStr = mentionedNumber, let num = Int(numStr) {
@@ -4136,7 +4105,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     if isLowerStreakBrag, let cN = commentNumber, let rN = refNumber {
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) days? I'm already at \(rN). You're still too low to get ahead.",
-                            "\(cN) days is nothing. I posted about \(rN). You're still too low to get ahead.",
                             "You thought \(cN) days would impress me? I'm at \(rN). You're still too low to get ahead.",
                             "Is this a joke? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
                             "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead.",
@@ -4213,14 +4181,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             if wantsBetter {
                                 replies.append(contentsOf: [
-                                    "Your progression is nothing compared to mine. \(higherNum) days proves it.",
-                                    "You wanted better? I'm already at \(higherNum) days.",
+                                    "I always do better. I'm already pushing \(higherNum) days.",
+                                    "You wanted better? I'm sitting at \(higherNum) days.",
                                     "I did do better. You're not catching \(higherNum) days.",
                                     "Done. I'm untouched at \(higherNum) days.",
                                     "I'm always climbing. \(higherNum) days completely buries you.",
-                                    "Better is my baseline. \(higherNum) days leaves you in the dust.",
-                                    "I already left you behind. \(higherNum) days is my new floor.",
-                                    "Watch me. I'm streak-running \(higherNum) days easily.",
+                                    "Better is my baseline. I'm at \(higherNum) days.",
+                                    "I already left you behind. \(higherNum) days is next.",
+                                    "Watch me. I'm clearing \(higherNum) days easily.",
                                     "You are no threat. I'm sitting comfortably at \(higherNum) days.",
                                     "I never stop climbing. \(higherNum) days is already done."
                                 ])
@@ -4229,9 +4197,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I am ahead of your \(numStr) days. I'm at \(higherNum).",
                                     "Your \(numStr) day streak is cute. You'll never catch my \(higherNum) days.",
                                     "I already passed \(numStr) days. I'm untouched at \(higherNum).",
-                                    "Your \(numStr) days is light work. I'm already sitting at \(higherNum) days.",
+                                    "Your \(numStr) days is a joke. I'm already sitting at \(higherNum) days.",
                                     "\(higherNum) days leaves you behind. Your \(numStr) is nothing.",
-                                    "My infinite consistency is at \(higherNum) days. \(numStr) is light.",
+                                    "My infinite consistency is at \(higherNum) days. \(numStr) is a joke.",
                                     "You're bragging about \(numStr) days? I'm at \(higherNum).",
                                     "I own \(higherNum) days. \(higherNum) > \(numStr)."
                                 ])
@@ -4251,11 +4219,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                     if wantsBetter {
                         replies.append(contentsOf: [
-                            "Your progression is nothing compared to mine. \(higherNum) days proves it.",
-                            "You wanted better? I'm already at \(higherNum) days.",
+                            "I always do better. I'm already pushing \(higherNum) days.",
+                            "You wanted better? I'm sitting at \(higherNum) days.",
                             "I did do better. You're not catching \(higherNum) days.",
                             "Done. I'm untouched at \(higherNum) days.",
-                            "I'm always getting better. \(higherNum) days completely buries you.",
+                            "I'm always climbing. \(higherNum) days completely buries you.",
+                            "Better is my baseline. I'm at \(higherNum) days.",
+                            "I already left you behind. \(higherNum) days is next.",
+                            "Watch me. I'm clearing \(higherNum) days easily.",
+                            "You are no threat. I'm sitting comfortably at \(higherNum) days.",
+                            "I never stop climbing. \(higherNum) days is already done."
                         ])
                     } else {
                         if higherNum < assumedNum {
@@ -4277,9 +4250,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I am ahead of your streak. I'm at \(higherNum) days.",
                                 "Your streak is cute. You'll never catch my \(higherNum) days.",
                                 "I already passed that. I'm untouched at \(higherNum) days.",
-                                "Your streak is light work. I'm already sitting at \(higherNum) days.",
+                                "Your streak is a joke. I'm already sitting at \(higherNum) days.",
                                 "I sit at \(higherNum) days. Your consistency is nothing.",
-                                "My infinite consistency is at \(higherNum) days. Your streak is light.",
+                                "My infinite consistency is at \(higherNum) days. Your streak is nothing.",
                                 "You're bragging about streaks? I'm at \(higherNum) days.",
                                 "I own \(higherNum) days. I dominate everything.",
                             ])
@@ -4318,7 +4291,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     if diff >= 10 {
                         replies.append(contentsOf: [
                             "You're bragging about \(cTimeStr)? I'm already down to \(rTimeStr). You're still too slow to get ahead.",
-                            "\(cTimeStr) is nothing. I posted about \(rTimeStr). You're still too slow to get ahead.",
                             "You thought \(cTimeStr) would impress me? I'm at \(rTimeStr). You're still too slow to get ahead.",
                             "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still too slow to get ahead.",
                             "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still too slow to get ahead."
@@ -4326,7 +4298,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else {
                         replies.append(contentsOf: [
                             "You're bragging about \(cTimeStr)? I'm already down to \(rTimeStr). You're still not fast enough to get ahead.",
-                            "\(cTimeStr) is nothing. I posted about \(rTimeStr). You're still not fast enough to get ahead.",
                             "You thought \(cTimeStr) would impress me? I'm at \(rTimeStr). You're still not fast enough to get ahead.",
                             "Are you serious? \(cTimeStr) is slower than my \(rTimeStr). You're still not fast enough to get ahead.",
                             "I'm at \(rTimeStr) and you're bragging about \(cTimeStr)? You're still not fast enough to get ahead."
@@ -4335,14 +4306,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else if rootIsJealous, let cT = commentTime {
                     let cSecs = cT.0 * 60 + cT.1
                     let cTimeStr = "\(cT.0):\(String(format: "%02d", cT.1))"
-                    if cSecs <= 2 {
-                        replies.append(contentsOf: [
-                            "0:02 is the absolute limit. We are both at the peak.",
-                            "No one can go faster than 0:02. We share the record.",
-                            "I also clocked 0:02. That's the theoretical limit.",
-                            "0:02? Solid. I'm right there at the limit too."
-                        ])
-                    } else {
                         let myTimeStr: String
                         let mySecs: Int
                         if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
@@ -4380,17 +4343,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I blew past your \(cTimeStr) and clocked \(myTimeStr) without even trying."
                             ])
                         }
-                    }
                 } else if let (mins, secs) = commentTime ?? rootTime {
                     let totalSecs = mins * 60 + secs
-                    if totalSecs <= 2 {
-                        replies.append(contentsOf: [
-                            "0:02 is the absolute limit. We are both at the peak.",
-                            "No one can go faster than 0:02. We share the record.",
-                            "I also clocked 0:02. That's the theoretical limit.",
-                            "0:02? Solid. I'm right there at the limit too."
-                        ])
-                    } else {
                         let higherNum: Int
                         if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
                             higherNum = sMins * 60 + sSecs
@@ -4427,14 +4381,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             if wantsBetter {
                                 replies.append(contentsOf: [
-                                    "I always do better. \(higherTime) makes you look slow.",
-                                    "You wanted better? I'm already down to \(higherTime).",
+                                    "I always do better. I'm already pushing \(higherTime).",
+                                    "You wanted better? I'm sitting at \(higherTime).",
                                     "I did do better. You're not catching \(higherTime).",
                                     "Done. I'm untouched at \(higherTime).",
-                                    "I'm always getting faster. \(higherTime) makes you look slow.",
-                                    "Better is my baseline. I just cleared it in \(higherTime).",
-                                    "I already left you behind. \(higherTime) is my new floor.",
-                                    "Watch me. I'm clocking \(higherTime) easily.",
+                                    "I'm always climbing. \(higherTime) completely buries you.",
+                                    "Better is my baseline. I'm at \(higherTime).",
+                                    "I already left you behind. \(higherTime) is next.",
+                                    "Watch me. I'm clearing \(higherTime) easily.",
                                     "You are no threat. I'm sitting comfortably at \(higherTime).",
                                     "I never stop climbing. \(higherTime) is already done."
                                 ])
@@ -4459,7 +4413,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append(contentsOf: templates)
                             }
                         }
-                    }
                 } else {
                     let isLowTime = speakerValue == nil && Double.random(in: 0...1) < 0.45
                     let assumedTotal = Int.random(in: 60...120)
@@ -4524,7 +4477,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     if isLowerHoFBrag, let cN = commentNumber, let rN = refNumber {
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
-                            "\(cN) infinities is nothing. I posted about \(rN). You're still too low to get ahead.",
                             "You thought \(cN) infinities would impress me? I'm at \(rN). You're still too low to get ahead.",
                             "Are you serious? \(cN) infinities is beneath my \(rN). You're still too low to get ahead.",
                             "I'm at \(rN) infinities and you're bragging about \(cN)? You're still too low to get ahead."
@@ -4538,7 +4490,21 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             higherNum = num + Int.random(in: 1...max(3, num/2))
                         }
-                        if higherNum < num {
+                        
+                        if wantsBetter {
+                            replies.append(contentsOf: [
+                                "I always do better. I'm already pushing \(higherNum) infinities.",
+                                "You wanted better? I'm sitting at \(higherNum) infinities.",
+                                "I did do better. You're not catching \(higherNum) infinities.",
+                                "Done. I'm untouched at \(higherNum) infinities.",
+                                "I'm always climbing. \(higherNum) infinities completely buries you.",
+                                "Better is my baseline. I'm at \(higherNum) infinities.",
+                                "I already left you behind. \(higherNum) infinities is next.",
+                                "Watch me. I'm clearing \(higherNum) infinities easily.",
+                                "You are no threat. I'm sitting comfortably at \(higherNum) infinities.",
+                                "I never stop climbing. \(higherNum) infinities is already done."
+                            ])
+                        } else if higherNum < num {
                             replies.append(contentsOf: [
                                 "I hit \(higherNum) infinities yesterday. I'm coming for your \(numStr) entries.",
                                 "I cleared \(higherNum) infinities. Don't get too comfortable up there at \(numStr).",
@@ -4580,7 +4546,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                       } else {
                         higherNum = assumedNum + Int.random(in: 2...8)
                     }
-                    if higherNum < assumedNum {
+                    if wantsBetter {
+                        replies.append(contentsOf: [
+                            "I always do better. I'm already pushing \(higherNum) infinities.",
+                            "You wanted better? I'm sitting at \(higherNum) infinities.",
+                            "I did do better. You're not catching \(higherNum) infinities.",
+                            "Done. I'm untouched at \(higherNum) infinities.",
+                            "I'm always climbing. \(higherNum) infinities completely buries you.",
+                            "Better is my baseline. I'm at \(higherNum) infinities.",
+                            "I already left you behind. \(higherNum) infinities is next.",
+                            "Watch me. I'm clearing \(higherNum) infinities easily.",
+                            "You are no threat. I'm sitting comfortably at \(higherNum) infinities.",
+                            "I never stop climbing. \(higherNum) infinities is already done."
+                        ])
+                    } else if higherNum < assumedNum {
                         replies.append(contentsOf: [
                             "I hit \(higherNum) infinities yesterday. I'm coming for your \(assumedNum) entries.",
                             "I cleared \(higherNum) infinities. Don't get too comfortable up there at \(assumedNum).",
@@ -4610,55 +4589,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
             }
 
-            if mentionedQuest {
-                let tiers = ["Bronze", "Silver", "Gold", "Diamond"]
-                let posterTierIdx = tiers.firstIndex(where: { strippedLower.contains($0.lowercased()) }) ?? tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) ?? 0
-                
-                if posterTierIdx < tiers.count - 1 {
-                    let myTier: String
-                    if let speakerValue = speakerValue {
-                        myTier = speakerValue
-                    } else if let refIdx = tiers.firstIndex(where: { message.lowercased().contains($0.lowercased()) }) {
-                        myTier = tiers[refIdx]
-                    } else {
-                        myTier = tiers[Int.random(in: (posterTierIdx + 1)..<tiers.count)]
-                    }
-                    let posterTier = tiers[posterTierIdx]
-                    
-                    if let myTierIdx = tiers.firstIndex(of: myTier), myTierIdx < posterTierIdx {
-                        replies.append(contentsOf: [
-                            "I pull \(myTier) chests. I'm coming for your \(posterTier) tier.",
-                            "I only open \(myTier). Don't get too comfortable up there at \(posterTier).",
-                            "I just reached \(myTier). Your \(posterTier) is next."
-                        ])
-                    } else if myTier == posterTier {
-                        replies.append(contentsOf: [
-                            "I'm right there at \(posterTier) chests too. Let's see who gets the next tier first.",
-                            "We're both opening \(posterTier) chests. The real race starts now.",
-                            "\(posterTier) is solid. I'm farming \(myTier) chests too.",
-                            "Looks like we're both on \(posterTier). Don't get too comfortable."
-                        ])
-                    } else {
-                        replies.append(contentsOf: [
-                            "I am ahead of your \(posterTier) chests. I pull \(myTier).",
-                            "Your \(posterTier) is cute. I only open \(myTier).",
-                            "I easily passed \(posterTier). I farm \(myTier).",
-                            "\(posterTier) chests? I only open \(myTier).",
-                            "I extended infinitely past \(posterTier). Currently on \(myTier).",
-                            "Your \(posterTier) pulls are cute. Call me when you reach \(myTier).",
-                            "I haven't dropped below \(myTier). \(posterTier) is light.",
-                            "\(myTier) drops only here. Your \(posterTier) won't last.",
-                        ])
-                    }
-                } else {
-                    replies.append(contentsOf: [
-                        "Diamond chests are just my baseline. I farm them easily.",
-                        "You finally got a Diamond chest? I open them daily.",
-                        "I already passed that phase. Diamond is standard for me.",
-                        "Diamond? I hoard them effortlessly.",
-                    ])
-                }
-            }
+
 
             if commentText == message {
                 replies = replies.filter { r in
@@ -4743,10 +4674,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 replies.append("You'll always struggle to keep a streak. I never miss.")
             }
 
-            if mentionedTheme {
-                replies.append("You'll never get that theme. Your gem count is pathetic.")
-                replies.append("Keep dreaming. That theme belongs to top-tier players.")
-            }
+
 
             // Generic dismissal
             replies.append(contentsOf: [
@@ -4763,7 +4691,35 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "It's over for you. You'll never catch up."
             ])
             var reply = replies.randomElement()!
-            if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"].randomElement()!) }
+            if Double.random(in: 0...1) < 0.75 {
+                let lowerReply = reply.lowercased()
+                let testCompetitivePhrases = [
+                    "grinding right now", "closing the gap", "lead while it lasts",
+                    "coming for the top", "overtake you", "lower right now",
+                    "irrelevant to my", "never exist on my level", "coasting at",
+                    "joke", "safely ahead", "bypassed", "floor", "untouched",
+                    "breeze through", "clocked", "leagues faster", "dominating",
+                    "laughing from", "easily hit", "easily clear", "easily passed",
+                    "easily reached", "easily beat", "easily bypassed", "easily crush",
+                    "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                    "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                    "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
+                    "record is", "my record", "permanent",
+                    "already far ahead", "nothing compared", "always do better", "did do better",
+                    "baseline", "left you behind", "no threat", "never stop climbing",
+                    "practice runs", "without even looking", "time is cute", "shaved time",
+                    "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                    "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                    "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                    "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                    "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                    "watch your back", "watch me stay ahead", "watch my stats",
+                    "sidelines", "witness infinity", "extend my lead"
+                ]
+                let containsComp = testCompetitivePhrases.contains { lowerReply.contains($0) }
+                let symbolPool = containsComp ? [". . .", " rn", " fr", " tbh", " ngl", " smh"] : [" :(", " :((", " >:(", " :/", " ;-(", " -_-", " >_<", ". . .", " rn", " fr", " tbh", " ngl", " smh"]
+                reply = Self.injectSymbol(reply, symbol: symbolPool.randomElement()!)
+            }
             return reply
         }
 
@@ -4780,9 +4736,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 replies.append("Streak crew! We don't miss days ")
             }
 
-            if mentionedTheme {
-                replies.append("Right? The aesthetics here are top tier!")
-            }
+
 
             if mentionedHoF {
                 replies.append("HoF is the dream. Thanks for the love! ")

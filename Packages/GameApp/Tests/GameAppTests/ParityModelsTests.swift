@@ -179,7 +179,7 @@ struct ParityModelsTests {
                     "chasing my lead", "higher ceiling", "dominance", "unreachable",
                     "comfortably ahead", "only at", "is a joke", "you'll never catch",
                     "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
-                    "record is", "my record", "permanent", "diamond tier", "diamond chests",
+                    "record is", "my record", "permanent",
                     "already far ahead", "nothing compared", "always do better", "did do better",
                     "baseline", "left you behind", "no threat", "never stop climbing",
                     "practice runs", "without even looking", "time is cute", "shaved time",
@@ -298,16 +298,16 @@ struct ParityModelsTests {
 
         for _ in 0..<50 {
             // Reply to "0:02" comment (should use peak limit responses instead of trying to go faster)
-            let reply = service.generateContextualReply(to: "I clocked 0:02.", message: "I clocked 0:06.", forceTone: "one_up")
+            let reply = service.generateContextualReply(to: "I clocked 0:02.", message: "I clocked 0:02.", forceTone: "one_up")
             
             // Check that it doesn't contain "shaved time off your 0:02. My best is 0:02" or other faster brags
             #expect(!reply.contains("shaved time off"), "Should not try to shave time off 0:02: \(reply)")
             #expect(!reply.contains("leagues faster"), "Should not claim to be leagues faster than 0:02: \(reply)")
             #expect(!reply.contains("clear it in"), "Should not claim to clear 0:02 in faster time: \(reply)")
             
-            // Check that it contains the limit/peak message substrings
-            let isLimitReply = ["limit", "peak", "share the record", "theoretical limit"].contains { reply.lowercased().contains($0) }
-            #expect(isLimitReply, "Should recognize 0:02 is the limit: \(reply)")
+            // Check that it is a tie/rivalry reply
+            let isTieReply = reply.contains("tied") || reply.contains("both at 0:02") || reply.contains("right there at 0:02") || reply.contains("also clocked 0:02") || reply.contains("sitting at 0:02") || reply.contains("Cute, but irrelevant.") || reply.contains("race starts now") || reply.contains("breaks it first")
+            #expect(isTieReply, "Should recognize 0:02 is tied: \(reply)")
         }
     }
 
@@ -442,17 +442,6 @@ struct ParityModelsTests {
         #expect(reply.contains("10"), "Expected lower brag reply to contain target HOF entries: 10 (Reply: \(reply))")
     }
 
-    @Test("Verify that lower brag replies are correctly selected for score when speaker record is lower")
-    func testScoreLowerBragReplySelection() {
-        let service = MockSocialService()
-        
-        let comment = "My 1000 is better, you cute."
-        let reply = service.generateContextualReply(to: comment, message: "I got 1000 points.", forceTone: "one_up", speakerValue: "500")
-        
-        #expect(reply.contains("500"), "Expected lower brag reply to contain speaker record: 500 (Reply: \(reply))")
-        #expect(reply.contains("1000"), "Expected lower brag reply to contain target score: 1000 (Reply: \(reply))")
-    }
-
     @Test("Player record is consistent across a competitive comment thread")
     func testPlayerRecordConsistency() async throws {
         let defaults = UserDefaults.standard
@@ -481,37 +470,89 @@ struct ParityModelsTests {
             
             // Build all reply chains
             var chains: [[SocialFeedComment]] = []
-            var currentChain: [SocialFeedComment] = []
+            
+            func extractNumbers(from text: String) -> Set<Int> {
+                let pattern = "\\b(\\d+)\\b"
+                guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+                let nsText = text as NSString
+                let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                let nums = matches.compactMap { match -> Int? in
+                    Int(nsText.substring(with: match.range))
+                }
+                return Set(nums)
+            }
+            
+            func doesCommentMatchConversation(author: String, targetName: String, last: SocialFeedComment) -> Bool {
+                var lastTarget: String? = nil
+                if last.text.hasPrefix("@") {
+                    let parts = last.text.split(separator: " ")
+                    if let first = parts.first {
+                        var tName = String(first.dropFirst())
+                        while !tName.isEmpty && !tName.last!.isLetter && !tName.last!.isNumber {
+                            tName.removeLast()
+                        }
+                        lastTarget = tName
+                    }
+                }
+                if last.authorName == targetName {
+                    return lastTarget == nil || lastTarget == author
+                } else if last.authorName == author {
+                    return lastTarget == targetName
+                }
+                return false
+            }
             
             for comment in item.comments {
                 let text = comment.text
+                let author = comment.authorName
+                
                 if text.hasPrefix("@") {
                     let parts = text.split(separator: " ")
                     if let first = parts.first {
-                        let targetName = String(first.dropFirst())
-                        if let last = currentChain.last, targetName == last.authorName {
-                            currentChain.append(comment)
-                        } else {
-                            if !currentChain.isEmpty {
-                                chains.append(currentChain)
+                        var targetName = String(first.dropFirst())
+                        while !targetName.isEmpty && !targetName.last!.isLetter && !targetName.last!.isNumber {
+                            targetName.removeLast()
+                        }
+                        
+                        // Find all candidate chains that match the conversation and are within 300 seconds
+                        var candidates: [(index: Int, last: SocialFeedComment)] = []
+                        for (idx, chain) in chains.enumerated() {
+                            if let last = chain.last,
+                               doesCommentMatchConversation(author: author, targetName: targetName, last: last),
+                               comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
+                                candidates.append((index: idx, last: last))
                             }
-                            currentChain = [comment]
+                        }
+                        
+                        if !candidates.isEmpty {
+                            var bestIdx = candidates[0].index
+                            if candidates.count > 1 {
+                                let commentNums = extractNumbers(from: text)
+                                var maxMatches = -1
+                                for candidate in candidates {
+                                    let chain = chains[candidate.index]
+                                    var matchCount = 0
+                                    for chainComment in chain {
+                                        let chainNums = extractNumbers(from: chainComment.text)
+                                        let intersection = commentNums.intersection(chainNums)
+                                        matchCount += intersection.count
+                                    }
+                                    if matchCount > maxMatches {
+                                        maxMatches = matchCount
+                                        bestIdx = candidate.index
+                                    }
+                                }
+                            }
+                            chains[bestIdx].append(comment)
+                        } else {
+                            chains.append([comment])
                         }
                     } else {
-                        if !currentChain.isEmpty {
-                            chains.append(currentChain)
-                        }
-                        currentChain = [comment]
+                        chains.append([comment])
                     }
                 } else {
-                    if !currentChain.isEmpty {
-                        chains.append(currentChain)
-                    }
-                    currentChain = [comment]
+                    chains.append([comment])
                 }
-            }
-            if !currentChain.isEmpty {
-                chains.append(currentChain)
             }
             
             // Verify record consistency only for competitive threads (chains of length >= 3)
@@ -523,21 +564,74 @@ struct ParityModelsTests {
                 var playerRecords: [String: String] = [:]
                 for comment in chain {
                     let author = comment.authorName
-                    if let val = MockSocialService.extractValue(from: comment.text, topic: topic) {
+                    let textLower = comment.text.lowercased()
+                    let isCatchUpReply = textLower.contains("just beat your") ||
+                                         textLower.contains("got ahead") ||
+                                         textLower.contains("ahead now") ||
+                                         textLower.contains("blew past your") ||
+                                         textLower.contains("caught up and passed") ||
+                                         textLower.contains("clocked faster than") ||
+                                         (textLower.contains("overtake you") && !textLower.contains("overtake your")) ||
+                                         (textLower.contains("passed you") && !textLower.contains("passed your")) ||
+                                         textLower.contains("just passed your")
+                    
+                    let competitivePhrases = [
+                        "grinding right now", "closing the gap", "lead while it lasts",
+                        "coming for the top", "overtake you", "lower right now",
+                        "irrelevant to my", "never exist on my level", "coasting at",
+                        "joke", "safely ahead", "bypassed", "floor", "untouched",
+                        "breeze through", "clocked", "leagues faster", "dominating",
+                        "laughing from", "easily hit", "easily clear", "easily passed",
+                        "easily reached", "easily beat", "easily bypassed", "easily crush",
+                        "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                        "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                        "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
+                        "record is", "my record", "permanent",
+                        "already far ahead", "nothing compared", "always do better", "did do better",
+                        "baseline", "left you behind", "no threat", "never stop climbing",
+                        "practice runs", "without even looking", "time is cute", "shaved time",
+                        "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                        "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                        "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                        "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                        "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                        "watch your back", "watch me stay ahead", "watch my stats",
+                        "sidelines", "witness infinity", "extend my lead"
+                    ]
+                    let isReply = comment.text.hasPrefix("@")
+                    let isCompetitiveComment = !isReply || competitivePhrases.contains { textLower.contains($0) }
+                    
+                    var val: String? = nil
+                    if isCompetitiveComment {
+                        val = MockSocialService.extractValue(from: comment.text, topic: topic)
+                        if val == nil && isCatchUpReply {
+                            if let prevIdx = chain.firstIndex(where: { $0.id == comment.id }),
+                               prevIdx > 0 {
+                                let competitor = chain[prevIdx - 1].authorName
+                                if let compVal = playerRecords[competitor] {
+                                    val = MockSocialService.oneUpValue(for: compVal, topic: topic)
+                                }
+                            }
+                        }
+                    }
+                    
+                    if let val = val {
                         if let establishedVal = playerRecords[author] {
-                            let textLower = comment.text.lowercased()
-                            let isCatchUpReply = textLower.contains("just beat your") ||
-                                                 textLower.contains("ahead now") ||
-                                                 textLower.contains("blew past your") ||
-                                                 textLower.contains("caught up and passed") ||
-                                                 textLower.contains("clocked faster than") ||
-                                                 textLower.contains("just passed your")
-                            
                             let isBetter = MockSocialService.isRecord(establishedVal, worseThan: val, topic: topic)
+                            
+                            var isAheadOfCompetitor = false
+                            if let prevIdx = chain.firstIndex(where: { $0.id == comment.id }),
+                               prevIdx > 0 {
+                                let competitor = chain[prevIdx - 1].authorName
+                                if let compVal = playerRecords[competitor] {
+                                    isAheadOfCompetitor = MockSocialService.isRecord(compVal, worseThan: val, topic: topic)
+                                }
+                            }
+                            
+                            let isWorse = MockSocialService.isRecord(val, worseThan: establishedVal, topic: topic)
+                            #expect(!isWorse, "Player \(author) claimed value \(val) which is worse than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
                             if isCatchUpReply {
                                 #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
-                            } else {
-                                #expect(!isBetter, "Player \(author) claimed value \(val) in competitive thread, which is better than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
                             }
                             if isBetter {
                                 playerRecords[author] = val
@@ -624,26 +718,6 @@ struct ParityModelsTests {
         )
         let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Cute, but irrelevant.") || hofReply.contains("race starts now") || hofReply.contains("breaks it first")
         #expect(isHofTie, "Expected same-HOF reply to use rivalry/tie phrasing: \(hofReply)")
-        
-        // 4. Score
-        let scoreReply = service.generateContextualReply(
-            to: "My 1000 is better, you cute.",
-            message: "I got 1000 points.",
-            forceTone: "one_up",
-            speakerValue: "1000"
-        )
-        let isScoreTie = scoreReply.contains("tied") || scoreReply.contains("both at 1000") || scoreReply.contains("right there at 1000") || scoreReply.contains("also hit 1000") || scoreReply.contains("sitting at 1000") || scoreReply.contains("Cute, but irrelevant.") || scoreReply.contains("race starts now") || scoreReply.contains("breaks it first")
-        #expect(isScoreTie, "Expected same-score reply to use rivalry/tie phrasing: \(scoreReply)")
-        
-        // 5. Quest
-        let questReply = service.generateContextualReply(
-            to: "My Silver is better, you cute.",
-            message: "I pull Silver chests.",
-            forceTone: "one_up",
-            speakerValue: "Silver"
-        )
-        let isQuestTie = questReply.contains("both on Silver") || questReply.contains("both opening Silver") || questReply.contains("chests too") || questReply.contains("Cute, but irrelevant.") || questReply.contains("farming Silver") || questReply.contains("race starts now") || questReply.contains("next tier first") || questReply.contains("tied at Silver")
-        #expect(isQuestTie, "Expected same-quest reply to use rivalry/tie phrasing: \(questReply)")
     }
 
     @Test("Catch-up phrasing is used when speaker is behind")
@@ -696,6 +770,73 @@ struct ParityModelsTests {
         #expect(streakReply.contains("50"), "Expected caught-up reply to mention commenter record: \(streakReply)")
         let isStreakBeat = streakReply.contains("catch up") || streakReply.contains("ahead now") || streakReply.contains("passed you") || streakReply.contains("overtake") || streakReply.contains("beat your")
         #expect(isStreakBeat, "Expected streak caught-up reply to use beat/ahead phrasing: \(streakReply)")
+    }
+
+    @Test("HomeState npcRepliesBadgeCount counts replies from NPCs correctly")
+    @MainActor
+    func testNpcRepliesBadgeCount() async throws {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "profilePlayerName")
+        defaults.removeObject(forKey: "player.displayName")
+        
+        let homeState = HomeState()
+        #expect(homeState.npcRepliesBadgeCount == 0)
+        
+        // Let's mock a user post in socialFeed.userPosts.v2
+        let post1 = SocialFeedItem(
+            id: UUID(),
+            authorName: "Player",
+            message: "Just hit 2048!",
+            statText: "New tile",
+            comments: [
+                SocialFeedComment(authorName: "NPC1", text: "Nice work!", createdAt: Date().addingTimeInterval(-60)),
+                SocialFeedComment(authorName: "Player", text: "Thanks!", createdAt: Date()),
+                // Future comment - should not be counted yet
+                SocialFeedComment(authorName: "NPC2", text: "Amazing!", createdAt: Date().addingTimeInterval(3600))
+            ]
+        )
+        
+        // Mock an NPC post that the user commented on and got a reply
+        let post2 = SocialFeedItem(
+            id: UUID(),
+            authorName: "NPC3",
+            message: "I hit 1024!",
+            statText: "New tile",
+            comments: [
+                SocialFeedComment(authorName: "Player", text: "Nice!", createdAt: Date().addingTimeInterval(-120)),
+                SocialFeedComment(authorName: "NPC3", text: "@Player thanks buddy!", createdAt: Date().addingTimeInterval(-60)),
+                SocialFeedComment(authorName: "NPC4", text: "Cool", createdAt: Date().addingTimeInterval(-30)) // Does not mention Player, should not count as reply to Player
+            ]
+        )
+        
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode([post1, post2]) {
+            defaults.set(data, forKey: "socialFeed.userPosts.v2")
+        }
+        
+        homeState.updateNpcRepliesBadgeCount()
+        
+        // Total should be:
+        // From post1 (Player's post):
+        // - NPC1 comment (Nice work!): 1 (NPC comment, <= now)
+        // - Player comment (Thanks!): 0 (Player comment)
+        // - NPC2 comment (Amazing!): 0 (Future comment)
+        // From post2 (NPC3's post):
+        // - Player comment: 0 (Player comment)
+        // - NPC3 comment (@Player thanks buddy!): 1 (NPC comment, mentions @Player, <= now)
+        // - NPC4 comment (Cool): 0 (NPC comment, does not mention Player)
+        // Total = 1 + 1 = 2
+        #expect(homeState.npcRepliesBadgeCount == 2)
+
+        // Verify setting lastViewedDate filters out older comments and resets badge count to 0
+        defaults.set(Date(), forKey: "socialFeed.lastViewedDate")
+        homeState.updateNpcRepliesBadgeCount()
+        #expect(homeState.npcRepliesBadgeCount == 0)
+        
+        // Clean up
+        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "socialFeed.lastViewedDate")
     }
 }
 

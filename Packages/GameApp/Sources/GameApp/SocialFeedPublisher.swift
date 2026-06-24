@@ -147,43 +147,11 @@ public final class SocialFeedPublisher {
 
     /// Post when the player equips a new theme.
     public func postThemeEquipped(themeName: String) {
-        let key = "theme_\(themeName)"
-        guard shouldPost(eventKey: key) else { return }
-        markPosted(eventKey: key)
-
-        let templates = [
-            "Unlocked the \(themeName) theme!",
-            "Grabbed the new \(themeName) style.",
-            "Equipped the \(themeName) aesthetic — time to play in style.",
-            "Just got the \(themeName) color palette.",
-        ]
-        let stat = "paintpalette|Theme unlocked · \(themeName)"
-        Task {
-            try? await socialService.postEvent(
-                message: templates.randomElement()!,
-                statText: stat
-            )
-        }
+        // Theme customization reactions and feed posts are not in distribution.
     }
 
     /// Post when the player completes all daily quests.
     public func postDailyQuestsComplete(chestTier: String? = nil) {
-        let key = "daily_quests"
-        guard shouldPost(eventKey: key) else { return }
-        markPosted(eventKey: key)
-
-        let templates = [
-            "Completed the Daily Quest!",
-            "Finished all daily quests. Easy gems.",
-            "Cleared today's quest log.",
-            "Knocked out the daily objectives.",
-        ]
-        let stat = "target|Daily Quest · Complete"
-        Task {
-            try? await socialService.postEvent(
-                message: templates.randomElement()!,
-                statText: stat
-            )
-        }
+        // Daily quest reactions and feed posts are not in distribution.
     }
 }
