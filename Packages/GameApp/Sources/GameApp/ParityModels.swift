@@ -806,6 +806,19 @@ public struct MockSocialService: SocialService, Sendable {
         return max(0, Calendar.current.dateComponents([.day], from: startOfReference, to: startOfToday).day ?? 0)
     }
 
+    static func isTooLowOrSlowReply(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return lower.contains("too low") ||
+               lower.contains("too slow") ||
+               lower.contains("not fast enough") ||
+               lower.contains("laughing from") ||
+               lower.contains("in the dust") ||
+               lower.contains("acting like") ||
+               lower.contains("beneath my") ||
+               lower.contains("leaves you behind") ||
+               lower.contains("is a joke")
+    }
+
     static func determineTopic(message: String) -> String {
         let msgLower = message.lowercased()
         let msgWords = Set(msgLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
@@ -1420,7 +1433,8 @@ public struct MockSocialService: SocialService, Sendable {
                             isBehind = false
                         }
                         
-                        if isBehind {
+                        let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                        if isBehind && isOpponentTooLowOrSlow && Double.random(in: 0...1) < 0.25 {
                             let opponentName = lastComment.authorName
                             let opponentText = lastComment.text
                             
@@ -1493,7 +1507,8 @@ public struct MockSocialService: SocialService, Sendable {
                             isBehind = false
                         }
                         
-                        if isBehind {
+                        let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                        if isBehind && isOpponentTooLowOrSlow && Double.random(in: 0...1) < 0.25 {
                             let opponentName = lastComment.authorName
                             let opponentText = lastComment.text
                             
@@ -1869,7 +1884,8 @@ public struct MockSocialService: SocialService, Sendable {
                                 isBehind = false
                             }
                             
-                            if isBehind {
+                            let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                            if isBehind && isOpponentTooLowOrSlow && Double.random(in: 0...1) < 0.25 {
                                 let opponentName = lastComment.authorName
                                 let opponentText = lastComment.text
                                 
@@ -1942,7 +1958,8 @@ public struct MockSocialService: SocialService, Sendable {
                                 isBehind = false
                             }
                             
-                            if isBehind {
+                            let isOpponentTooLowOrSlow = Self.isTooLowOrSlowReply(lastComment.text)
+                            if isBehind && isOpponentTooLowOrSlow && Double.random(in: 0...1) < 0.25 {
                                 let opponentName = lastComment.authorName
                                 let opponentText = lastComment.text
                                 
