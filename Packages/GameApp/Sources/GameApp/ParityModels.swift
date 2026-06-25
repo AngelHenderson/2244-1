@@ -2765,7 +2765,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Your streak is cute compared to my infinite consistency.",
                 "I will hold the higher streak.",
                 "I dominate the daily grind without effort.",
-                "My streak is going strong.",
+                "Your streak is nothing compared to mine.",
             ])
 
             questions.append(contentsOf: [
