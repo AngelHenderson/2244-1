@@ -3554,23 +3554,25 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         // ── Detect the tone/intent of the comment being replied to ──
 
+        let isForcedCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || forceTone == "caught_up" || forceTone == "wants_better"
+
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
-        let isQuestion = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && questionKeywords.contains(where: { strippedLower.contains($0) })
+        let isQuestion = !isForcedCompetitive && questionKeywords.contains(where: { strippedLower.contains($0) })
 
         let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "childs play", "compared to"]
-        var isCompetitive = forceTone == "competitive" || forceTone == "one_up" || forceTone == "behind" || forceTone == "caught_up" || forceTone == "wants_better" || competitiveKeywords.contains(where: { strippedLower.contains($0) })
+        var isCompetitive = isForcedCompetitive || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
         }
 
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
-        let isJealous = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && jealousKeywords.contains(where: { strippedLower.contains($0) })
+        let isJealous = !isForcedCompetitive && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
         let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "effortless"]
-        let isPositive = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && positiveKeywords.contains(where: { strippedLower.contains($0) })
+        let isPositive = !isForcedCompetitive && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
-        let isAddRequest = forceTone != "competitive" && forceTone != "one_up" && forceTone != "behind" && forceTone != "caught_up" && addFriendKeywords.contains(where: { strippedLower.contains($0) })
+        let isAddRequest = !isForcedCompetitive && addFriendKeywords.contains(where: { strippedLower.contains($0) })
 
         // ── Generate contextual replies that reference the actual comment ──
 
