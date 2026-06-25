@@ -42,11 +42,11 @@ public final class SocialFeedPublisher {
         markPosted(eventKey: key)
 
         let templates = [
-            "Reached the \(tileName) tile in Endless!",
+            "Reached the \(tileName) tile in the game!",
             "Just hit \(tileName) for the first time!",
-            "NEW personal best — \(tileName) tile unlocked in Endless!",
+            "NEW personal best — \(tileName) tile unlocked in game!",
             "\(tileName) tile reached! The grind never stops.",
-            "Finally broke through to \(tileName) in Endless mode!",
+            "Finally broke through to \(tileName) in the gameplay!",
             "After so many attempts… \(tileName) is MINE!",
         ]
         let stats = [
@@ -132,8 +132,8 @@ public final class SocialFeedPublisher {
         } else {
             templates = [
                 "Made it into HoF glory — \(infinityCount) infinities strong.",
-                "Made it into the infinity club with \(infinityCount) counts. Legendary!",
-                "Hall of Fame update: \(infinityCount) infinity counts and climbing!",
+                "Made it into the infinity club with \(infinityCount) infinities. Legendary!",
+                "Hall of Fame update: \(infinityCount) infinities and climbing!",
             ]
         }
         let stat = "infinity|Hall of Fame · \(infinityCount) \(infinityCount == 1 ? "infinity" : "infinities")"
