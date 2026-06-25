@@ -854,7 +854,7 @@ public struct MockSocialService: SocialService, Sendable {
         
         switch topic {
         case "hof", "streak":
-            if let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)") {
+            if let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})(?:d|day|days)?\\b(?!:)") {
                 let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
                 for m in regexMatches {
                     if m.numberOfRanges > 1 {
@@ -3355,7 +3355,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         guard contextWords.contains(where: { lowered.contains($0) }) else { return nil }
 
         // Find all integers in the message
-        let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)")
+        let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})(?:d|day|days)?\\b(?!:)")
         let matches = pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
 
         for match in matches {
@@ -3489,7 +3489,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                let num = Int(val) {
                 return num
             }
-            let regex = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)", options: [])
+            let regex = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})(?:d|day|days)?\\b(?!:)", options: [])
             let range = NSRange(strippedText.startIndex..., in: strippedText)
             if let matches = regex?.matches(in: strippedText, range: range) {
                 let numbers = matches.compactMap { match -> Int? in
@@ -3502,7 +3502,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }()
 
         let rootNumber: Int? = {
-            let regex = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})\\b(?!:)", options: [])
+            let regex = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})(?:d|day|days)?\\b(?!:)", options: [])
             let range = NSRange(message.startIndex..., in: message)
             if let matches = regex?.matches(in: message, range: range) {
                 let numbers = matches.compactMap { match -> Int? in
