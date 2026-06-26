@@ -292,24 +292,12 @@ public struct DailyStreaksView: View {
                 .foregroundStyle(.secondary)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(store.dailyStreaks.prefix(10)) { streak in
+                LazyHStack(spacing: 12) {
+                    ForEach(store.dailyStreaks) { streak in
                         MilestoneCard(streak: streak, currentDay: store.currentClaimDay, dayOffset: cycleOffset)
                             .onTapGesture {
                                 selectedStreak = streak
                             }
-                    }
-
-                    if store.dailyStreaks.count > 10 {
-                        VStack {
-                            Text("...")
-                                .font(.avenirNext(size: GameFonts.title1Size, weight: .bold))
-                            Text("\(store.dailyStreaks.count - 10) more")
-                                .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
-                        }
-                        .foregroundStyle(.secondary)
-                        .frame(width: 100, height: 140)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
                     }
                 }
             }
