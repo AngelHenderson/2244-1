@@ -422,6 +422,8 @@ public struct HomeView: View {
                     systemImage: "target",
                     customImage: nil,
                     title: "PRACTICE",
+                    banned: state.isBanned,
+                    onBannedTap: { state.showBanAlert = true },
                     action: { presentedSheet = .practice }
                 )
             )
@@ -513,6 +515,8 @@ public struct HomeView: View {
                     systemImage: "square.grid.2x2.fill",
                     customImage: nil,
                     title: "MODES",
+                    banned: state.isBanned,
+                    onBannedTap: { state.showBanAlert = true },
                     action: { presentedSheet = .modes }
                 )
             )
@@ -694,9 +698,11 @@ public struct HomeView: View {
         case .dailyStreaks:
             presentedSheet = .dailyStreaks
         case .practice:
-            presentedSheet = .practice
+            if state.isBanned { state.showBanAlert = true }
+            else { presentedSheet = .practice }
         case .modes:
-            presentedSheet = .modes
+            if state.isBanned { state.showBanAlert = true }
+            else { presentedSheet = .modes }
         case .feed:
             if state.isBanned { state.showBanAlert = true }
             else {
