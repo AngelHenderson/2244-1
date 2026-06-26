@@ -279,8 +279,12 @@ public struct DailyStreaksView: View {
     }
     
     private var milestonesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("365 Day Milestones")
+        let cycleOffset = (store.currentClaimDay / 365) * 365
+        let cycleStart = cycleOffset + 1
+        let cycleEnd = cycleOffset + 365
+
+        return VStack(alignment: .leading, spacing: 16) {
+            Text("Day \(cycleStart)–\(cycleEnd) Milestones")
                 .font(.avenirNext(size: GameFonts.title2Size, weight: .bold))
 
             Text("Tap to view rewards")
@@ -290,7 +294,7 @@ public struct DailyStreaksView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(store.dailyStreaks.prefix(10)) { streak in
-                        MilestoneCard(streak: streak, currentDay: store.currentClaimDay)
+                        MilestoneCard(streak: streak, currentDay: store.currentClaimDay, dayOffset: cycleOffset)
                             .onTapGesture {
                                 selectedStreak = streak
                             }
@@ -319,7 +323,7 @@ public struct DailyStreaksView: View {
                 GridItem(.adaptive(minimum: 80), spacing: 12)
             ], spacing: 12) {
                 ForEach(store.dailyStreaks) { streak in
-                    MilestoneBadge(streak: streak, currentDay: store.currentClaimDay)
+                    MilestoneBadge(streak: streak, currentDay: store.currentClaimDay, dayOffset: cycleOffset)
                         .onTapGesture {
                             selectedStreak = streak
                         }
@@ -332,6 +336,10 @@ public struct DailyStreaksView: View {
 private struct MilestoneCard: View {
     let streak: DailyClaimsStore.DailyStreak
     let currentDay: Int
+    var dayOffset: Int = 0
+
+    private var displayDay: Int { streak.day + dayOffset }
+    private var isComplete: Bool { currentDay >= displayDay }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -340,16 +348,16 @@ private struct MilestoneCard: View {
                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                 .foregroundStyle(.secondary)
 
-            Text("\(streak.day)")
+            Text("\(displayDay)")
                 .font(.avenirNext(size: 32, weight: .bold))
-                .foregroundStyle(streak.isUnlocked ? .green : .primary)
+                .foregroundStyle(isComplete ? .green : .primary)
 
             // Status icon
-            if streak.isUnlocked {
+            if isComplete {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.green)
-            } else if currentDay > 0 && currentDay >= streak.day - 3 {
+            } else if currentDay > 0 && currentDay >= displayDay - 3 {
                 Image(systemName: "lock.open.fill")
                     .font(.avenirNext(size: GameFonts.title2Size, weight: .regular))
                     .foregroundStyle(.orange)
@@ -386,9 +394,9 @@ private struct MilestoneCard: View {
     }
     
     private var backgroundGradient: Gradient {
-        if streak.isUnlocked {
+        if isComplete {
             return Gradient(colors: [.green.opacity(0.3), .green.opacity(0.1)])
-        } else if currentDay > 0 && currentDay >= streak.day - 3 {
+        } else if currentDay > 0 && currentDay >= displayDay - 3 {
             return Gradient(colors: [.orange.opacity(0.2), .yellow.opacity(0.1)])
         } else {
             return Gradient(colors: [.gray.opacity(0.1), .clear])
@@ -396,9 +404,9 @@ private struct MilestoneCard: View {
     }
     
     private var borderColor: Color {
-        if streak.isUnlocked {
+        if isComplete {
             return .green
-        } else if currentDay > 0 && currentDay >= streak.day - 3 {
+        } else if currentDay > 0 && currentDay >= displayDay - 3 {
             return .orange.opacity(0.5)
         } else {
             return .gray.opacity(0.3)
@@ -409,14 +417,18 @@ private struct MilestoneCard: View {
 private struct MilestoneBadge: View {
     let streak: DailyClaimsStore.DailyStreak
     let currentDay: Int
+    var dayOffset: Int = 0
+
+    private var displayDay: Int { streak.day + dayOffset }
+    private var isComplete: Bool { currentDay >= displayDay }
 
     var body: some View {
         VStack(spacing: 4) {
-            Text("\(streak.day)")
+            Text("\(displayDay)")
                 .font(.avenirNext(size: 20, weight: .bold))
-                .foregroundStyle(streak.isUnlocked ? .green : .primary)
+                .foregroundStyle(isComplete ? .green : .primary)
 
-            if streak.isUnlocked {
+            if isComplete {
                 Image(systemName: "star.fill")
                     .font(.avenirNext(size: GameFonts.caption1Size, weight: .regular))
                     .foregroundStyle(.yellow)
@@ -429,11 +441,11 @@ private struct MilestoneBadge: View {
         .frame(width: 80, height: 80)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(streak.isUnlocked ? .green.opacity(0.2) : .gray.opacity(0.1))
+                .fill(isComplete ? .green.opacity(0.2) : .gray.opacity(0.1))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(streak.isUnlocked ? .green : .gray.opacity(0.3), lineWidth: 1)
+                .strokeBorder(isComplete ? .green : .gray.opacity(0.3), lineWidth: 1)
         )
     }
 }
