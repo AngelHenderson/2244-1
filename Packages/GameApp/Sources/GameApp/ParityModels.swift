@@ -2725,7 +2725,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Your infinity count is entirely irrelevant to my dominance.",
                 "I will always have more infinities.",
                 "It's over.",
-                "My infinity count will remain unmatched.",
+                "My infinity count will remain untouched.",
                 "I easily dominate the Hall of Fame.",
                 "My infinity count is growing.",
             ])
@@ -2761,7 +2761,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             competitiveReactions.append(contentsOf: [
                 "Your streak is entirely irrelevant to my infinite grind.",
-                "My dedication is absolute and unmatched.",
+                "My dedication is absolute and unrivaled.",
                 "Your streak is cute compared to my infinite consistency.",
                 "I will hold the higher streak.",
                 "I dominate the daily grind without effort.",
@@ -2794,7 +2794,7 @@ public struct MockSocialService: SocialService, Sendable {
 
             competitiveReactions.append(contentsOf: [
                 "Your time is entirely irrelevant to my speed.",
-                "My clears have been unmatched for a while.",
+                "My clears have been unrivaled for a while.",
                 "It's over.",
                 "I will hold the faster clear.",
                 "I absolutely dominate the speed leaderboards.",
@@ -3150,7 +3150,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
                     var templates = [
                         "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
-                        "My clears have been unmatched since \(myTime).",
+                        "My clears have been unrivaled since \(myTime).",
                         "Only \(posterTime)? I'm sitting at \(myTime).",
                         "I easily clock \(myTime).",
                         "You'll never reach my \(myTime).",

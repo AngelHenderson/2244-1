@@ -149,6 +149,9 @@ struct ParityModelsTests {
                 let hasWinWord = lowercasedText.range(of: "\\bwin\\b", options: .regularExpression) != nil
                 #expect(!hasWinWord, "Found finite-match word 'win' in bot comment: \(comment.text)")
                 
+                let hasMatchWord = lowercasedText.range(of: "\\bmatch\\b", options: .regularExpression) != nil
+                #expect(!hasMatchWord, "Found finite-match word 'match' in bot comment: \(comment.text)")
+                
                 let hasGiveUp = lowercasedText.contains("give up")
                 #expect(!hasGiveUp, "Found 'give up' phrase in bot comment: \(comment.text)")
                 
@@ -183,7 +186,7 @@ struct ParityModelsTests {
                     "already far ahead", "nothing compared", "always do better", "did do better",
                     "baseline", "left you behind", "no threat", "never stop climbing",
                     "practice runs", "without even looking", "time is cute", "shaved time",
-                    "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                    "speedrun", "practice run", "in my sleep", "unrivaled", "infinity count",
                     "hof entries", "speaks for itself", "farm ", "extended infinitely",
                     "pulls are cute", "dropped below", "talk to me", "anywhere near",
                     "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
@@ -506,6 +509,126 @@ struct ParityModelsTests {
                 let text = comment.text
                 let author = comment.authorName
                 
+                func isChainCompatible(_ chain: [SocialFeedComment]) -> Bool {
+                    var playerRecords: [String: String] = [:]
+                    for chainComment in chain {
+                        let cAuthor = chainComment.authorName
+                        let cTextLower = chainComment.text.lowercased()
+                        let cIsCatchUpReply = cTextLower.contains("just beat your") ||
+                                              cTextLower.contains("got ahead") ||
+                                              cTextLower.contains("ahead now") ||
+                                              cTextLower.contains("blew past your") ||
+                                              cTextLower.contains("caught up and passed") ||
+                                              cTextLower.contains("clocked faster than") ||
+                                              (cTextLower.contains("overtake you") && !cTextLower.contains("overtake your")) ||
+                                              (cTextLower.contains("passed you") && !cTextLower.contains("passed your")) ||
+                                              cTextLower.contains("just passed your")
+                        
+                        let cCompetitivePhrases = [
+                            "grinding right now", "closing the gap", "lead while it lasts",
+                            "coming for the top", "overtake you", "lower right now",
+                            "irrelevant to my", "never exist on my level", "coasting at",
+                            "joke", "safely ahead", "bypassed", "floor", "untouched",
+                            "breeze through", "clocked", "leagues faster", "dominating",
+                            "laughing from", "easily hit", "easily clear", "easily passed",
+                            "easily reached", "easily beat", "easily bypassed", "easily crush",
+                            "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                            "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                            "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
+                            "record is", "my record", "permanent",
+                            "already far ahead", "nothing compared", "always do better", "did do better",
+                            "baseline", "left you behind", "no threat", "never stop climbing",
+                            "practice runs", "without even looking", "time is cute", "shaved time",
+                            "speedrun", "practice run", "in my sleep", "unrivaled", "infinity count",
+                            "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                            "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                            "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                            "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                            "watch your back", "watch me stay ahead", "watch my stats",
+                            "sidelines", "witness infinity", "extend my lead"
+                        ]
+                        let cIsReply = chainComment.text.hasPrefix("@")
+                        let cIsCompetitiveComment = !cIsReply || cCompetitivePhrases.contains { cTextLower.contains($0) }
+                        
+                        var cVal: String? = nil
+                        if cIsCompetitiveComment {
+                            cVal = MockSocialService.extractValue(from: chainComment.text, topic: topic)
+                            if cVal == nil && cIsCatchUpReply {
+                                if let prevIdx = chain.firstIndex(where: { $0.id == chainComment.id }),
+                                   prevIdx > 0 {
+                                    let competitor = chain[prevIdx - 1].authorName
+                                    if let compVal = playerRecords[competitor] {
+                                        cVal = MockSocialService.oneUpValue(for: compVal, topic: topic)
+                                    }
+                                }
+                            }
+                        }
+                        if let cVal = cVal {
+                            playerRecords[cAuthor] = cVal
+                        }
+                    }
+                    
+                    let textLower = text.lowercased()
+                    let isCatchUpReply = textLower.contains("just beat your") ||
+                                         textLower.contains("got ahead") ||
+                                         textLower.contains("ahead now") ||
+                                         textLower.contains("blew past your") ||
+                                         textLower.contains("caught up and passed") ||
+                                         textLower.contains("clocked faster than") ||
+                                         (textLower.contains("overtake you") && !textLower.contains("overtake your")) ||
+                                         (textLower.contains("passed you") && !textLower.contains("passed your")) ||
+                                         textLower.contains("just passed your")
+                    
+                    let competitivePhrases = [
+                        "grinding right now", "closing the gap", "lead while it lasts",
+                        "coming for the top", "overtake you", "lower right now",
+                        "irrelevant to my", "never exist on my level", "coasting at",
+                        "joke", "safely ahead", "bypassed", "floor", "untouched",
+                        "breeze through", "clocked", "leagues faster", "dominating",
+                        "laughing from", "easily hit", "easily clear", "easily passed",
+                        "easily reached", "easily beat", "easily bypassed", "easily crush",
+                        "chasing my lead", "higher ceiling", "dominance", "unreachable",
+                        "comfortably ahead", "only at", "is a joke", "you'll never catch",
+                        "you're not catching", "out of your reach", "don't bother comparing", "my floor", "casually coasting",
+                        "record is", "my record", "permanent",
+                        "already far ahead", "nothing compared", "always do better", "did do better",
+                        "baseline", "left you behind", "no threat", "never stop climbing",
+                        "practice runs", "without even looking", "time is cute", "shaved time",
+                        "speedrun", "practice run", "in my sleep", "unrivaled", "infinity count",
+                        "hof entries", "speaks for itself", "farm ", "extended infinitely",
+                        "pulls are cute", "dropped below", "talk to me", "anywhere near",
+                        "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                        "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                        "watch your back", "watch me stay ahead", "watch my stats",
+                        "sidelines", "witness infinity", "extend my lead"
+                    ]
+                    let isReply = text.hasPrefix("@")
+                    let isCompetitiveComment = !isReply || competitivePhrases.contains { textLower.contains($0) }
+                    
+                    var val: String? = nil
+                    if isCompetitiveComment {
+                        val = MockSocialService.extractValue(from: text, topic: topic)
+                        if val == nil && isCatchUpReply {
+                            if let last = chain.last {
+                                let competitor = last.authorName
+                                if let compVal = playerRecords[competitor] {
+                                    val = MockSocialService.oneUpValue(for: compVal, topic: topic)
+                                }
+                            }
+                        }
+                    }
+                    
+                    if let val = val {
+                        if let establishedVal = playerRecords[author] {
+                            let isWorse = MockSocialService.isRecord(val, worseThan: establishedVal, topic: topic)
+                            if isWorse {
+                                return false
+                            }
+                        }
+                    }
+                    return true
+                }
+                
                 if text.hasPrefix("@") {
                     let parts = text.split(separator: " ")
                     if let first = parts.first {
@@ -524,12 +647,14 @@ struct ParityModelsTests {
                             }
                         }
                         
-                        if !candidates.isEmpty {
-                            var bestIdx = candidates[0].index
-                            if candidates.count > 1 {
+                        let compatibleCandidates = candidates.filter { isChainCompatible(chains[$0.index]) }
+                        
+                        if !compatibleCandidates.isEmpty {
+                            var bestIdx = compatibleCandidates[0].index
+                            if compatibleCandidates.count > 1 {
                                 let commentNums = extractNumbers(from: text)
                                 var maxMatches = -1
-                                for candidate in candidates {
+                                for candidate in compatibleCandidates {
                                     let chain = chains[candidate.index]
                                     var matchCount = 0
                                     for chainComment in chain {
@@ -590,7 +715,7 @@ struct ParityModelsTests {
                         "already far ahead", "nothing compared", "always do better", "did do better",
                         "baseline", "left you behind", "no threat", "never stop climbing",
                         "practice runs", "without even looking", "time is cute", "shaved time",
-                        "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
+                        "speedrun", "practice run", "in my sleep", "unrivaled", "infinity count",
                         "hof entries", "speaks for itself", "farm ", "extended infinitely",
                         "pulls are cute", "dropped below", "talk to me", "anywhere near",
                         "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
