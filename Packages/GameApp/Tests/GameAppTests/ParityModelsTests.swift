@@ -473,6 +473,18 @@ struct ParityModelsTests {
             
             // Build all reply chains
             var chains: [[SocialFeedComment]] = []
+            let allPossibleNames = Set([item.authorName] + item.comments.map { $0.authorName })
+            
+            func extractTargetName(from text: String) -> String? {
+                if !text.hasPrefix("@") { return nil }
+                let sortedCandidates = allPossibleNames.sorted(by: { $0.count > $1.count })
+                for candidate in sortedCandidates {
+                    if text.hasPrefix("@\(candidate)") {
+                        return candidate
+                    }
+                }
+                return nil
+            }
             
             func extractNumbers(from text: String) -> Set<Int> {
                 let pattern = "\\b(\\d+)\\b"
@@ -486,17 +498,7 @@ struct ParityModelsTests {
             }
             
             func doesCommentMatchConversation(author: String, targetName: String, last: SocialFeedComment) -> Bool {
-                var lastTarget: String? = nil
-                if last.text.hasPrefix("@") {
-                    let parts = last.text.split(separator: " ")
-                    if let first = parts.first {
-                        var tName = String(first.dropFirst())
-                        while !tName.isEmpty && !tName.last!.isLetter && !tName.last!.isNumber {
-                            tName.removeLast()
-                        }
-                        lastTarget = tName
-                    }
-                }
+                let lastTarget = extractTargetName(from: last.text)
                 if last.authorName == targetName {
                     return lastTarget == nil || lastTarget == author
                 } else if last.authorName == author {
@@ -629,49 +631,39 @@ struct ParityModelsTests {
                     return true
                 }
                 
-                if text.hasPrefix("@") {
-                    let parts = text.split(separator: " ")
-                    if let first = parts.first {
-                        var targetName = String(first.dropFirst())
-                        while !targetName.isEmpty && !targetName.last!.isLetter && !targetName.last!.isNumber {
-                            targetName.removeLast()
+                if let targetName = extractTargetName(from: text) {
+                    // Find all candidate chains that match the conversation and are within 300 seconds
+                    var candidates: [(index: Int, last: SocialFeedComment)] = []
+                    for (idx, chain) in chains.enumerated() {
+                        if let last = chain.last,
+                           doesCommentMatchConversation(author: author, targetName: targetName, last: last),
+                           comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
+                            candidates.append((index: idx, last: last))
                         }
-                        
-                        // Find all candidate chains that match the conversation and are within 300 seconds
-                        var candidates: [(index: Int, last: SocialFeedComment)] = []
-                        for (idx, chain) in chains.enumerated() {
-                            if let last = chain.last,
-                               doesCommentMatchConversation(author: author, targetName: targetName, last: last),
-                               comment.createdAt.timeIntervalSince(last.createdAt) <= 300 {
-                                candidates.append((index: idx, last: last))
-                            }
-                        }
-                        
-                        let compatibleCandidates = candidates.filter { isChainCompatible(chains[$0.index]) }
-                        
-                        if !compatibleCandidates.isEmpty {
-                            var bestIdx = compatibleCandidates[0].index
-                            if compatibleCandidates.count > 1 {
-                                let commentNums = extractNumbers(from: text)
-                                var maxMatches = -1
-                                for candidate in compatibleCandidates {
-                                    let chain = chains[candidate.index]
-                                    var matchCount = 0
-                                    for chainComment in chain {
-                                        let chainNums = extractNumbers(from: chainComment.text)
-                                        let intersection = commentNums.intersection(chainNums)
-                                        matchCount += intersection.count
-                                    }
-                                    if matchCount > maxMatches {
-                                        maxMatches = matchCount
-                                        bestIdx = candidate.index
-                                    }
+                    }
+                    
+                    let compatibleCandidates = candidates.filter { isChainCompatible(chains[$0.index]) }
+                    
+                    if !compatibleCandidates.isEmpty {
+                        var bestIdx = compatibleCandidates[0].index
+                        if compatibleCandidates.count > 1 {
+                            let commentNums = extractNumbers(from: text)
+                            var maxMatches = -1
+                            for candidate in compatibleCandidates {
+                                let chain = chains[candidate.index]
+                                var matchCount = 0
+                                for chainComment in chain {
+                                    let chainNums = extractNumbers(from: chainComment.text)
+                                    let intersection = commentNums.intersection(chainNums)
+                                    matchCount += intersection.count
+                                }
+                                if matchCount > maxMatches {
+                                    maxMatches = matchCount
+                                    bestIdx = candidate.index
                                 }
                             }
-                            chains[bestIdx].append(comment)
-                        } else {
-                            chains.append([comment])
                         }
+                        chains[bestIdx].append(comment)
                     } else {
                         chains.append([comment])
                     }
