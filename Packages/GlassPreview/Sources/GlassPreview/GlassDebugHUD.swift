@@ -23,149 +23,176 @@ public struct GlassDebugHUD: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Header
-                    HStack {
-                        Text("Glass Preview Debug")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        Button("Close") {
-                            isVisible = false
-                        }
-                        .foregroundColor(.blue)
-                    }
+                    headerSection
                     
                     Divider()
                     
-                    // Game State
-                    DebugSection(title: "Game State") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Session Seed: \(gameStore.sessionSeed)")
-                            Text("Score: \(gameStore.score)")
-                            Text("Moves: \(gameStore.moves)")
-                            Text("Game Over: \(gameStore.isGameOver ? "Yes" : "No")")
-                            Text("Current Chain: \(gameStore.currentChain.map { "(\($0.col),\($0.row))" }.joined(separator: " → "))")
-                            if let validation = gameStore.chainValidation {
-                                Text("Validation: \(validation)")
-                                    .foregroundColor(.red)
-                            }
-                        }
-                    }
+                    gameStateSection
                     
-                    // Preview Queues
-                    DebugSection(title: "Preview Queues") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(0..<gameStore.cols, id: \.self) { col in
-                                let queue = gameStore.preview[col]
-                                Text("Col \(col): \(queue.map { $0.isGlass ? "G\($0.value)" : "\($0.value)" }.joined(separator: ", "))")
-                                    .font(.caption)
-                            }
-                        }
-                    }
+                    previewQueuesSection
                     
-                    // Power-ups
-                    DebugSection(title: "Power-ups") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(PowerUp.allCases, id: \.self) { powerUp in
-                                let count = gameStore.powerups[powerUp] ?? 0
-                                Text("\(powerUp.rawValue.capitalized): \(count)")
-                            }
-                        }
-                    }
+                    powerupsSection
                     
-                    // Debug Actions
-                    DebugSection(title: "Debug Actions") {
-                        VStack(spacing: 12) {
-                            Button("Force All Glass") {
-                                gameStore.forceAllGlass()
-                            }
-                            .debugButtonStyle()
-                            
-                            Button("Award Random Power-up") {
-                                // This would need to be exposed in the store
-                                // gameStore.debugAwardPowerUp()
-                            }
-                            .debugButtonStyle()
-                            
-                            HStack {
-                                TextField("Custom Seed", text: $selectedSeed)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                
-                                Button("Apply") {
-                                    if UInt64(selectedSeed) != nil {
-                                        // This would need a method to restart with seed
-                                        // gameStore.restart(with: seed)
-                                    }
-                                }
-                                .debugButtonStyle()
-                            }
-                        }
-                    }
+                    debugActionsSection
                     
-                    // Configuration
-                    DebugSection(title: "Configuration") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Background: \(gameStore.config.backgroundColorHex)")
-                            Text("Gift on Auto-drop: \(gameStore.config.giftOnAutoDrop ? "Yes" : "No")")
-                            Text("Require Direct Below: \(gameStore.config.requireDirectBelowInChain ? "Yes" : "No")")
-                            
-                            Text("Gift Weights:")
-                                .fontWeight(.semibold)
-                            ForEach(PowerUp.allCases, id: \.self) { powerUp in
-                                let weight = gameStore.config.giftWeights[powerUp] ?? 0
-                                Text("  \(powerUp.rawValue): \(weight)%")
-                                    .font(.caption)
-                            }
-                        }
-                    }
+                    configurationSection
                     
-                    // Analytics
-                    DebugSection(title: "Analytics") {
-                        VStack(spacing: 8) {
-                            Button("Show Events (\(gameStore.analyticsEvents.count))") {
-                                showAnalytics.toggle()
-                            }
-                            .debugButtonStyle()
-                            
-                            if showAnalytics {
-                                ScrollView {
-                                    LazyVStack(alignment: .leading, spacing: 4) {
-                                        ForEach(gameStore.analyticsEvents.suffix(20).indices, id: \.self) { index in
-                                            let event = gameStore.analyticsEvents[gameStore.analyticsEvents.count - 20 + index]
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(event.type)
-                                                    .font(.caption)
-                                                    .fontWeight(.bold)
-                                                Text(String(describing: event.parameters))
-                                                    .font(.caption2)
-                                                    .foregroundColor(.gray)
-                                            }
-                                            .padding(4)
-                                            .background(Color.gray.opacity(0.2))
-                                            .cornerRadius(4)
-                                        }
-                                    }
-                                }
-                                .frame(maxHeight: 200)
-                            }
-                        }
-                    }
+                    analyticsSection
                     
-                    // Raw Debug Info
-                    DebugSection(title: "Raw Debug Info") {
-                        Text(gameStore.debugInfo())
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
+                    rawDebugInfoSection
                 }
                 .padding()
             }
             .frame(maxWidth: 400)
             .background(Color.black.opacity(0.9))
             .cornerRadius(12)
+        }
+    }
+    
+    @ViewBuilder
+    private var headerSection: some View {
+        HStack {
+            Text("Glass Preview Debug")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Spacer()
+            
+            Button("Close") {
+                isVisible = false
+            }
+            .foregroundColor(.blue)
+        }
+    }
+    
+    @ViewBuilder
+    private var gameStateSection: some View {
+        DebugSection(title: "Game State") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Session Seed: \(gameStore.sessionSeed)")
+                Text("Score: \(gameStore.score)")
+                Text("Moves: \(gameStore.moves)")
+                Text("Game Over: \(gameStore.isGameOver ? "Yes" : "No")")
+                Text("Current Chain: \(gameStore.currentChain.map { "(\($0.col),\($0.row))" }.joined(separator: " → "))")
+                if let validation = gameStore.chainValidation {
+                    Text("Validation: \(validation)")
+                        .foregroundColor(.red)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var previewQueuesSection: some View {
+        DebugSection(title: "Preview Queues") {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(0..<gameStore.cols, id: \.self) { col in
+                    let queue = gameStore.preview[col]
+                    Text("Col \(col): \(queue.map { $0.isGlass ? "G\($0.value)" : "\($0.value)" }.joined(separator: ", "))")
+                        .font(.caption)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var powerupsSection: some View {
+        DebugSection(title: "Power-ups") {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(PowerUp.allCases, id: \.self) { powerUp in
+                    let count = gameStore.powerups[powerUp] ?? 0
+                    Text("\(powerUp.rawValue.capitalized): \(count)")
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var debugActionsSection: some View {
+        DebugSection(title: "Debug Actions") {
+            VStack(spacing: 12) {
+                Button("Force All Glass") {
+                    gameStore.forceAllGlass()
+                }
+                .debugButtonStyle()
+                
+                Button("Award Random Power-up") {
+                    // gameStore.debugAwardPowerUp()
+                }
+                .debugButtonStyle()
+                
+                HStack {
+                    TextField("Custom Seed", text: $selectedSeed)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Button("Apply") {
+                        // gameStore.restart(with: seed)
+                    }
+                    .debugButtonStyle()
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var configurationSection: some View {
+        DebugSection(title: "Configuration") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Background: \(gameStore.config.backgroundColorHex)")
+                Text("Gift on Auto-drop: \(gameStore.config.giftOnAutoDrop ? "Yes" : "No")")
+                Text("Require Direct Below: \(gameStore.config.requireDirectBelowInChain ? "Yes" : "No")")
+                
+                Text("Gift Weights:")
+                    .fontWeight(.semibold)
+                ForEach(PowerUp.allCases, id: \.self) { powerUp in
+                    let weight = gameStore.config.giftWeights[powerUp] ?? 0
+                    Text("  \(powerUp.rawValue): \(weight)%")
+                        .font(.caption)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var analyticsSection: some View {
+        DebugSection(title: "Analytics") {
+            VStack(spacing: 8) {
+                Button("Show Events (\(gameStore.analyticsEvents.count))") {
+                    showAnalytics.toggle()
+                }
+                .debugButtonStyle()
+                
+                if showAnalytics {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 4) {
+                            ForEach(Array(gameStore.analyticsEvents.suffix(20).enumerated()), id: \.offset) { offset, event in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(event.type)
+                                        .font(.caption)
+                                        .fontWeight(.bold)
+                                    Text(String(describing: event.parameters))
+                                        .font(.caption2)
+                                        .foregroundColor(.gray)
+                                }
+                                .padding(4)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(4)
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 200)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var rawDebugInfoSection: some View {
+        DebugSection(title: "Raw Debug Info") {
+            Text(gameStore.debugInfo())
+                .font(.caption)
+                .foregroundColor(.gray)
         }
     }
 }

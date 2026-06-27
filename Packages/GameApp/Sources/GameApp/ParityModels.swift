@@ -3819,7 +3819,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "If \(m.name) is impossible for you, don't even look at my \(higherM).",
                             "Of course you can't get to \(m.name). That's child's play compared to my \(higherM).",
                             "You can't even reach \(m.name)? Figures. My record is \(higherM).",
-                            "Keep struggling with \(m.name). I'm sitting comfortably at \(higherM)."
+                            "Keep trying with \(m.name). I'm sitting comfortably at \(higherM).",
+                            "Stop wasting your time on \(m.name). My \(higherM) is light years away from your skill level.",
+                            "If \(m.name) is your ceiling, you're not even in the same conversation as my \(higherM).",
+                            "Why even mention \(m.name)? My \(higherM) is completely out of your league.",
+                            "Don't lose sleep over \(m.name). You were never going to threaten my \(higherM) anyway.",
+                            "You're not built for \(m.name). Meanwhile, my \(higherM) was completed with ease."
                         ])
                     } else {
                         let speakerIdx = Self.allMilestones.firstIndex(of: higherM) ?? 0
@@ -3830,6 +3835,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("I easily bypassed \(m.name) and hit \(higherM).")
                             replies.append("I'm laughing from \(higherM) while you're still at \(m.name).")
                             replies.append("Celebrating \(m.name)? I easily clear \(higherM).")
+                            replies.append("You're at \(m.name)? Cute. I forgot \(m.name) even existed now that I'm at \(higherM).")
+                            replies.append("I can't imagine spending time on \(m.name). My \(higherM) was completed with ease.")
+                            replies.append("Still at \(m.name)? I left that behind months ago. \(higherM) is where the real game is.")
+                            replies.append("Lagging at \(m.name)? I'm coasting at \(higherM).")
+                            replies.append("Imagine being at \(m.name) while I dominate at \(higherM).")
                         } else if speakerIdx == m.index {
                             replies.append("I'm right there at \(m.name) too. Let's see who breaks it first.")
                             replies.append("We're tied at \(m.name). The real race starts now.")
@@ -3861,7 +3871,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "If you can't even get to \(posterTime), you'll never catch my \(myTimeStr).",
                                 "\(posterTime) is out of reach for you? I'm at \(myTimeStr).",
-                                "You'll never get to \(posterTime) anyway, let alone my \(myTimeStr)."
+                                "You'll never get to \(posterTime) anyway, let alone my \(myTimeStr).",
+                                "If \(posterTime) is too fast for you, don't bother looking at my \(myTimeStr).",
+                                "You'll never see the clock hit \(posterTime), let alone my \(myTimeStr).",
+                                "Speed isn't for everyone. Stick to slow runs while I hold \(myTimeStr).",
+                                "Don't hurt yourself trying to reach my \(myTimeStr)."
                             ])
                         } else {
                             if mySecs < totalSecs {
@@ -3871,6 +3885,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append("Only at \(posterTime)? I easily bypassed that to clock \(myTimeStr).")
                                 replies.append("My record is \(myTimeStr) compared to your \(posterTime).")
                                 replies.append("I breeze through in \(myTimeStr) in my sleep.")
+                                replies.append("You call \(posterTime) speed? I run circles around that at \(myTimeStr).")
+                                replies.append("I literally fell asleep during a run and still beat \(posterTime) with my \(myTimeStr).")
+                                replies.append("Your absolute best time of \(posterTime) is slower than my worst warm-up of \(myTimeStr).")
+                                replies.append("Why are you mentioning \(posterTime) when my \(myTimeStr) exists?")
+                                replies.append("I forgot what \(posterTime) even feels like. My \(myTimeStr) clear is the new norm.")
                             } else if mySecs == totalSecs {
                                 replies.append("I'm right there at \(posterTime) too. Let's see who breaks it first.")
                                 replies.append("We're tied at \(posterTime). The real race starts now.")
@@ -3896,7 +3915,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "If you can't even get to \(num) days, you'll never catch my \(higherNum) days.",
                             "\(num) days is out of reach for you? I'm at \(higherNum) days.",
-                            "You'll never get to \(num) days anyway, let alone my \(higherNum) days."
+                            "You'll never get to \(num) days anyway, let alone my \(higherNum) days.",
+                            "If maintaining \(num) days is hard, don't even look at my \(higherNum) day streak.",
+                            "Imagine losing a streak at \(num) days. I've kept my \(higherNum) days alive without breaking a sweat.",
+                            "You'll fail before \(num) days anyway. My \(higherNum) days is safely out of reach."
                         ])
                     } else {
                         if higherNum > num {
@@ -3905,6 +3927,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
                             replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
                             replies.append("My \(higherNum) streak is permanent.")
+                            replies.append("Trying to keep \(num) days alive? My \(higherNum) day streak is permanent.")
+                            replies.append("Only \(num) days? My infinite consistency stands at \(higherNum) days.")
+                            replies.append("Your \(num) day streak is child's play. Talk to me when you're at \(higherNum).")
+                            replies.append("I forgot what a double-digit streak feels like. I'm at \(higherNum) days.")
                         } else if higherNum == num {
                             replies.append("I'm right there at \(num) days too. Let's see who breaks it first.")
                             replies.append("We're tied at \(num) days. The real race starts now.")
@@ -3928,7 +3954,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "If you can't even get to \(infCount) infinities, you'll never catch my \(myCount).",
                             "\(infCount) is out of reach for you? I'm at \(myCount).",
-                            "You'll never get to \(infCount) anyway, let alone my \(myCount)."
+                            "You'll never get to \(infCount) anyway, let alone my \(myCount).",
+                            "Lacking even \(infCount) infinities? My \(myCount) is light years ahead of you.",
+                            "If \(infCount) is impossible for you, don't even look at my \(myCount) count."
                         ])
                     } else {
                         if myCount > infCount {
@@ -3936,6 +3964,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("You think \(infCount) is a high count? I'm already casually coasting at \(myCount).")
                             replies.append("Your \(infCount) is a joke. I easily hit \(myCount).")
                             replies.append("I easily bypassed \(infCount) and am always climbing past \(myCount).")
+                            replies.append("You're celebrating \(infCount) infinities? I'm coasting at \(myCount) and not even trying.")
+                            replies.append("Your \(infCount) count is cute. I easily bypassed that to hit \(myCount).")
+                            replies.append("I left \(infCount) infinities in the dust. I'm at \(myCount) now.")
                         } else if myCount == infCount {
                             replies.append("I'm right there at \(infCount) infinities too. Let's see who breaks it first.")
                             replies.append("We're tied at \(infCount) infinities. The real race starts now.")
@@ -3952,6 +3983,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I am comfortably ahead.")
                     replies.append("I am safely ahead.")
                     replies.append("I am already far ahead.")
+                    replies.append("Stop looking up at my stats, it'll only make you sad.")
+                    replies.append("You're not even in the same league as me.")
+                    replies.append("Keep trying, maybe in another lifetime you'll catch up.")
+                    replies.append("I'm playing a completely different game than you.")
+                    replies.append("Your performance is none of my concern. I'm at the top.")
+                    replies.append("Imagine being left behind while I dominate.")
                 }
                 if commentText == message {
                     replies = replies.filter { r in
