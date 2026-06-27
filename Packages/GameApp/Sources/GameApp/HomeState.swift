@@ -43,6 +43,11 @@ public final class HomeState {
     public var banDurationText: String = ""
     /// Controls visibility of the ban alert popup
     public var showBanAlert: Bool = false
+
+    /// Whether the player is banned specifically from comments/feed
+    public var isBannedFromComments: Bool = false
+    /// Controls visibility of the comment ban alert popup
+    public var showCommentBanAlert: Bool = false
     /// Exact timestamp when the ban started (used for precise unban timing)
     public var banStartDate: Date? = nil
     /// Exact timestamp when the ban ends (nil = permanent)

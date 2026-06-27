@@ -66,6 +66,13 @@ public struct HomeView: View {
                         .zIndex(0)
                 }
 
+                Color.clear
+                    .alert("Banned from Comments!", isPresented: Bindable(state).showCommentBanAlert) {
+                        Button("OK", role: .cancel) { }
+                    } message: {
+                        Text("You have lost your commenting and feed privileges.")
+                    }
+
                 JourneyPanel(
                     topInset: metrics.journeyTopInset(measuredHeaderHeight: headerHeight),
                     bottomInset: metrics.journeyBottomInset(
@@ -236,6 +243,7 @@ public struct HomeView: View {
         } message: {
             Text("You are still banned. Your ban is over in \(state.banTimeRemainingText ?? "never (permanent)").")
         }
+
         .alert("\(state.warningsRemaining) Chances Left!", isPresented: Bindable(state).showWarningAlert) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -535,9 +543,10 @@ public struct HomeView: View {
                     system: "bubble.left.and.bubble.right.fill",
                     title: "Feed",
                     badgeCount: state.npcRepliesBadgeCount,
-                    banned: state.isBanned,
+                    banned: state.isBanned || state.isBannedFromComments,
                     action: {
                         if state.isBanned { state.showBanAlert = true }
+                        else if state.isBannedFromComments { state.showCommentBanAlert = true }
                         else {
                             UserDefaults.standard.set(Date(), forKey: "socialFeed.lastViewedDate")
                             state.npcRepliesBadgeCount = 0
