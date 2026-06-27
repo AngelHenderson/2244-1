@@ -232,7 +232,7 @@ struct CompareView: View {
                 code: player.code,
                 countryFlag: player.countryFlag,
                 milestone: player.isGameOver ? "2" : player.milestone,
-                bestMilestone: player.isGameOver ? player.milestone : nil,
+                bestMilestone: player.isGameOver ? player.baseMilestone : nil,
                 isMe: false,
                 isBanned: player.isBanned,
                 banEndDate: player.banEndDate,
@@ -592,6 +592,7 @@ struct MockPlayer: Identifiable {
     let code: String
     let countryCode: String
     let milestone: String
+    let baseMilestone: String
     let isBanned: Bool
     let banEndDate: Date?
     let isGameOver: Bool
@@ -616,6 +617,7 @@ struct MockPlayer: Identifiable {
                 code: player.code,
                 countryCode: player.countryCode,
                 milestone: player.milestone,
+                baseMilestone: player.baseMilestone,
                 isBanned: player.isBanned,
                 banEndDate: player.banEndDate,
                 isGameOver: player.isGameOver

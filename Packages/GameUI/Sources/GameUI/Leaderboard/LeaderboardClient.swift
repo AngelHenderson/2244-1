@@ -368,6 +368,7 @@ public enum MockLeaderboardData {
         public let code: String
         public let countryCode: String
         public let milestone: String
+        public let baseMilestone: String
         public let isBanned: Bool
         public let banEndDate: Date?
         public let isGameOver: Bool
@@ -512,6 +513,7 @@ public enum MockLeaderboardData {
                     code: generateCode(seed: codeSeed),
                     countryCode: config.code,
                     milestone: progressedMilestone,
+                    baseMilestone: baseMilestone,
                     isBanned: isBanned,
                     banEndDate: banEndDate,
                     isGameOver: isGameOver
