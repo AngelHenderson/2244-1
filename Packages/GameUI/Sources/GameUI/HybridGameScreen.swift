@@ -1477,7 +1477,7 @@ struct GameplayInfoStat: View {
 
 struct DailyQuestStatusRow: View {
     @Environment(\.gameStore) private var gameStore
-    @Environment(\.dailyQuestStore) private var dailyQuestStore
+    @Environment(DailyQuestStore.self) private var dailyQuestStore
 
     let quest: DailyQuestStore.Quest
     let isCompact: Bool
