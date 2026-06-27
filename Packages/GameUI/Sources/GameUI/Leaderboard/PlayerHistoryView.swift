@@ -336,9 +336,7 @@ struct PlayerHistoryView: View {
                     let timeframe = timeframes[min(tIdx, timeframes.count - 1)]
 
                     let durIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 46, index: eventDay) * Double(directBanDurations.count))
-                    let duration = cheatCount >= 20000
-                        ? "permanently"
-                        : directBanDurations[min(durIdx, directBanDurations.count - 1)]
+                    let duration = directBanDurations[min(durIdx, directBanDurations.count - 1)]
                     
                     let flavorType = Int(MockLeaderboardData.seededRandom(seed: seed + 44, index: eventDay) * 2.0)
                     let reason = flavorType == 0 
@@ -470,6 +468,13 @@ struct PlayerHistoryView: View {
                     event = HistoryEvent(
                         type: .deleted,
                         message: "\(p.name) deleted the game.",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
+                } else if random < 0.95 {
+                    event = HistoryEvent(
+                        type: .bannedFromComments,
+                        message: "\(p.name) was banned from commenting.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
@@ -1010,7 +1015,7 @@ struct PlayerHistoryView: View {
 
 struct HistoryEvent: Identifiable {
     enum EventType {
-        case banned, reported, chanceTaken, falseReport, madeInfinity, gameOver, moveRecovery, joined, deleted, restart, unbanned
+        case banned, reported, chanceTaken, falseReport, madeInfinity, gameOver, moveRecovery, joined, deleted, restart, unbanned, bannedFromComments
     }
 
     let id: String
@@ -1071,6 +1076,7 @@ struct HistoryEvent: Identifiable {
         case .deleted: return "trash.fill"
         case .restart: return "arrow.counterclockwise"
         case .unbanned: return "lock.open.fill"
+        case .bannedFromComments: return "speaker.slash.fill"
         }
     }
 
@@ -1087,6 +1093,7 @@ struct HistoryEvent: Identifiable {
         case .deleted: return .gray
         case .restart: return .blue
         case .unbanned: return .green
+        case .bannedFromComments: return .red
         }
     }
 
