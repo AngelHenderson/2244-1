@@ -76,12 +76,7 @@ private struct HomeTabBarButton: View {
 
     @ViewBuilder
     private var badgeView: some View {
-        if item.banned {
-            Image(systemName: "exclamationmark.octagon.fill")
-                .font(.system(size: max(14, metrics.buttonSize * 0.28)))
-                .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
-                .offset(x: 4, y: -4)
-        } else if item.badgeCount > 0 {
+        if item.badgeCount > 0 {
             Text("\(item.badgeCount)")
                 .font(.avenirNext(size: metrics.badgeFontSize, weight: .bold))
                 .foregroundStyle(.white)
