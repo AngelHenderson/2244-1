@@ -53,6 +53,17 @@ private struct HomeTabBarButton: View {
                     Circle()
                         .stroke(Color.white.opacity(0.18), lineWidth: 1)
                 )
+                .overlay {
+                    if item.banned {
+                        ZStack {
+                            Color.black.opacity(0.4)
+                                .clipShape(Circle())
+                            Image(systemName: "exclamationmark.octagon.fill")
+                                .font(.system(size: max(18, metrics.buttonSize * 0.38)))
+                                .foregroundStyle(Color(red: 0.85, green: 0.15, blue: 0.15))
+                        }
+                    }
+                }
 
                 badgeView
             }
