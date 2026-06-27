@@ -1322,8 +1322,8 @@ struct GameplayInfoPanel: View {
     }
 
     private var featuredQuest: DailyQuestStore.Quest? {
-        dailyQuestStore.quests.first(where: { $0.isClaimable })
-        ?? dailyQuestStore.quests.first(where: { !$0.claimed && !$0.isComplete })
+        dailyQuestStore.quests.first(where: { !$0.claimed && !$0.isComplete })
+        ?? dailyQuestStore.quests.first(where: { $0.isClaimable })
         ?? dailyQuestStore.quests.first(where: { !$0.claimed })
         ?? dailyQuestStore.quests.first
     }
@@ -1476,6 +1476,9 @@ struct GameplayInfoStat: View {
 }
 
 struct DailyQuestStatusRow: View {
+    @Environment(\.gameStore) private var gameStore
+    @Environment(\.dailyQuestStore) private var dailyQuestStore
+
     let quest: DailyQuestStore.Quest
     let isCompact: Bool
 
@@ -1526,16 +1529,26 @@ struct DailyQuestStatusRow: View {
                         .minimumScaleFactor(0.65)
                 }
 
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.white.opacity(0.12))
-                        Capsule()
-                            .fill(accentColor)
-                            .frame(width: max(4, geometry.size.width * quest.progress))
+                if quest.id == "daily_tile_reach" && dailyQuestStore.tileQuestTargetStep > 0 {
+                    QuestMilestoneBar(
+                        startStep: dailyQuestStore.tileQuestTargetStep - 10,
+                        targetStep: dailyQuestStore.tileQuestTargetStep,
+                        currentStep: gameStore.state.highestTileStep
+                    )
+                    .frame(height: 16)
+                    .padding(.top, 4)
+                } else {
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(Color.white.opacity(0.12))
+                            Capsule()
+                                .fill(accentColor)
+                                .frame(width: max(4, geometry.size.width * quest.progress))
+                        }
                     }
+                    .frame(height: isCompact ? 3 : 4)
                 }
-                .frame(height: isCompact ? 3 : 4)
             }
         }
         .padding(.horizontal, isCompact ? 8 : 10)
