@@ -2925,20 +2925,40 @@ public struct MockSocialService: SocialService, Sendable {
                 nameOverride = result.1
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
-                    let compOpeners = [
-                        "I flew right past this.", "Barely had to try.", "Laughable.",
-                        "This is entirely average.", "Pretty basic.", "Unimpressive.",
-                        "Not impressed.", "That's cute.", "Amateur.",
-                        "What a joke.", "Not even trying.", "A child could do that.",
-                        "Is that all?", "I was asleep for this.", "Barely a milestone.",
-                        "Are you even trying?"
+                    let openersWithWeights: [(String, Double)] = [
+                        ("I flew right past this.", 5.0),
+                        ("Barely had to try.", 3.0),
+                        ("Laughable.", 8.0),
+                        ("This is entirely average.", 4.0),
+                        ("Pretty basic.", 0.6),
+                        ("Unimpressive.", 3.4),
+                        ("Not impressed.", 6.0),
+                        ("That's cute.", 46.97),
+                        ("Amateur.", 3.03),
+                        ("What a joke.", 3.0),
+                        ("Not even trying.", 0.4),
+                        ("A child could do that.", 2.0),
+                        ("Is that all?", 4.0),
+                        ("I was asleep for this.", 4.5),
+                        ("Barely a milestone.", 3.0),
+                        ("Are you even trying?", 3.1)
                     ]
                     
-                    var opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                    let getWeightedOpener = { () -> String in
+                        let rand = Double.random(in: 0..<100.0)
+                        var cumulative = 0.0
+                        for (op, weight) in openersWithWeights {
+                            cumulative += weight
+                            if rand < cumulative { return op }
+                        }
+                        return openersWithWeights.last!.0
+                    }
+                    
+                    var opener = getWeightedOpener()
                     var attempts = 0
                     while attempts < 3 && (comment.lowercased().contains("effort") && opener.lowercased().contains("effort") ||
                                            comment.lowercased().contains("cute") && opener.lowercased().contains("cute")) {
-                        opener = Self.drawFromBag(key: "comp_opener_\(bagSuffix)", pool: compOpeners)
+                        opener = getWeightedOpener()
                         attempts += 1
                     }
                     comment = "\(opener) \(comment)"
