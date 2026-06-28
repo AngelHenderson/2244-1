@@ -2939,7 +2939,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("Not even trying.", 0.4),
                         ("A child could do that.", 2.0),
                         ("Is that all?", 4.0),
-                        ("I was asleep for this.", 4.5),
+                        ("I did this by accident.", 4.5),
                         ("Barely a milestone.", 3.0),
                         ("Are you even trying?", 3.1)
                     ]
@@ -2965,19 +2965,39 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 // Randomly append a competitive closer ~80% of the time
                 if Double.random(in: 0...1) < 0.80 {
-                    var compClosers = [
-                        "Don't bother trying.", "I'm comfortably ahead.", "I reign supreme.",
-                        "No one comes close.", "Keep dreaming.",
-                        "You're not even a threat.", "My scores speak for themselves.",
-                        "You're not on my level.", "I'm out of your league.",
-                        "Stay down there.", "This record belongs to me.", "Don't bother looking up.", "You will never catch up.", "I am safely out of your reach."
+                    var closersWithWeights: [(String, Double)] = [
+                        ("Don't bother trying.", 0.6),
+                        ("I'm comfortably ahead.", 7.0),
+                        ("I reign supreme.", 0.2),
+                        ("No one comes close.", 0.3),
+                        ("Keep dreaming.", 27.5),
+                        ("You're not even a threat.", 3.5),
+                        ("My scores speak for themselves.", 0.1),
+                        ("You're not on my level.", 1.4),
+                        ("I'm out of your league.", 2.4),
+                        ("Stay down there.", 24.2),
+                        ("This record belongs to me.", 1.8),
+                        ("Don't bother looking up.", 0.9),
+                        ("You couldn't catch me if you tried.", 27.7),
+                        ("I am safely out of your reach.", 2.4)
                     ]
                     let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
                     if isTimeTopic {
-                        compClosers.append("Too slow.")
+                        closersWithWeights.append(("Too slow.", 5.0))
                     }
                     
-                    var closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                    let getWeightedCloser = { () -> String in
+                        let totalWeight = closersWithWeights.reduce(0) { $0 + $1.1 }
+                        let rand = Double.random(in: 0..<totalWeight)
+                        var cumulative = 0.0
+                        for (cl, weight) in closersWithWeights {
+                            cumulative += weight
+                            if rand < cumulative { return cl }
+                        }
+                        return closersWithWeights.last!.0
+                    }
+                    
+                    var closer = getWeightedCloser()
                     var attempts = 0
                     while attempts < 10 && (comment.lowercased().contains("irrelevant") && closer.lowercased().contains("irrelevant") ||
                                            comment.lowercased().contains("catch") && closer.lowercased().contains("catch") ||
@@ -2986,7 +3006,7 @@ public struct MockSocialService: SocialService, Sendable {
                                            comment.lowercased().contains("dominate") && closer.lowercased().contains("dominate") ||
                                            comment.lowercased().contains("behind") && closer.lowercased().contains("behind") ||
                                            comment.lowercased().contains("record") && closer.lowercased().contains("record")) {
-                        closer = Self.drawFromBag(key: "comp_closer_\(bagSuffix)", pool: compClosers)
+                        closer = getWeightedCloser()
                         attempts += 1
                     }
                     comment = "\(comment) \(closer)"
