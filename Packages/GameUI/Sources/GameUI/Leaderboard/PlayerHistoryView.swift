@@ -556,9 +556,9 @@ struct PlayerHistoryView: View {
                     // country tracking and just use `countryName`.
                     let randomPlayer = makePlayer(seed: joinSeed)
                     
-                    let messageStr = (countryName == "Hall of Fame") 
+                    let messageStr = (filterId == LeaderboardFilter.hallOfFame.rawValue) 
                         ? "\(randomPlayer.name) reached infinity and joined the Hall of Fame."
-                        : "\(randomPlayer.name) joined the \(countryName) leaderboard."
+                        : "\(randomPlayer.name) joined the \(randomPlayer.countryName) leaderboard."
                         
                     result.append(HistoryEvent(
                         type: .joined,
