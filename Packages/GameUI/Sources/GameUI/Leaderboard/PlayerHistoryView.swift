@@ -62,13 +62,34 @@ struct PlayerHistoryView: View {
     private func eventRow(_ event: HistoryEvent) -> some View {
         HStack(alignment: .top, spacing: 12) {
             // Icon
-            ZStack {
-                Circle()
-                    .fill(event.iconBackground)
-                    .frame(width: 36, height: 36)
-                Image(systemName: event.iconName)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
+            if event.type == .streakLost {
+                HStack(spacing: 6) {
+                    ZStack {
+                        Circle()
+                            .fill(event.iconBackground)
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    ZStack {
+                        Circle()
+                            .fill(event.iconBackground)
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "calendar")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                }
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(event.iconBackground)
+                        .frame(width: 36, height: 36)
+                    Image(systemName: event.iconName)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -389,7 +410,7 @@ struct PlayerHistoryView: View {
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.47 {
+                } else if random < 0.45 {
                     let rp = makePlayer(seed: seed + 50)
                     event = HistoryEvent(
                         type: .reported,
@@ -397,7 +418,7 @@ struct PlayerHistoryView: View {
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.60 {
+                } else if random < 0.55 {
                     let isOvertake = MockLeaderboardData.seededRandom(seed: seed + 13, index: eventDay) < 0.4
                     if isOvertake {
                         event = HistoryEvent(
@@ -417,14 +438,14 @@ struct PlayerHistoryView: View {
                             seed: seed
                         )
                     }
-                } else if random < 0.65 {
+                } else if random < 0.60 {
                     event = HistoryEvent(
                         type: .madeInfinity,
                         message: "\(p.name) made infinity!",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.85 {
+                } else if random < 0.75 {
                     let reportedTile: String
                     if let tile = p.highestTile {
                         reportedTile = tile
@@ -464,17 +485,27 @@ struct PlayerHistoryView: View {
                         )
                         result.append(recovery)
                     }
-                } else if random < 0.92 {
+                } else if random < 0.80 {
                     event = HistoryEvent(
                         type: .deleted,
                         message: "\(p.name) deleted the game.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.95 {
+                } else if random < 0.88 {
                     event = HistoryEvent(
                         type: .bannedFromComments,
                         message: "\(p.name) was banned from commenting.",
+                        daysAgo: daysAgo,
+                        seed: seed
+                    )
+                } else if random < 0.96 {
+                    let streakLengths = [3, 5, 7, 10, 14, 21, 30, 50, 100, 365]
+                    let streakIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 33, index: eventDay) * Double(streakLengths.count))
+                    let streak = streakLengths[min(streakIdx, streakLengths.count - 1)]
+                    event = HistoryEvent(
+                        type: .streakLost,
+                        message: "\(p.name) lost their \(streak) day streak.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
@@ -1015,7 +1046,7 @@ struct PlayerHistoryView: View {
 
 struct HistoryEvent: Identifiable {
     enum EventType {
-        case banned, reported, chanceTaken, falseReport, madeInfinity, gameOver, moveRecovery, joined, deleted, restart, unbanned, bannedFromComments
+        case banned, reported, chanceTaken, falseReport, madeInfinity, gameOver, moveRecovery, joined, deleted, restart, unbanned, bannedFromComments, streakLost
     }
 
     let id: String
@@ -1077,6 +1108,7 @@ struct HistoryEvent: Identifiable {
         case .restart: return "arrow.counterclockwise"
         case .unbanned: return "lock.open.fill"
         case .bannedFromComments: return "speaker.slash.fill"
+        case .streakLost: return "flame.fill"
         }
     }
 
@@ -1094,6 +1126,7 @@ struct HistoryEvent: Identifiable {
         case .restart: return .blue
         case .unbanned: return .green
         case .bannedFromComments: return .red
+        case .streakLost: return .gray
         }
     }
 
