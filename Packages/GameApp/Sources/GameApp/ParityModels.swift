@@ -3617,17 +3617,27 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Generate contextual replies that reference the actual comment ──
 
         if isAddRequest {
-            let replies = [
-                "You can add me, but you'll never catch me.",
-                "Add me if you want to watch me stay ahead.",
-                "Sure, add me so you can stare at my infinite lead.",
-                "You can watch my stats from the bottom.",
-                "Go for it—somebody has to watch from the sidelines.",
-                "Yes! Add me and witness infinity.",
-                "For sure — watch me extend my lead.",
-                "Definitely! But don't expect to ever reach my tier.",
+            let repliesWithWeights: [(String, Double)] = [
+                ("You can add me, but you'll never catch me.", 36.0),
+                ("Add me if you want to watch me stay ahead.", 12.5),
+                ("Sure, add me so you can stare at my infinite lead.", 40.6),
+                ("You can watch my stats from the bottom.", 0.9),
+                ("Go for it—somebody has to watch from the sidelines.", 0.06),
+                ("Yes! Add me and witness infinity.", 4.94),
+                ("For sure — watch me extend my lead.", 3.2),
+                ("Definitely! But don't expect to ever reach my tier.", 1.8)
             ]
-            var reply = replies.randomElement()!
+            let getWeightedReply = { () -> String in
+                let totalWeight = repliesWithWeights.reduce(0) { $0 + $1.1 }
+                let rand = Double.random(in: 0..<totalWeight)
+                var cumulative = 0.0
+                for (rep, weight) in repliesWithWeights {
+                    cumulative += weight
+                    if rand < cumulative { return rep }
+                }
+                return repliesWithWeights.last!.0
+            }
+            var reply = getWeightedReply()
             if Double.random(in: 0...1) < 0.45 * 0.86 {
                 let compBehindOpeners = [
                     "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
