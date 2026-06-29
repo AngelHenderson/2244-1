@@ -3814,17 +3814,29 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I also hit \(higherM). Cute, but irrelevant."
                         ])
                     } else {
-                        replies.append(contentsOf: [
-                            "I easily passed your \(cM.name). I'm at \(higherM).",
-                            "I let you think you had the lead. Your \(cM.name) is nothing. I'm at \(higherM).",
-                            "You fell for it. I easily beat your \(cM.name). My real record is \(higherM).",
-                            "I was just warming up. Your \(cM.name) is a joke compared to my \(higherM).",
-                            "I blew past your \(cM.name) and hit \(higherM) without even trying.",
-                            "Only at \(cM.name)? I easily reached \(higherM).",
-                            "Your \(cM.name) is a joke compared to my \(higherM).",
-                            "I cleared \(higherM) without trying.",
-                            "I was just toying with you. I'm actually at \(higherM)."
-                        ])
+                        let weightedReplies: [(String, Double)] = [
+                            ("I easily passed your \(cM.name). I'm at \(higherM).", 0.3),
+                            ("I let you think you had the lead. Your \(cM.name) is nothing. I'm at \(higherM).", 1.7),
+                            ("You fell for it. I easily beat your \(cM.name). My real record is \(higherM).", 63.0),
+                            ("I was just warming up. Your \(cM.name) is a joke compared to my \(higherM).", 17.0),
+                            ("I blew past your \(cM.name) and hit \(higherM) without even trying.", 0.4),
+                            ("Only at \(cM.name)? I easily reached \(higherM).", 3.6),
+                            ("Your \(cM.name) is a joke compared to my \(higherM).", 0.06),
+                            ("I cleared \(higherM) without trying.", 0.02),
+                            ("I was just toying with you. I'm actually at \(higherM).", 13.92)
+                        ]
+                        let totalWeight = weightedReplies.reduce(0) { $0 + $1.1 }
+                        let rand = Double.random(in: 0..<totalWeight)
+                        var cumulative = 0.0
+                        var selected = weightedReplies.last!.0
+                        for (text, weight) in weightedReplies {
+                            cumulative += weight
+                            if rand < cumulative {
+                                selected = text
+                                break
+                            }
+                        }
+                        replies.append(selected)
                     }
                 } else {
                     let mIdx = m.index
