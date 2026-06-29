@@ -3334,9 +3334,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
             var reply = getWeightedReply()
             if Double.random(in: 0...1) < 0.45 * 0.86 {
-                let compBehindOpeners = [
-                    "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
+                let compBehindOpenersWithWeights: [(String, Double)] = [
+                    ("I might be lower right now.", 3.0),
+                    ("You're ahead for now.", 82.0),
+                    ("Enjoy the lead while it lasts.", 15.0)
                 ]
+                let totalOpenerWeight = compBehindOpenersWithWeights.reduce(0) { $0 + $1.1 }
+                let randomOpenerVal = Double.random(in: 0..<totalOpenerWeight)
+                var cumulativeOpenerWeight = 0.0
+                var selectedOpener = compBehindOpenersWithWeights.last!.0
+                for (opener, weight) in compBehindOpenersWithWeights {
+                    cumulativeOpenerWeight += weight
+                    if randomOpenerVal < cumulativeOpenerWeight {
+                        selectedOpener = opener
+                        break
+                    }
+                }
                 let compBehindClosersWithWeights: [(String, Double)] = [
                     ("I'm coming for that spot.", 68.0),
                     ("Watch your back.", 27.0),
@@ -3371,7 +3384,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         break
                     }
                 }
-                reply = "\(compBehindOpeners.randomElement()!) \(selectedReaction) \(selectedCloser)"
+                reply = "\(selectedOpener) \(selectedReaction) \(selectedCloser)"
             }
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
