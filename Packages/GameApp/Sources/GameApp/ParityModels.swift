@@ -1134,10 +1134,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v40"
+    private static let feedCacheKey = "socialFeed.cache.v41"
     private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    private static let userPostsKey = "socialFeed.userPosts.v2"
+    private static let userPostsKey = "socialFeed.userPosts.v3"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -4016,7 +4016,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             higherNum = valInt
                         } else if let rN = refNumber {
                             higherNum = rN
-                        } else if isLowStreak && num > 1 {
+                        } else if (isLowStreak || forceTone == "behind") && num > 1 {
                             higherNum = num - Int.random(in: 1...max(5, num / 2))
                         } else {
                             higherNum = num + Int.random(in: 5...max(15, num / 5))
@@ -4211,10 +4211,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else if let rT = refTime {
                             higherNum = rT.0 * 60 + rT.1
                         } else {
-                            if totalSecs <= 10 {
-                                higherNum = max(2, totalSecs - Int.random(in: 1...3))
+                            if forceTone == "behind" {
+                                higherNum = totalSecs + Int.random(in: 5...30)
                             } else {
-                                higherNum = max(10, totalSecs - Int.random(in: 10...30))
+                                if totalSecs <= 10 {
+                                    higherNum = max(2, totalSecs - Int.random(in: 1...3))
+                                } else {
+                                    higherNum = max(10, totalSecs - Int.random(in: 10...30))
+                                }
                             }
                         }
                         let myMins = higherNum / 60
