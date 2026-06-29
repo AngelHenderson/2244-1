@@ -1424,11 +1424,11 @@ public struct MockSocialService: SocialService, Sendable {
                     }
                     
                     if isNpc2Turn {
-                        if npc2Value == nil {
-                            if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
+                        if let n1Val = npc1Value {
+                            if Double.random(in: 0...1) < 0.45 {
                                 npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                             } else {
-                                npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                             }
                         }
                         
@@ -1455,6 +1455,14 @@ public struct MockSocialService: SocialService, Sendable {
                         lastComment = replyComment
                         currentDepth += 1
                     } else {
+                        if let n2Val = npc2Value {
+                            if Double.random(in: 0...1) < 0.45 {
+                                npc1Value = Self.lowerValue(for: n2Val, topic: topic)
+                            } else {
+                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                            }
+                        }
+                        
                         let isBehind: Bool
                         if let sVal = npc1Value, let oVal = npc2Value {
                             isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
@@ -1776,11 +1784,11 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isNpc2Turn {
-                            if npc2Value == nil {
-                                if Double.random(in: 0...1) < 0.45, let n1Val = npc1Value {
+                            if let n1Val = npc1Value {
+                                if Double.random(in: 0...1) < 0.45 {
                                     npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                 } else {
-                                    npc2Value = Self.oneUpValue(for: npc1Value, topic: topic)
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             }
                             
@@ -1807,6 +1815,14 @@ public struct MockSocialService: SocialService, Sendable {
                             lastComment = replyComment
                             currentDepth += 1
                         } else {
+                            if let n2Val = npc2Value {
+                                if Double.random(in: 0...1) < 0.45 {
+                                    npc1Value = Self.lowerValue(for: n2Val, topic: topic)
+                                } else {
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                }
+                            }
+                            
                             let isBehind: Bool
                             if let sVal = npc1Value, let oVal = npc2Value {
                                 isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
