@@ -3862,17 +3862,15 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         let weightedReplies: [(String, Double)] = [
-                            ("Only at \(cM.name)? I easily reached \(higherM).", 3.0),
-                            ("You think \(cM.name) is a big milestone? I'm already coasting at \(higherM).", 0.6),
-                            ("Your \(cM.name) is a joke. You'll never catch my \(higherM).", 9.9),
-                            ("I easily bypassed \(cM.name) and hit \(higherM).", 0.1),
-                            ("I'm laughing from \(higherM) while you're still at \(cM.name).", 3.5),
-                            ("Celebrating \(cM.name)? I easily clear \(higherM).", 13.0),
-                            ("You're at \(cM.name)? Cute. I forgot \(cM.name) even existed now that I'm at \(higherM).", 62.0),
-                            ("I can't imagine spending time on \(cM.name). My \(higherM) was completed with ease.", 0.3),
-                            ("Still at \(cM.name)? I left that behind months ago. \(higherM) is where the real game is.", 1.7),
-                            ("Lagging at \(cM.name)? I'm coasting at \(higherM).", 5.8),
-                            ("Imagine being at \(cM.name) while I dominate at \(higherM).", 0.1)
+                            ("I easily passed your \(cM.name). I'm at \(higherM).", 0.3),
+                                                        ("I let you think you had the lead. Your \(cM.name) is nothing. I'm at \(higherM).", 1.7),
+                                                        ("You fell for it. I easily beat your \(cM.name). My real record is \(higherM).", 63.0),
+                                                        ("I was just warming up. Your \(cM.name) is a joke compared to my \(higherM).", 17.0),
+                                                        ("I blew past your \(cM.name) and hit \(higherM) without even trying.", 0.4),
+                                                        ("Only at \(cM.name)? I easily reached \(higherM).", 3.6),
+                                                        ("Your \(cM.name) is a joke compared to my \(higherM).", 0.06),
+                                                        ("I cleared \(higherM) without trying.", 0.02),
+                                                        ("I was just toying with you. I'm actually at \(higherM).", 13.92)
                         ]
                         let totalWeight = weightedReplies.reduce(0) { $0 + $1.1 }
                         let rand = Double.random(in: 0..<totalWeight)
