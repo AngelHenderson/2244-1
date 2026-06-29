@@ -3337,9 +3337,23 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let compBehindOpeners = [
                     "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
-                let compBehindClosers = [
-                    "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
+                let compBehindClosersWithWeights: [(String, Double)] = [
+                    ("I'm coming for that spot.", 68.0),
+                    ("Watch your back.", 27.0),
+                    ("I will overtake you soon.", 5.0)
                 ]
+                let totalCloserWeight = compBehindClosersWithWeights.reduce(0) { $0 + $1.1 }
+                let randomCloserVal = Double.random(in: 0..<totalCloserWeight)
+                var cumulativeCloserWeight = 0.0
+                var selectedCloser = compBehindClosersWithWeights.last!.0
+                for (closer, weight) in compBehindClosersWithWeights {
+                    cumulativeCloserWeight += weight
+                    if randomCloserVal < cumulativeCloserWeight {
+                        selectedCloser = closer
+                        break
+                    }
+                }
+                
                 let behindCompReactionsWithWeights: [(String, Double)] = [
                     ("Add me so you can watch me catch up.", 19.0),
                     ("Add me! I'm grinding right now to pass you.", 7.0),
@@ -3357,7 +3371,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         break
                     }
                 }
-                reply = "\(compBehindOpeners.randomElement()!) \(selectedReaction) \(compBehindClosers.randomElement()!)"
+                reply = "\(compBehindOpeners.randomElement()!) \(selectedReaction) \(selectedCloser)"
             }
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
