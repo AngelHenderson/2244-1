@@ -882,7 +882,13 @@ public struct MockSocialService: SocialService, Sendable {
                 if let pattern = try? NSRegularExpression(pattern: patternStr, options: .caseInsensitive) {
                     let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
                     for regMatch in regexMatches {
-                        matches.append((val: m, range: regMatch.range))
+                        let matchedString = nsText.substring(with: regMatch.range)
+                        let exactMatch = Self.allMilestones.first(where: { $0 == matchedString })
+                        let finalVal = exactMatch ?? m
+                        
+                        if !matches.contains(where: { $0.range == regMatch.range }) {
+                            matches.append((val: finalVal, range: regMatch.range))
+                        }
                     }
                 }
             }
