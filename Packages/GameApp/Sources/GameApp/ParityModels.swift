@@ -814,7 +814,7 @@ public struct MockSocialService: SocialService, Sendable {
                lower.contains("laughing from") ||
                lower.contains("in the dust") ||
                lower.contains("acting like") ||
-               lower.contains("beneath my") ||
+               lower.contains("nothing compared to my") ||
                lower.contains("leaves you behind") ||
                lower.contains("is a joke")
     }
@@ -3788,7 +3788,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append(contentsOf: [
                         "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
                         "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
-                        "Is this a joke? \(cM.name) is beneath my \(rM.name). You're still too low to get ahead.",
+                        "Is this a joke? \(cM.name) is nothing compared to my \(rM.name). You're still too low to get ahead.",
                         "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
                         "You're acting like \(cM.name) is a big deal? I easily passed \(rM.name).",
                         "Only at \(cM.name)? I'm laughing from \(rM.name).",
@@ -3945,7 +3945,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) days? I'm already at \(rN). You're still too low to get ahead.",
                             "You thought \(cN) days would impress me? I'm at \(rN). You're still too low to get ahead.",
-                            "Is this a joke? \(cN) days is beneath my \(rN). You're still too low to get ahead.",
+                            "Is this a joke? \(cN) days is nothing compared to my \(rN). You're still too low to get ahead.",
                             "I'm at \(rN) days and you're bragging about \(cN)? You're still too low to get ahead.",
                             "You're acting like \(cN) days is a big deal? I easily passed \(rN).",
                             "Only at \(cN) days? I'm laughing from \(rN).",
@@ -4319,7 +4319,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
                             "You thought \(cN) infinities would impress me? I'm at \(rN). You're still too low to get ahead.",
-                            "Is this a joke? \(cN) infinities is beneath my \(rN). You're still too low to get ahead.",
+                            "Is this a joke? \(cN) infinities is nothing compared to my \(rN). You're still too low to get ahead.",
                             "I'm at \(rN) infinities and you're bragging about \(cN)? You're still too low to get ahead."
                         ])
                     } else {
