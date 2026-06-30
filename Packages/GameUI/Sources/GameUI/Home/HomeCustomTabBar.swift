@@ -80,6 +80,8 @@ private struct HomeTabBarButton: View {
             Text("\(item.badgeCount)")
                 .font(.avenirNext(size: metrics.badgeFontSize, weight: .bold))
                 .foregroundStyle(.white)
+                .lineLimit(1)
+                .fixedSize()
                 .padding(.horizontal, 5)
                 .padding(.vertical, 2)
                 .background(Color.red, in: Capsule())

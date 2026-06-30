@@ -81,8 +81,12 @@ struct SideRailButton: View {
                             Text("\(count)")
                                 .font(.avenirNext(size: max(8, metrics.labelFontSize), weight: .bold))
                                 .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .fixedSize()
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
                                 .frame(minWidth: max(14, metrics.buttonSize * 0.32), minHeight: max(14, metrics.buttonSize * 0.32))
-                                .background(Circle().fill(.red))
+                                .background(Capsule().fill(.red))
                                 .offset(x: 4, y: -4)
                                 .accessibilityHidden(true)
                         } else if badge {
