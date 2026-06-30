@@ -461,39 +461,100 @@ public struct SocialFeedView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showAddEvent = false
+    
+    enum FeedSection: String, CaseIterable, Identifiable {
+        case global = "Global"
+        case myPosts = "My Posts"
+        var id: String { rawValue }
+    }
+    @State private var selectedSection: FeedSection = .global
+    
+    @State private var itemToDelete: SocialFeedItem?
+    @State private var showDeleteAlert = false
 
     public init() {}
 
     public var body: some View {
         NavigationStack {
             List {
-                if isLoading {
-                    ProgressView()
-                } else if let errorMessage {
-                    ContentUnavailableView(
-                        "Feed unavailable",
-                        systemImage: "wifi.exclamationmark",
-                        description: Text(errorMessage)
-                    )
-                } else if items.isEmpty {
-                    ContentUnavailableView(
-                        "No feed updates yet",
-                        systemImage: "person.2.wave.2",
-                        description: Text("Ultimate2244 will show real friend and community updates here when they are available.")
-                    )
-                } else {
-                    ForEach($items) { $item in
-                        Button {
-                            selectedItem = item
-                        } label: {
-                            FeedItemRow(item: $item)
+                Section {
+                    if isLoading {
+                        ProgressView()
+                    } else if let errorMessage {
+                        ContentUnavailableView(
+                            "Feed unavailable",
+                            systemImage: "wifi.exclamationmark",
+                            description: Text(errorMessage)
+                        )
+                    } else if items.isEmpty {
+                        ContentUnavailableView(
+                            "No feed updates yet",
+                            systemImage: "person.2.wave.2",
+                            description: Text("Ultimate2244 will show real friend and community updates here when they are available.")
+                        )
+                    } else {
+                        let filteredItems = selectedSection == .global 
+                            ? items 
+                            : items.filter { $0.authorName == (UserDefaults.standard.string(forKey: "profilePlayerName") ?? "Player") }
+                        
+                        if filteredItems.isEmpty {
+                            ContentUnavailableView(
+                                "No posts yet",
+                                systemImage: "person.text.rectangle",
+                                description: Text("You haven't posted any updates yet.")
+                            )
+                        } else {
+                            ForEach(filteredItems) { item in
+                                Button {
+                                    selectedItem = item
+                                } label: {
+                                    FeedItemRow(item: Binding(
+                                        get: { item },
+                                        set: { newValue in
+                                            if let idx = items.firstIndex(where: { $0.id == newValue.id }) {
+                                                items[idx] = newValue
+                                            }
+                                        }
+                                    ))
+                                }
+                                .buttonStyle(.plain)
+                                .swipeActions {
+                                    if item.authorName == (UserDefaults.standard.string(forKey: "profilePlayerName") ?? "Player") {
+                                        Button(role: .destructive) {
+                                            itemToDelete = item
+                                            showDeleteAlert = true
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
+                } header: {
+                    Picker("Feed Section", selection: $selectedSection) {
+                        ForEach(FeedSection.allCases) { section in
+                            Text(section.rawValue).tag(section)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .textCase(nil)
+                    .padding(.bottom, 4)
                 }
             }
             .navigationTitle("Feed")
             .platformNavigationTitleDisplayMode(.inline)
+            .alert("Delete Post?", isPresented: $showDeleteAlert, presenting: itemToDelete) { item in
+                Button("Delete", role: .destructive) {
+                    Task {
+                        try? await socialService.deleteItem(itemID: item.id)
+                        items.removeAll { $0.id == item.id }
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { _ in
+                Text("Are you sure you want to delete this post? This will also delete any comments and reactions.")
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
                 ToolbarItem(placement: .platformTopBarTrailing) {
