@@ -67,3 +67,6 @@ GoogleService-Info.plist
 GoogleService-Info-*.plist
 !firebase/GoogleService-Info-template.plist
 *.resolved
+/game2244.xcworkspace/xcshareddata/swiftpm
+/game2244.xcworkspace/xcshareddata
+/game2244.xcworkspace
