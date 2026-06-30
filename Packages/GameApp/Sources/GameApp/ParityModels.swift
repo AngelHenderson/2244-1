@@ -1368,7 +1368,7 @@ public struct MockSocialService: SocialService, Sendable {
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
             
-            let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
+            let (commentBase, nameOverride, tone, rootValRaw) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
             var finalCommenter = nameOverride ?? commenter
             while finalCommenter == playerName {
                 finalCommenter = generateDynamicName()
@@ -2842,7 +2842,7 @@ public struct MockSocialService: SocialService, Sendable {
             comment += keyboardSymbols.randomElement()!
         }
         
-        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone, generatedVal)
+        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone!, generatedVal)
     }
 
     private static func injectSymbol(_ text: String, symbol: String) -> String {
