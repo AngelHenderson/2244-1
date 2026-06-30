@@ -1138,7 +1138,7 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v43"
+    private static let feedCacheKey = "socialFeed.cache.v44"
     private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v3"
@@ -1460,7 +1460,7 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value)
+                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value)
                         let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
@@ -1500,7 +1500,7 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value)
+                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value)
                         let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
@@ -1767,7 +1767,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 
-                let (commentBase, nameOverride, tone) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
+                let (commentBase, nameOverride, tone, generatedVal) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
                 let finalCommenter = nameOverride ?? commentAuthor
                 
                 // Competitive comments arrive within 30 to 60 minutes of the post
@@ -1826,7 +1826,11 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isNpc2Turn {
-                            if let n1Val = npc1Value {
+                            if let oldVal = npc2Value {
+                                if Double.random(in: 0...1) < 0.5 {
+                                    npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
+                                }
+                            } else if let n1Val = npc1Value {
                                 if topic != "streak" || npc2Value == nil {
                                     if Double.random(in: 0...1) < 0.45 {
                                         npc2Value = Self.lowerValue(for: n1Val, topic: topic)
@@ -1847,7 +1851,7 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value)
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value)
                             let replyOffset = Double.random(in: 60...90)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                             
@@ -1862,7 +1866,11 @@ public struct MockSocialService: SocialService, Sendable {
                             lastComment = replyComment
                             currentDepth += 1
                         } else {
-                            if let n2Val = npc2Value {
+                            if let oldVal = npc1Value {
+                                if Double.random(in: 0...1) < 0.5 {
+                                    npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
+                                }
+                            } else if let n2Val = npc2Value {
                                 if topic != "streak" || npc1Value == nil {
                                     if Double.random(in: 0...1) < 0.45 {
                                         npc1Value = Self.lowerValue(for: n2Val, topic: topic)
@@ -1883,7 +1891,7 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value)
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value)
                             let replyOffset = Double.random(in: 60...90)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                             
@@ -2383,8 +2391,9 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String, usedStats: inout Set<String>, forcedTone: String? = nil) -> (commentText: String, nameOverride: String?, tone: String) {
+    private func generateDynamicComment(message: String, usedStats: inout Set<String>, forcedTone: String? = nil) -> (commentText: String, nameOverride: String?, tone: String, generatedVal: String?) {
         var nameOverride: String? = nil
+        var generatedVal: String? = nil
         let openers = [
             "Dude,", "Omg,", "Wow,", "Bro,", "Honestly,", "Crazy,", "Yoo,",
             "No way,", "Wait,", "Bruh,", "Sheesh,", "Yo,", "Ngl,", "Ayo,",
@@ -2692,6 +2701,7 @@ public struct MockSocialService: SocialService, Sendable {
                 let result = generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "competitive_\(bagSuffix)", usedStats: &usedStats)
                 comment = result.0
                 nameOverride = result.1
+                generatedVal = result.2
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let openersWithWeights: [(String, Double)] = [
@@ -2832,7 +2842,7 @@ public struct MockSocialService: SocialService, Sendable {
             comment += keyboardSymbols.randomElement()!
         }
         
-        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone!)
+        return (comment.trimmingCharacters(in: .whitespaces), nameOverride, tone, generatedVal)
     }
 
     private static func injectSymbol(_ text: String, symbol: String) -> String {
@@ -2853,7 +2863,7 @@ public struct MockSocialService: SocialService, Sendable {
 
     // MARK: - Truthful competitive comments
 
-private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String, usedStats: inout Set<String>) -> (String, String?) {
+private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String, usedStats: inout Set<String>) -> (String, String?, String?) {
         let lowered = message.lowercased()
 
         let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
@@ -2884,7 +2894,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Only at \(lowerDays) days right now, but I'll catch your \(streakDays) days soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
-                    return (templates[idx], higherName)
+                    return (templates[idx], higherName, String(lowerDays))
                 } else {
                     let isMassiveGap = Bool.random()
                     var myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
@@ -2907,7 +2917,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
                     }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
-                    return (templates[idx], higherName)
+                    return (templates[idx], higherName, String(myDays))
                 }
             }
         }
@@ -2931,7 +2941,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Only at \(slowerTime) right now, but I'll catch your \(posterTime) soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], higherName)
+                    return (templates[idx], higherName, slowerTime)
                 } else {
                     // Brag about having a FASTER clear time (lower = better)
                     let isMassiveGap = Bool.random()
@@ -2972,7 +2982,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
                     }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], higherName)
+                    return (templates[idx], higherName, myTime)
                 }
             }
         }
@@ -2992,7 +3002,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Only at \(lowerCount) infinities right now, but I'll catch your \(infCount) soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
-                    return (templates[idx], higherName)
+                    return (templates[idx], higherName, String(lowerCount))
                 } else {
                     let isMassiveGap = Bool.random()
                     var myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
@@ -3012,7 +3022,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
                     }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
-                    return (templates[idx], higherName)
+                    return (templates[idx], higherName, String(myCount))
                 }
             }
         }
@@ -3039,7 +3049,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     templates.append("You're only at \(posterTier) while I dominate with \(myTier).")
                 }
                 let idx = Self.drawIndexFromBag(key: "\(bagKey)_quest", count: templates.count)
-                return (templates[idx], higherName)
+                return (templates[idx], higherName, myTier)
             }
         }
 
@@ -3067,7 +3077,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     ]
                     let realName = Self.leaderboardPlayerAtMilestone(localLowerM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
-                    return (templates[idx], realName)
+                    return (templates[idx], realName, localLowerM)
                 } else if originalIdx + 1 < Self.allMilestones.count {
                     // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
                     let remaining = Self.allMilestones.count - 1 - originalIdx
@@ -3097,14 +3107,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                     let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
-                    return (templates[idx], realName)
+                    return (templates[idx], realName, localHigherM)
                 }
             }
         }
 
         // ── Fallback: use the generic competitive pool ──
         let generic = Self.drawFromBag(key: bagKey, pool: pool)
-        return (generic, nil)
+        return (generic, nil, nil)
     }
 
     /// Returns the name of a real leaderboard player who is at the given milestone.
@@ -3226,7 +3236,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
     }
 
     /// Generates a contextual reply that responds to what the previous comment actually said.
-    func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil, speakerValue: String? = nil) -> String {
+    func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil, speakerValue: String? = nil, opponentValue: String? = nil) -> String {
         let lowered = commentText.lowercased()
 
         // Strip any leading @mention so we analyze the real content
@@ -3261,6 +3271,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Extract dynamic content from the comment ──
 
         let commentMilestone: (index: Int, name: String)? = {
+            if let opponentValue = opponentValue, let idx = Self.allMilestones.firstIndex(of: opponentValue) {
+                return (index: idx, name: opponentValue)
+            }
             if let val = Self.extractValue(from: commentText, topic: "milestone"),
                let idx = Self.allMilestones.firstIndex(of: val) {
                 return (index: idx, name: val)
@@ -3284,11 +3297,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         var mentionedMilestone = commentMilestone ?? rootMilestone
 
         let commentNumber: Int? = {
+            if let opponentValue = opponentValue, let num = Int(opponentValue) {
+                return num
+            }
             let topic = Self.determineTopic(message: message)
             let queryTopic: String?
-            if topic == "hof" {
+            if topic == "streak" {
+                queryTopic = "streak"
+            } else if topic == "hof" {
                 queryTopic = "hof"
-            } else if topic == "streak" {
+            } else if message.lowercased().contains("streak") || message.lowercased().contains("day") || message.lowercased().contains("consecutive") {
                 queryTopic = "streak"
             } else {
                 queryTopic = nil
@@ -3326,6 +3344,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let mentionedNumber = (commentNumber ?? rootNumber).map { String($0) }
         
         let commentTime: (Int, Int)? = {
+            if let opponentValue = opponentValue {
+                let parts = opponentValue.split(separator: ":")
+                if parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) {
+                    return (mins, secs)
+                }
+            }
             if let val = Self.extractValue(from: commentText, topic: "time") {
                 let parts = val.split(separator: ":")
                 if parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) {
@@ -3555,70 +3579,43 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if forceTone == "caught_up" {
                 var replies: [String] = []
                 if let m = mentionedMilestone {
-                    let higherM: String
-                    if let speakerValue = speakerValue {
-                        higherM = speakerValue
-                    } else {
-                        let jump = Int.random(in: 1...3)
-                        let higherIdx = min(m.index + jump, Self.allMilestones.count - 1)
-                        higherM = Self.allMilestones[higherIdx]
-                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(m.name) and got ahead. I'm now at \(higherM).",
-                        "Look who's ahead now! I blew past your \(m.name) record and hit \(higherM).",
-                        "Caught up and passed you! Finally ahead of your \(m.name) record at \(higherM).",
-                        "I told you I would overtake you. I just beat your \(m.name) and reached \(higherM)!",
-                        "Told you to watch your back! I just passed your \(m.name) record and hit \(higherM)."
+                        "I told you I'd catch up! I'm right there at \(m.name) with you.",
+                        "Look who caught up! We're tied at \(m.name) now.",
+                        "Caught up to you! I'm sitting at \(m.name) too.",
+                        "I told you I would catch you. We are both at \(m.name)!",
+                        "Told you to watch your back! I just reached \(m.name) to tie you."
                     ])
                 } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
-                        higherNum = valInt
-                    } else {
-                        higherNum = num + Int.random(in: 1...5)
-                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) days and got ahead. I'm at \(higherNum) days.",
-                        "Look who's ahead now! I blew past your \(numStr) day streak and hit \(higherNum) days.",
-                        "Caught up and passed you! Finally ahead of your \(numStr) day streak at \(higherNum) days.",
-                        "I told you I would overtake you. I just beat your \(numStr) days and reached \(higherNum)!"
+                        "I told you I'd catch up! I'm right there at \(numStr) days with you.",
+                        "Look who caught up! We're tied at \(numStr) days now.",
+                        "Caught up to you! I'm sitting at \(numStr) days too.",
+                        "I told you I would catch you. We are both at \(numStr) days!"
                     ])
                 } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
                     let totalSecs = timeTuple.0 * 60 + timeTuple.1
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
-                    let higherTime: String
-                    if let speakerValue = speakerValue {
-                        higherTime = speakerValue
-                    } else {
-                        let mySecs = max(2, totalSecs - Int.random(in: 2...15))
-                        higherTime = "\(mySecs / 60):\(String(format: "%02d", mySecs % 60))"
-                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(posterTime) and got ahead. I'm now at \(higherTime).",
-                        "Look who's ahead now! I clocked faster than your \(posterTime) at \(higherTime).",
-                        "Caught up and passed you! Finally clocked faster than your \(posterTime) and hit \(higherTime).",
-                        "I told you I would overtake you. I just beat your \(posterTime) and clocked \(higherTime)!"
+                        "I told you I'd catch up! I clocked exactly \(posterTime) to tie you.",
+                        "Look who caught up! We're tied at \(posterTime).",
+                        "Caught up to you! I hit \(posterTime) too.",
+                        "I told you I would catch you. We both clocked \(posterTime)!"
                     ])
                 } else if mentionedHoF, let numStr = mentionedNumber, let num = Int(numStr) {
-                    let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
-                        higherNum = valInt
-                    } else {
-                        higherNum = num + Int.random(in: 1...5)
-                    }
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! Just beat your \(numStr) infinities and got ahead. I'm at \(higherNum).",
-                        "Look who's ahead now! I blew past your \(numStr) HoF entries and hit \(higherNum).",
-                        "Caught up and passed you! Finally ahead of your \(numStr) HoF entries at \(higherNum).",
-                        "I told you I would overtake you. I just beat your \(numStr) infinities and reached \(higherNum)!"
+                        "I told you I'd catch up! I'm right there at \(numStr) infinities with you.",
+                        "Look who caught up! We're tied at \(numStr) HoF entries now.",
+                        "Caught up to you! I'm sitting at \(numStr) infinities too.",
+                        "I told you I would catch you. We are both at \(numStr) infinities!"
                     ])
 
                 } else {
                     replies.append(contentsOf: [
-                        "I told you I'd catch up! I just got ahead.",
-                        "Look who's ahead now!",
-                        "Caught up and passed you! Finally ahead.",
-                        "I told you I would overtake you!"
+                        "I told you I'd catch up! We are tied now.",
+                        "Look who caught up! We're tied.",
+                        "Caught up to you! Finally tied.",
+                        "I told you I would catch you!"
                     ])
                 }
                 var reply = replies.randomElement()!
@@ -4039,7 +4036,18 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "You're celebrating \(mName)? I just cleared \(higherM).",
                                     "I left \(mName) in the dust. \(higherM) is the new standard.",
                                     "Don't brag about \(mName) when \(higherM) is completely out of your reach.",
-                                    "I already hit \(higherM). \(mName) is old news."
+                                    "I already hit \(higherM). \(mName) is old news.",
+                                    "You'll never get there at this rate.",
+                                    "I was never in your spot. You will always be behind.",
+                                    "Don't bother trying. You're completely outclassed.",
+                                    "Everyone progresses, except you. You're stuck at the bottom.",
+                                    "You're delusional if you think you'll ever break through.",
+                                    "I don't believe in you. You're completely irrelevant.",
+                                    "The wall you hit is final. Stay down there.",
+                                    "That barrier is yours alone. I'm untouched.",
+                                    "You are infinitely behind, and always will be.",
+                                    "You're completely stuck in the lower tiers.",
+                                    "It's over for you. You'll never catch up."
                                 ])
                             }
                         }
