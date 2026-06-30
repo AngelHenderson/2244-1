@@ -4019,16 +4019,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 ])
                             } else {
                                 replies.append(contentsOf: [
-                                    "We were tied at \(mName), but I just pulled ahead to \(higherM).",
-                                    "I broke the tie! I'm now sitting at \(higherM).",
-                                    "Looks like I broke the tie. I just hit \(higherM).",
-                                    "The tie is officially broken. I'm now pushing \(higherM).",
-                                    "So much for being tied. I just cleared \(higherM).",
-                                    "We were neck and neck at \(mName), but I pulled away to \(higherM).",
-                                    "Did you actually think we were equals? I'm at \(higherM) now.",
-                                    "I refuse to tie. I just secured \(higherM).",
-                                    "That tie didn't last long. I'm already at \(higherM).",
-                                    "I left our tie in the dust. \(higherM) is the new standard.",
                                     "I am ahead of your \(mName). I'm at \(higherM).",
                                     "I'm way past \(mName). I am sitting at \(higherM).",
                                     "Your \(mName) is nothing compared to my \(higherM) record.",
@@ -4091,16 +4081,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         } else {
                             replies.append(contentsOf: [
-                                "We were tied at \(cN) days, but I just pulled ahead to \(higherNum) days.",
-                                "I broke the tie! I'm now sitting at \(higherNum) days.",
-                                "Looks like I broke the tie. I just hit \(higherNum) days.",
-                                "The tie is officially broken. I'm now pushing \(higherNum) days.",
-                                "So much for being tied. I just cleared \(higherNum) days.",
-                                "We were neck and neck at \(cN) days, but I pulled away to \(higherNum) days.",
-                                "Did you actually think we were equals? I'm at \(higherNum) days now.",
-                                "I refuse to tie. I just secured \(higherNum) days.",
-                                "That tie didn't last long. I'm already at \(higherNum) days.",
-                                "I left our tie in the dust. \(higherNum) days is the new standard.",
                                 "I easily passed your \(cN) days. I'm at \(higherNum) days.",
                                 "I let you think you had the lead. Your \(cN) days is nothing. I'm at \(higherNum) days.",
                                 "You fell for it. I easily beat your \(cN) days. My real record is \(higherNum) days.",
@@ -4156,16 +4136,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 ])
                             } else {
                                 replies.append(contentsOf: [
-                                    "We were tied at \(numStr) days, but I just pulled ahead to \(higherNum) days.",
-                                    "I broke the tie! I'm now sitting at \(higherNum) days.",
-                                    "Looks like I broke the tie. I just hit \(higherNum) days.",
-                                    "The tie is officially broken. I'm now pushing \(higherNum) days.",
-                                    "So much for being tied. I just cleared \(higherNum) days.",
-                                    "We were neck and neck at \(numStr) days, but I pulled away to \(higherNum) days.",
-                                    "Did you actually think we were equals? I'm at \(higherNum) days now.",
-                                    "I refuse to tie. I just secured \(higherNum) days.",
-                                    "That tie didn't last long. I'm already at \(higherNum) days.",
-                                    "I left our tie in the dust. \(higherNum) days is the new standard.",
                                     "I am ahead of your \(numStr) days. I'm at \(higherNum).",
                                     "Your \(numStr) day streak is cute. You'll never catch my \(higherNum) days.",
                                     "I already passed \(numStr) days. I'm untouched at \(higherNum).",
@@ -4220,15 +4190,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         } else {
                             replies.append(contentsOf: [
                                 "We were tied on streaks, but I just pulled ahead to \(higherNum) days.",
-                                "I broke the tie! I'm now sitting at \(higherNum) days.",
-                                "Looks like I broke the tie. I just hit \(higherNum) days.",
-                                "The tie is officially broken. I'm now pushing \(higherNum) days.",
-                                "So much for being tied. I just cleared \(higherNum) days.",
-                                "We were neck and neck on streaks, but I pulled away to \(higherNum) days.",
-                                "Did you actually think we were equals? I'm at \(higherNum) days now.",
-                                "I refuse to tie. I just secured \(higherNum) days.",
-                                "That tie didn't last long. I'm already at \(higherNum) days.",
-                                "I left our tie in the dust. \(higherNum) days is the new standard.",
                                 "I am ahead of your streak. I'm at \(higherNum) days.",
                                 "Your streak is cute. You'll never catch my \(higherNum) days.",
                                 "I already passed that. I'm untouched at \(higherNum) days.",
@@ -4319,16 +4280,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         } else {
                             replies.append(contentsOf: [
-                                "We were tied at \(cTimeStr), but I just pulled ahead with \(myTimeStr).",
-                                "I broke the tie! I'm now sitting at \(myTimeStr).",
-                                "Looks like I broke the tie. I just clocked \(myTimeStr).",
-                                "The tie is officially broken. I'm now pushing \(myTimeStr).",
-                                "So much for being tied. I just cleared \(myTimeStr).",
-                                "We were neck and neck at \(cTimeStr), but I pulled away to \(myTimeStr).",
-                                "Did you actually think we were equals? I'm at \(myTimeStr) now.",
-                                "I refuse to tie. I just secured \(myTimeStr).",
-                                "That tie didn't last long. I'm already at \(myTimeStr).",
-                                "I left our tie in the dust. \(myTimeStr) is the new standard.",
                                 "I easily passed your \(cTimeStr). I'm at \(myTimeStr).",
                                 "I let you think you had the lead. Your \(cTimeStr) is nothing. I'm at \(myTimeStr).",
                                 "You fell for it. I easily beat your \(cTimeStr). My real record is \(myTimeStr).",
@@ -4392,16 +4343,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             } else {
                                 let diff = totalSecs - higherNum
                                 var templates = [
-                                    "We were tied at \(posterTime), but I just pulled ahead with \(higherTime).",
-                                    "I broke the tie! I'm now sitting at \(higherTime).",
-                                    "Looks like I broke the tie. I just clocked \(higherTime).",
-                                    "The tie is officially broken. I'm now pushing \(higherTime).",
-                                    "So much for being tied. I just cleared \(higherTime).",
-                                    "We were neck and neck at \(posterTime), but I pulled away to \(higherTime).",
-                                    "Did you actually think we were equals? I'm at \(higherTime) now.",
-                                    "I refuse to tie. I just secured \(higherTime).",
-                                    "That tie didn't last long. I'm already at \(higherTime).",
-                                    "I left our tie in the dust. \(higherTime) is the new standard.",
                                     "Your \(posterTime) time is cute. I clear it in \(higherTime).",
                                     "I easily passed your time. My record is \(higherTime).",
                                     "I shaved time off your \(posterTime). My best is \(higherTime).",
@@ -4457,16 +4398,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else {
                         let diff = assumedTotal - higherNum
                         var templates = [
-                            "We were tied at \(posterTime), but I just pulled ahead with \(higherTime).",
-                            "I broke the tie! I'm now sitting at \(higherTime).",
-                            "Looks like I broke the tie. I just clocked \(higherTime).",
-                            "The tie is officially broken. I'm now pushing \(higherTime).",
-                            "So much for being tied. I just cleared \(higherTime).",
-                            "We were neck and neck at \(posterTime), but I pulled away to \(higherTime).",
-                            "Did you actually think we were equals? I'm at \(higherTime) now.",
-                            "I refuse to tie. I just secured \(higherTime).",
-                            "That tie didn't last long. I'm already at \(higherTime).",
-                            "I left our tie in the dust. \(higherTime) is the new standard.",
                             "Your \(posterTime) time is cute. I clear it in \(higherTime).",
                             "I easily passed your time. My record is \(higherTime).",
                             "I shaved time off your \(posterTime). My best is \(higherTime).",
@@ -4540,16 +4471,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         } else {
                             replies.append(contentsOf: [
-                                "We were tied at \(numStr) infinities, but I just pulled ahead to \(higherNum).",
-                                "I broke the tie! I'm now sitting at \(higherNum) entries.",
-                                "Looks like I broke the tie. I just hit \(higherNum) infinities.",
-                                "The tie is officially broken. I'm now pushing \(higherNum) infinities.",
-                                "So much for being tied. I just cleared \(higherNum) entries.",
-                                "We were neck and neck at \(numStr) infinities, but I pulled away to \(higherNum).",
-                                "Did you actually think we were equals? I'm at \(higherNum) entries now.",
-                                "I refuse to tie. I just secured \(higherNum) infinities.",
-                                "That tie didn't last long. I'm already at \(higherNum) entries.",
-                                "I left our tie in the dust. \(higherNum) infinities is the new standard.",
                                 "I am ahead of your \(numStr) infinity count. I'm at \(higherNum).",
                                 "Your \(numStr) HoF entries are nothing. You'll never catch my \(higherNum).",
                                 "I already passed \(numStr) infinities. I'm at \(higherNum).",
@@ -4605,16 +4526,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         replies.append(contentsOf: [
-                            "We were tied at \(assumedNum) infinities, but I just pulled ahead to \(higherNum).",
-                            "I broke the tie! I'm now sitting at \(higherNum) entries.",
-                            "Looks like I broke the tie. I just hit \(higherNum) infinities.",
-                            "The tie is officially broken. I'm now pushing \(higherNum) infinities.",
-                            "So much for being tied. I just cleared \(higherNum) entries.",
-                            "We were neck and neck at \(assumedNum) infinities, but I pulled away to \(higherNum).",
-                            "Did you actually think we were equals? I'm at \(higherNum) entries now.",
-                            "I refuse to tie. I just secured \(higherNum) infinities.",
-                            "That tie didn't last long. I'm already at \(higherNum) entries.",
-                            "I left our tie in the dust. \(higherNum) infinities is the new standard.",
                             "I am ahead of your \(assumedNum) infinity count. I'm at \(higherNum).",
                             "Your \(assumedNum) HoF entries are nothing. You'll never catch my \(higherNum).",
                             "I already passed \(assumedNum) infinities. I'm at \(higherNum).",
