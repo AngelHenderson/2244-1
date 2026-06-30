@@ -1416,6 +1416,8 @@ public struct MockSocialService: SocialService, Sendable {
                 var npc2Value: String? = nil
                 
                 var isNpc2Turn = true
+                var npc1PreviousComment: String? = baseComment.text
+                var npc2PreviousComment: String? = nil
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                 let targetDepth: Int
@@ -1460,7 +1462,8 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value)
+                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
+                        npc2PreviousComment = replyText
                         let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
@@ -1500,7 +1503,8 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value)
+                        let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
+                        npc1PreviousComment = replyText
                         let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
@@ -1807,6 +1811,8 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc2Value: String? = nil
                     
                     var isNpc2Turn = true
+                    var npc1PreviousComment: String? = baseComment.text
+                    var npc2PreviousComment: String? = nil
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                     let targetDepth: Int
@@ -1851,7 +1857,8 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value)
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
+                            npc2PreviousComment = replyText
                             let replyOffset = Double.random(in: 60...90)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                             
@@ -1891,7 +1898,8 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
-                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value)
+                            let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
+                            npc1PreviousComment = replyText
                             let replyOffset = Double.random(in: 60...90)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                             
@@ -3236,7 +3244,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
     }
 
     /// Generates a contextual reply that responds to what the previous comment actually said.
-    func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil, speakerValue: String? = nil, opponentValue: String? = nil) -> String {
+    func generateContextualReply(to commentText: String, message: String, forceTone: String? = nil, speakerValue: String? = nil, opponentValue: String? = nil, previousSelfComment: String? = nil) -> String {
         let lowered = commentText.lowercased()
 
         // Strip any leading @mention so we analyze the real content
@@ -3577,6 +3585,18 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         if isCompetitive {
             if forceTone == "caught_up" {
+                if let prev = previousSelfComment, prev.contains("Watch your back.") {
+                    if let m = mentionedMilestone {
+                        return "Told you to watch your back! I just reached \(m.name) to tie you."
+                    } else if mentionedStreak, let numStr = mentionedNumber {
+                        return "Told you to watch your back! I just reached \(numStr) days to tie you."
+                    } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                        let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                        return "Told you to watch your back! I clocked exactly \(posterTime) to tie you."
+                    } else if mentionedHoF, let numStr = mentionedNumber {
+                        return "Told you to watch your back! I just reached \(numStr) infinities to tie you."
+                    }
+                }
                 var replies: [String] = []
                 if let m = mentionedMilestone {
                     replies.append(contentsOf: [
