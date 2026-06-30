@@ -1337,7 +1337,7 @@ public struct MockSocialService: SocialService, Sendable {
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
         var comments: [SocialFeedComment] = []
-        let numBaseComments = Int.random(in: 15...35)
+        let numBaseComments = Int.random(in: 35...65)
         var usedStats: Set<String> = []
         
         // Guarantee exact tone percentages
@@ -1378,14 +1378,14 @@ public struct MockSocialService: SocialService, Sendable {
                 // Second comment arrives within a couple minutes (60-180 seconds)
                 baseOffset = Double.random(in: 60...180)
             } else if tone == "competitive" {
-                // Competitive comments arrive within 30 to 60 minutes
-                baseOffset = Double.random(in: 1800...3600)
+                // Competitive comments arrive within 2 to 25 minutes
+                baseOffset = Double.random(in: 120...1500)
             } else {
-                // Non-competitive comments arrive mostly in the first 30 minutes to match the early heart surge
+                // Non-competitive comments arrive mostly in the first 15 minutes to match the early heart surge
                 if Double.random(in: 0...1) < 0.85 {
-                    baseOffset = Double.random(in: 30...1800)
+                    baseOffset = Double.random(in: 30...900)
                 } else {
-                    baseOffset = Double.random(in: 1800...86400)
+                    baseOffset = Double.random(in: 900...3600)
                 }
             }
             let baseCreatedAt = now.addingTimeInterval(baseOffset)
@@ -1442,13 +1442,16 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         let isBehind: Bool
+                        let isEqual: Bool
                         if let n1Val = npc1Value, let n2Val = npc2Value {
                             isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
+                            isEqual = n1Val == n2Val
                         } else {
                             isBehind = false
+                            isEqual = false
                         }
                         
-                        let toneStr = isBehind ? "behind" : "one_up"
+                        let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value)
                         let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -1475,13 +1478,16 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         let isBehind: Bool
+                        let isEqual: Bool
                         if let sVal = npc1Value, let oVal = npc2Value {
                             isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
+                            isEqual = sVal == oVal
                         } else {
                             isBehind = false
+                            isEqual = false
                         }
                         
-                        let toneStr = isBehind ? "behind" : "one_up"
+                        let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value)
                         let replyOffset = Double.random(in: 60...90)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -1820,13 +1826,16 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             let isBehind: Bool
+                            let isEqual: Bool
                             if let n1Val = npc1Value, let n2Val = npc2Value {
                                 isBehind = Self.isRecord(n2Val, worseThan: n1Val, topic: topic)
+                                isEqual = n1Val == n2Val
                             } else {
                                 isBehind = false
+                                isEqual = false
                             }
                             
-                            let toneStr = isBehind ? "behind" : "one_up"
+                            let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value)
                             let replyOffset = Double.random(in: 60...90)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -1853,13 +1862,16 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             let isBehind: Bool
+                            let isEqual: Bool
                             if let sVal = npc1Value, let oVal = npc2Value {
                                 isBehind = Self.isRecord(sVal, worseThan: oVal, topic: topic)
+                                isEqual = sVal == oVal
                             } else {
                                 isBehind = false
+                                isEqual = false
                             }
                             
-                            let toneStr = isBehind ? "behind" : "one_up"
+                            let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value)
                             let replyOffset = Double.random(in: 60...90)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -4663,6 +4675,17 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "My record is flawless. \(genericHigherM) is completely out of your reach.",
                         "Don't bother looking up. I'm way up at \(genericHigherM).",
                         "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
+                        "You'll never get there at this rate.",
+                        "I was never in your spot. You will always be behind.",
+                        "Don't bother trying. You're completely outclassed.",
+                        "Everyone progresses, except you. You're stuck at the bottom.",
+                        "You're delusional if you think you'll ever break through.",
+                        "I don't believe in you. You're completely irrelevant.",
+                        "The wall you hit is final. Stay down there.",
+                        "That barrier is yours alone. I'm untouched.",
+                        "You are infinitely behind, and always will be.",
+                        "You're completely stuck in the lower tiers.",
+                        "It's over for you. You'll never catch up."
                     ])
                 }
                 if commentText == message {
@@ -4706,9 +4729,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             replies.append(contentsOf: [
                 "You'll never get there at this rate.",
                 "I was never in your spot. You will always be behind.",
-                "Patience won't help you. You're completely outclassed.",
+                "Don't bother trying. You're completely outclassed.",
                 "Everyone progresses, except you. You're stuck at the bottom.",
-                "Trust me, you'll never break through.",
+                "You're delusional if you think you'll ever break through.",
                 "I don't believe in you. You're completely irrelevant.",
                 "The wall you hit is final. Stay down there.",
                 "That barrier is yours alone. I'm untouched.",
