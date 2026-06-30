@@ -1156,6 +1156,9 @@ public struct MockSocialService: SocialService, Sendable {
            let data = defaults.data(forKey: Self.feedCacheKey),
            var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
             
+            // Filter out future posts so they arrive naturally throughout the day
+            cached = cached.filter { $0.createdAt <= now }
+            
             // Filter out future comments so simulated responses arrive naturally
             for i in 0..<cached.count {
                 cached[i].comments = cached[i].comments.filter { $0.createdAt <= now }
@@ -1187,6 +1190,7 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // Apply time-filtering to the returned array so simulated future events don't show up yet
+        items = items.filter { $0.createdAt <= now }
         for i in 0..<items.count {
             items[i].comments = items[i].comments.filter { $0.createdAt <= now }
             items[i].commentCount = items[i].comments.count
@@ -1431,7 +1435,11 @@ public struct MockSocialService: SocialService, Sendable {
                     }
                     
                     if isNpc2Turn {
-                        if let n1Val = npc1Value {
+                        if let oldVal = npc2Value {
+                            if Double.random(in: 0...1) < 0.5 {
+                                npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
+                            }
+                        } else if let n1Val = npc1Value {
                             if topic != "streak" || npc2Value == nil {
                                 if Double.random(in: 0...1) < 0.45 {
                                     npc2Value = Self.lowerValue(for: n1Val, topic: topic)
@@ -1467,7 +1475,11 @@ public struct MockSocialService: SocialService, Sendable {
                         lastComment = replyComment
                         currentDepth += 1
                     } else {
-                        if let n2Val = npc2Value {
+                        if let oldVal = npc1Value {
+                            if Double.random(in: 0...1) < 0.5 {
+                                npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
+                            }
+                        } else if let n2Val = npc2Value {
                             if topic != "streak" || npc1Value == nil {
                                 if Double.random(in: 0...1) < 0.45 {
                                     npc1Value = Self.lowerValue(for: n2Val, topic: topic)
@@ -1719,13 +1731,15 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             let (message, statText) = generateDynamicEvent(milestone: randomMilestone)
-            let timeOffset = Double.random(in: -43200...0) // Spread posts throughout the last 12 hours
-            let itemDate = now.addingTimeInterval(timeOffset)
+            let startOfDay = Calendar.current.startOfDay(for: now)
+            let timeOffset = Double.random(in: 0...86400) // Spread posts throughout the entire day
+            let itemDate = startOfDay.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
             
             // Generate top-level base comments
-            let ageFactor = abs(timeOffset) / 43200.0
+            let ageInSeconds = max(0, now.timeIntervalSince(itemDate))
+            let ageFactor = min(1.0, ageInSeconds / 43200.0)
             let baseMin = 1 + Int(ageFactor * 6)
             let baseMax = 3 + Int(ageFactor * 18)
             let numBaseComments = Int.random(in: baseMin...baseMax)
@@ -1759,19 +1773,16 @@ public struct MockSocialService: SocialService, Sendable {
                 // Competitive comments arrive within 30 to 60 minutes of the post
                 let baseOffset: Double
                 if tone == "competitive" {
-                    let randomDelay = Double.random(in: 1800...3600)
-                    baseOffset = min(timeOffset + randomDelay, 0)
+                    baseOffset = Double.random(in: 1800...3600)
                 } else {
                     // Non-competitive comments mostly arrive in the first 30 minutes
-                    let randomDelay: Double
                     if Double.random(in: 0...1) < 0.85 {
-                        randomDelay = Double.random(in: 30...1800)
+                        baseOffset = Double.random(in: 30...1800)
                     } else {
-                        randomDelay = Double.random(in: 1800...86400)
+                        baseOffset = Double.random(in: 1800...86400)
                     }
-                    baseOffset = min(timeOffset + randomDelay, 0)
                 }
-                let baseCreatedAt = now.addingTimeInterval(baseOffset)
+                let baseCreatedAt = itemDate.addingTimeInterval(baseOffset)
                 
                 let baseComment = SocialFeedComment(
                     authorName: finalCommenter,
