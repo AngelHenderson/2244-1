@@ -719,6 +719,7 @@ public protocol SocialService: Sendable {
     func postEvent(message: String, statText: String) async throws
     func toggleItemHeart(itemID: UUID) async throws
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
+    func deleteItem(itemID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
     func removeInvite(id: UUID) async throws
@@ -755,6 +756,10 @@ public struct UnavailableSocialService: SocialService, Sendable {
     }
 
     public func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func deleteItem(itemID: UUID) async throws {
         throw SocialServiceError.unavailable
     }
 
@@ -1133,7 +1138,7 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v42"
+    private static let feedCacheKey = "socialFeed.cache.v43"
     private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v3"
@@ -1165,13 +1170,11 @@ public struct MockSocialService: SocialService, Sendable {
         // Generate fresh feed
         var items = generateFeedItems(now: now)
 
-        // Merge in user posts from the last 7 days so they survive cache regeneration
-        let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
+        // Merge in all user posts so they survive cache regeneration
         if let userPostsData = defaults.data(forKey: Self.userPostsKey),
            let userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: userPostsData) {
-            let recentPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
             let existingIDs = Set(items.map { $0.id })
-            for post in recentPosts where !existingIDs.contains(post.id) {
+            for post in userPosts where !existingIDs.contains(post.id) {
                 items.append(post)
             }
             items.sort { $0.createdAt > $1.createdAt }
@@ -1411,7 +1414,12 @@ public struct MockSocialService: SocialService, Sendable {
                 var isNpc2Turn = true
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
-                let targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
+                let targetDepth: Int
+                if topic == "streak" {
+                    targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 1...2) : 0
+                } else {
+                    targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
+                }
                 while currentDepth < targetDepth {
                     if npc2 == nil {
                         let replyIndex = Int.random(in: 1...100000)
@@ -1424,10 +1432,12 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     if isNpc2Turn {
                         if let n1Val = npc1Value {
-                            if Double.random(in: 0...1) < 0.45 {
-                                npc2Value = Self.lowerValue(for: n1Val, topic: topic)
-                            } else {
-                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                            if topic != "streak" || npc2Value == nil {
+                                if Double.random(in: 0...1) < 0.45 {
+                                    npc2Value = Self.lowerValue(for: n1Val, topic: topic)
+                                } else {
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                }
                             }
                         }
                         
@@ -1455,10 +1465,12 @@ public struct MockSocialService: SocialService, Sendable {
                         currentDepth += 1
                     } else {
                         if let n2Val = npc2Value {
-                            if Double.random(in: 0...1) < 0.45 {
-                                npc1Value = Self.lowerValue(for: n2Val, topic: topic)
-                            } else {
-                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                            if topic != "streak" || npc1Value == nil {
+                                if Double.random(in: 0...1) < 0.45 {
+                                    npc1Value = Self.lowerValue(for: n2Val, topic: topic)
+                                } else {
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                }
                             }
                         }
                         
@@ -1579,10 +1591,6 @@ public struct MockSocialService: SocialService, Sendable {
             userPosts.insert(item, at: 0)
         }
         
-        let now = Date()
-        let sevenDaysAgo = now.addingTimeInterval(-7 * 24 * 3600)
-        userPosts = userPosts.filter { $0.createdAt > sevenDaysAgo }
-        
         if let userPostsData = try? JSONEncoder().encode(userPosts) {
             defaults.set(userPostsData, forKey: Self.userPostsKey)
         }
@@ -1620,6 +1628,24 @@ public struct MockSocialService: SocialService, Sendable {
         
         if let item = foundAndUpdated {
             persistInteractedItem(item)
+        }
+    }
+
+    public func deleteItem(itemID: UUID) async throws {
+        let defaults = UserDefaults.standard
+        if let data = defaults.data(forKey: Self.feedCacheKey),
+           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+            cached.removeAll { $0.id == itemID }
+            if let newData = try? JSONEncoder().encode(cached) {
+                defaults.set(newData, forKey: Self.feedCacheKey)
+            }
+        }
+        if let data = defaults.data(forKey: Self.userPostsKey),
+           var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+            userPosts.removeAll { $0.id == itemID }
+            if let newData = try? JSONEncoder().encode(userPosts) {
+                defaults.set(newData, forKey: Self.userPostsKey)
+            }
         }
     }
 
@@ -1768,9 +1794,9 @@ public struct MockSocialService: SocialService, Sendable {
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                     let targetDepth: Int
                     if tone == "behind_competitive" {
-                        targetDepth = Double.random(in: 0...1) < 0.86 ? Int.random(in: 2...10) : 0
+                        targetDepth = Double.random(in: 0...1) < 0.86 ? (topic == "streak" ? Int.random(in: 1...2) : Int.random(in: 2...10)) : 0
                     } else {
-                        targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...10) : 0
+                        targetDepth = Double.random(in: 0...1) < 0.85 ? (topic == "streak" ? Int.random(in: 1...2) : Int.random(in: 2...10)) : 0
                     }
                     while currentDepth < targetDepth {
                         if npc2 == nil {
@@ -1784,10 +1810,12 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if isNpc2Turn {
                             if let n1Val = npc1Value {
-                                if Double.random(in: 0...1) < 0.45 {
-                                    npc2Value = Self.lowerValue(for: n1Val, topic: topic)
-                                } else {
-                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                if topic != "streak" || npc2Value == nil {
+                                    if Double.random(in: 0...1) < 0.45 {
+                                        npc2Value = Self.lowerValue(for: n1Val, topic: topic)
+                                    } else {
+                                        npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                    }
                                 }
                             }
                             
@@ -1815,10 +1843,12 @@ public struct MockSocialService: SocialService, Sendable {
                             currentDepth += 1
                         } else {
                             if let n2Val = npc2Value {
-                                if Double.random(in: 0...1) < 0.45 {
-                                    npc1Value = Self.lowerValue(for: n2Val, topic: topic)
-                                } else {
-                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                if topic != "streak" || npc1Value == nil {
+                                    if Double.random(in: 0...1) < 0.45 {
+                                        npc1Value = Self.lowerValue(for: n2Val, topic: topic)
+                                    } else {
+                                        npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                    }
                                 }
                             }
                             
