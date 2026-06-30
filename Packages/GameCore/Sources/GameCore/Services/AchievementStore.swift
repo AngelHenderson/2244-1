@@ -1024,11 +1024,11 @@ public final class AchievementStore {
 
     // Leaderboard rank tiers (lower rank is better, so milestones descend)
     private static let leaderboardRankTiers: [ComboTierDefinition] = [
-        .init(milestone: 100000, categoryLabel: "Top 100K", rewards: .init(hammers: 1, magnets: 1)),
-        .init(milestone: 75000, categoryLabel: "Top 75K", rewards: .init(spins: 1)),
-        .init(milestone: 50000, categoryLabel: "Top 50K", rewards: .init(swaps: 1)),
-        .init(milestone: 40000, categoryLabel: "Top 40K", rewards: .init(hammers: 1)),
-        .init(milestone: 30000, categoryLabel: "Top 30K", rewards: .init(gems: 75)),
+        .init(milestone: 1000000, categoryLabel: "Top 1M", rewards: .init(hammers: 1, magnets: 1)),
+        .init(milestone: 500000, categoryLabel: "Top 500K", rewards: .init(spins: 1)),
+        .init(milestone: 250000, categoryLabel: "Top 250K", rewards: .init(swaps: 1)),
+        .init(milestone: 100000, categoryLabel: "Top 100K", rewards: .init(hammers: 1)),
+        .init(milestone: 50000, categoryLabel: "Top 50K", rewards: .init(gems: 75)),
         .init(milestone: 25000, categoryLabel: "Top 25K", rewards: .init(gems: 80)),
         .init(milestone: 20000, categoryLabel: "Top 20K", rewards: .init(spins: 1)),
         .init(milestone: 15000, categoryLabel: "Top 15K", rewards: .init(boost2x: 1)),
