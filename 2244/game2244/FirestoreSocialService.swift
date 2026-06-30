@@ -85,6 +85,16 @@ struct FirestoreSocialService: SocialService, Sendable {
             "updatedAt": FieldValue.serverTimestamp(),
         ])
     }
+    func deleteItem(itemID: UUID) async throws {
+        let currentUser = try await currentUser()
+        let firestore = Firestore.firestore()
+        let itemRef = firestore.collection("socialFeed").document(itemID.uuidString)
+        
+        let itemDoc = try await itemRef.getDocument()
+        if let data = itemDoc.data(), let authorId = data["authorId"] as? String, authorId == currentUser.uid {
+            try await itemRef.delete()
+        }
+    }
 
     func toggleItemHeart(itemID: UUID) async throws {
         let currentUser = try await currentUser()
