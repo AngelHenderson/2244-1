@@ -1129,12 +1129,11 @@ public struct MockSocialService: SocialService, Sendable {
             let newSeed = index * 131 + countrySeed * 17 + day * 7
             let random = seededRandom(seed: newSeed, index: day)
             let avatarIndex = Int(random * Double(allAvatars.count))
-            return allAvatars[avatarIndex % allAvatars.count]
-        }
+}
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v41"
+    private static let feedCacheKey = "socialFeed.cache.v42"
     private static let feedDateKey = "socialFeed.cacheDate.v37"
     /// Version-independent key for user-posted events so they survive cache bumps.
     private static let userPostsKey = "socialFeed.userPosts.v3"
