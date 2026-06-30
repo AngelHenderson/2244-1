@@ -3854,7 +3854,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
 
             var replies: [String] = []
-            let wantsBetter = strippedLower.contains("do better")
+            let wantsBetter = forceTone == "wants_better" || strippedLower.contains("do better")
             let rootIsJealous = jealousKeywords.contains(where: { message.lowercased().contains($0) })
 
             // Dynamic competitive responses that echo what they said
@@ -3962,18 +3962,30 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             higherM = Self.allMilestones[higherIdx]
                         }
                         if wantsBetter {
-                            replies.append(contentsOf: [
-                                "I always do better. I'm already pushing \(higherM).",
-                                "You wanted better? I'm sitting at \(higherM).",
-                                "I did do better. You're not catching \(higherM).",
-                                "Done. I'm untouched at \(higherM).",
-                                "I'm always climbing. \(higherM) completely buries you.",
-                                "Better is my baseline. I'm at \(higherM).",
-                                "I already left you behind. \(higherM) is next.",
-                                "Watch me. I'm clearing \(higherM) easily.",
-                                "You are no threat. I'm sitting comfortably at \(higherM).",
-                                "I never stop climbing. \(higherM) is already done."
-                            ])
+                            let weightedReplies: [(String, Double)] = [
+                                ("I always do better. I'm already pushing \(higherM).", 5.0),
+                                ("You wanted better? I'm sitting at \(higherM).", 46.0),
+                                ("I did do better. You're not catching \(higherM).", 25.0),
+                                ("Done. I'm untouched at \(higherM).", 8.0),
+                                ("I'm always climbing. \(higherM) completely buries you.", 5.0),
+                                ("Better is my baseline. I'm at \(higherM).", 0.08),
+                                ("I already left you behind. \(higherM) is next.", 4.92),
+                                ("Watch me. I'm clearing \(higherM) easily.", 0.01),
+                                ("You are no threat. I'm sitting comfortably at \(higherM).", 4.58),
+                                ("I never stop climbing. \(higherM) is already done.", 2.41)
+                            ]
+                            let totalWeight = weightedReplies.reduce(0) { $0 + $1.1 }
+                            let rand = Double.random(in: 0..<totalWeight)
+                            var cumulative = 0.0
+                            var selected = weightedReplies.last!.0
+                            for (text, weight) in weightedReplies {
+                                cumulative += weight
+                                if rand < cumulative {
+                                    selected = text
+                                    break
+                                }
+                            }
+                            replies.append(selected)
                         } else {
                             let higherIdx = Self.allMilestones.firstIndex(of: higherM) ?? 0
                             if higherIdx < mIdx {
