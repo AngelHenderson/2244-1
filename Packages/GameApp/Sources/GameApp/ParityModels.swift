@@ -2134,22 +2134,22 @@ public struct MockSocialService: SocialService, Sendable {
         case 0:
             // Reached a new tile in Endless
             let templates = [
-                "Reached the \(milestone) tile in Endless!",
+                "Reached the \(milestone) tile in the game!",
                 "Just hit \(milestone) for the first time!",
-                "NEW personal best — \(milestone) tile unlocked in Endless!",
+                "NEW personal best — \(milestone) tile unlocked in gameplay!",
                 "\(milestone) tile reached! The grind never stops.",
-                "Finally broke through to \(milestone) in Endless mode!",
-                "After so many attempts… \(milestone) is MINE!",
+                "Finally broke through to \(milestone) in the game!",
+                "After one attempt, \(milestone) is MINE!",
                 "Thought \(milestone) was impossible. Proved myself wrong.",
                 "\(milestone) achieved on an absolute marathon run.",
             ]
             let stats = [
-                "puzzlepiece.extension|New tile · Endless",
+                "puzzlepiece.extension|New tile · Game",
                 "medal|Milestone · \(milestone)",
-                "chart.line.uptrend.xyaxis|Personal best · Endless",
+                "chart.line.uptrend.xyaxis|Personal best · Game",
                 "flame|Breakthrough · \(milestone)",
-                "star|New record · Endless",
-                "suit.diamond.fill|\(milestone) · First reach",
+                "star|New record · Game",
+                "suit.diamond.fill|\(milestone) · Reached",
             ]
             return (templates.randomElement()!, stats.randomElement()!)
             
@@ -2215,7 +2215,7 @@ public struct MockSocialService: SocialService, Sendable {
             if streakDays >= 100 {
                 closers = [
                     "!", " — legendary status!",
-                    ". Triple digits and counting!", ". This streak is untouchable.",
+                    ". \(streakDays) and counting!", ". This streak is untouchable.",
                     ". Can't stop now.", ". \(streakDays) days deep!",
                     ". Built different.", " — no breaks, no excuses.",
                     ". The grind never stops.", ". Still going strong.",
