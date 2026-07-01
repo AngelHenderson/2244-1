@@ -3644,6 +3644,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I told you I would catch you!"
                     ])
                 }
+                if let prev = previousSelfComment {
+                    let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
+                    if !filtered.isEmpty { replies = filtered }
+                }
                 var reply = replies.randomElement()!
                 if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
                 return reply
@@ -3889,6 +3893,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let l = r.lowercased()
                         return !l.contains("too low") && !l.contains("too slow") && !l.contains("dust") && !l.contains("fast enough")
                     }
+                }
+                if let prev = previousSelfComment {
+                    let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
+                    if !filtered.isEmpty { replies = filtered }
                 }
                 var reply = replies.randomElement()!
                 if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
@@ -4651,6 +4659,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                 }
             }
+            if let prev = previousSelfComment {
+                let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
+                if !filtered.isEmpty { replies = filtered }
+            }
             var reply = replies.randomElement()!
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
             return reply
@@ -4695,6 +4707,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 "You're completely stuck in the lower tiers.",
                 "It's over for you. You'll never catch up."
             ])
+            if let prev = previousSelfComment {
+                let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
+                if !filtered.isEmpty { replies = filtered }
+            }
             var reply = replies.randomElement()!
             if Double.random(in: 0...1) < 0.75 {
                 let lowerReply = reply.lowercased()
@@ -4763,6 +4779,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "So kind! Thank you ",
                     "Aww thanks! This community is the best.",
                 ])
+            }
+            if let prev = previousSelfComment {
+                let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
+                if !filtered.isEmpty { replies = filtered }
             }
             var reply = replies.randomElement()!
             if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: ["!!", " :)", " :D", " ~", " :P", " <3", " =)", " ^_^", " rn", " RN", " fr", " tbh"].randomElement()!) }
