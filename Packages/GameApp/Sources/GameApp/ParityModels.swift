@@ -3720,7 +3720,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 ("I easily bypassed \(m.name) and hit \(higherM).", 0.1),
                                 ("I'm laughing from \(higherM) while you're still at \(m.name).", 3.5),
                                 ("Celebrating \(m.name)? I easily clear \(higherM).", 13.0),
-                                ("You're at \(m.name)? Cute. I forgot \(m.name) even existed now that I'm at \(higherM).", 62.0),
+                                ("You're at \(m.name)? Cute. \(m.name) is completely irrelevant now that I'm at \(higherM).", 62.0),
                                 ("I can't imagine spending time on \(m.name). My \(higherM) was completed with ease.", 0.3),
                                 ("Still at \(m.name)? I left that behind months ago. \(higherM) is where the real game is.", 1.7),
                                 ("Lagging at \(m.name)? I'm coasting at \(higherM).", 5.8),
@@ -3787,7 +3787,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append("I literally fell asleep during a run and still beat \(posterTime) with my \(myTimeStr).")
                                 replies.append("Your absolute best time of \(posterTime) is slower than my worst warm-up of \(myTimeStr).")
                                 replies.append("Why are you mentioning \(posterTime) when my \(myTimeStr) exists?")
-                                replies.append("I forgot what \(posterTime) even feels like. My \(myTimeStr) clear is the new norm.")
+                                replies.append("I don't even acknowledge \(posterTime). My \(myTimeStr) clear is the new norm.")
                             } else if mySecs == totalSecs {
                                 replies.append("I'm right there at \(posterTime) too. Let's see who breaks it first.")
                                 replies.append("We're tied at \(posterTime). The real race starts now.")
@@ -3826,9 +3826,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
                             replies.append("My \(higherNum) streak is permanent.")
                             replies.append("Trying to keep \(num) days alive? My \(higherNum) day streak is permanent.")
-                            replies.append("Only \(num) days? My infinite consistency stands at \(higherNum) days.")
+                            replies.append("A streak that low is completely irrelevant. I'm at \(higherNum) days.")
                             replies.append("Your \(num) day streak is child's play. Talk to me when you're at \(higherNum).")
-                            replies.append("I forgot what a double-digit streak feels like. I'm at \(higherNum) days.")
+                            replies.append("Don't even acknowledge that double-digit streak. I'm at \(higherNum) days.")
                         } else if higherNum == num {
                             replies.append("I'm right there at \(num) days too. Let's see who breaks it first.")
                             replies.append("We're tied at \(num) days. The real race starts now.")
@@ -4072,7 +4072,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "Don't brag about \(mName) when \(higherM) is completely out of your reach.",
                                     "I already hit \(higherM). \(mName) is old news.",
                                     "You'll never get there at this rate.",
-                                    "I was never in your spot. You will always be behind.",
                                     "Don't bother trying. You're completely outclassed.",
                                     "Everyone progresses, except you. You're stuck at the bottom.",
                                     "You're delusional if you think you'll ever break through.",
@@ -4640,7 +4639,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Don't bother looking up. I'm way up at \(genericHigherM).",
                         "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
                         "You'll never get there at this rate.",
-                        "I was never in your spot. You will always be behind.",
                         "Don't bother trying. You're completely outclassed.",
                         "Everyone progresses, except you. You're stuck at the bottom.",
                         "You're delusional if you think you'll ever break through.",
@@ -4696,7 +4694,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             // Generic dismissal
             replies.append(contentsOf: [
                 "You'll never get there at this rate.",
-                "I was never in your spot. You will always be behind.",
                 "Don't bother trying. You're completely outclassed.",
                 "Everyone progresses, except you. You're stuck at the bottom.",
                 "You're delusional if you think you'll ever break through.",
