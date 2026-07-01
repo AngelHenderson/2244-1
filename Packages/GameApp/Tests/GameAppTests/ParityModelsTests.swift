@@ -101,7 +101,7 @@ struct ParityModelsTests {
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "socialFeed.cache.v40")
         defaults.removeObject(forKey: "socialFeed.cacheDate.v37")
-        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
         
         let service = MockSocialService()
         // Post a few events to generate a large volume of bot comments/replies
@@ -110,7 +110,7 @@ struct ParityModelsTests {
         }
         
         // Retrieve the cached items directly from UserDefaults to get all comments (even future ones)
-        guard let data = defaults.data(forKey: "socialFeed.userPosts.v2"),
+        guard let data = defaults.data(forKey: "socialFeed.userPosts.v3"),
               let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
             Issue.record("Failed to decode user posts")
             return
@@ -342,23 +342,6 @@ struct ParityModelsTests {
         #expect(persistedState == .signedIn(profile))
     }
 
-    @Test("NPCs have a ~45% chance to reply with a low milestone")
-    func testLowMilestoneChance() async throws {
-        let service = MockSocialService()
-        var lowMilestoneCount = 0
-        let totalRuns = 200
-
-        for _ in 0..<totalRuns {
-            let reply = service.generateContextualReply(to: "Unlocked milestone 65K.", message: "Unlocked milestone 65K.", forceTone: "one_up")
-            let isLowM = ["2048", "4096", "8192", "16K", "32K"].contains { reply.contains($0) }
-            if isLowM {
-                lowMilestoneCount += 1
-            }
-        }
-        
-        let ratio = Double(lowMilestoneCount) / Double(totalRuns)
-        #expect(ratio >= 0.30 && ratio <= 0.60, "Low milestone reply ratio is \(ratio), expected around 0.45")
-    }
 
     @Test("Replying to a lower milestone has a ~95% chance to trigger too low reply")
     func testTooLowReplyChance() async throws {
@@ -450,7 +433,7 @@ struct ParityModelsTests {
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "socialFeed.cache.v40")
         defaults.removeObject(forKey: "socialFeed.cacheDate.v37")
-        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
         
         let service = MockSocialService()
         // Generate threads with different topics
@@ -460,7 +443,7 @@ struct ParityModelsTests {
             try await service.postEvent(message: "I am playing! \(message)", statText: "stat")
         }
         
-        guard let data = defaults.data(forKey: "socialFeed.userPosts.v2"),
+        guard let data = defaults.data(forKey: "socialFeed.userPosts.v3"),
               let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
             Issue.record("Failed to decode user posts")
             return
@@ -893,14 +876,14 @@ struct ParityModelsTests {
     @MainActor
     func testNpcRepliesBadgeCount() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
         defaults.removeObject(forKey: "profilePlayerName")
         defaults.removeObject(forKey: "player.displayName")
         
         let homeState = HomeState()
         #expect(homeState.npcRepliesBadgeCount == 0)
         
-        // Let's mock a user post in socialFeed.userPosts.v2
+        // Let's mock a user post in socialFeed.userPosts.v3
         let post1 = SocialFeedItem(
             id: UUID(),
             authorName: "Player",
@@ -929,7 +912,7 @@ struct ParityModelsTests {
         
         let encoder = JSONEncoder()
         if let data = try? encoder.encode([post1, post2]) {
-            defaults.set(data, forKey: "socialFeed.userPosts.v2")
+            defaults.set(data, forKey: "socialFeed.userPosts.v3")
         }
         
         homeState.updateNpcRepliesBadgeCount()
@@ -952,7 +935,7 @@ struct ParityModelsTests {
         #expect(homeState.npcRepliesBadgeCount == 0)
         
         // Clean up
-        defaults.removeObject(forKey: "socialFeed.userPosts.v2")
+        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
         defaults.removeObject(forKey: "socialFeed.lastViewedDate")
     }
 }

@@ -1164,7 +1164,11 @@ public struct MockSocialService: SocialService, Sendable {
                 cached[i].comments = cached[i].comments.filter { $0.createdAt <= now }
                 cached[i].commentCount = cached[i].comments.count
                 if let rts = cached[i].reactionTimestamps {
-                    cached[i].reactionCount = rts.filter { $0 <= now }.count
+                    var count = rts.filter { $0 <= now }.count
+                    if cached[i].isHearted == true {
+                        count += 1
+                    }
+                    cached[i].reactionCount = count
                 }
             }
             return cached
@@ -1195,7 +1199,11 @@ public struct MockSocialService: SocialService, Sendable {
             items[i].comments = items[i].comments.filter { $0.createdAt <= now }
             items[i].commentCount = items[i].comments.count
             if let rts = items[i].reactionTimestamps {
-                items[i].reactionCount = rts.filter { $0 <= now }.count
+                var count = rts.filter { $0 <= now }.count
+                if items[i].isHearted == true {
+                    count += 1
+                }
+                items[i].reactionCount = count
             }
         }
 
@@ -1952,11 +1960,9 @@ public struct MockSocialService: SocialService, Sendable {
             for _ in 0..<maxReactions {
                 // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
                 if Double.random(in: 0...1) < 0.55 {
-                    let rOffset = Double.random(in: timeOffset...min(timeOffset + 900, 0))
-                    rTimestamps.append(now.addingTimeInterval(rOffset))
+                    rTimestamps.append(itemDate.addingTimeInterval(Double.random(in: 15...900)))
                 } else {
-                    let rOffset = Double.random(in: timeOffset...(timeOffset + 28800))
-                    rTimestamps.append(now.addingTimeInterval(rOffset))
+                    rTimestamps.append(itemDate.addingTimeInterval(Double.random(in: 900...28800)))
                 }
             }
             
@@ -2890,7 +2896,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Streak posts: extract the day count, brag with a higher one ──
         if topic == "streak" {
             if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
-                let isLowStreak = Double.random(in: 0...1) < 0.45
+                let isLowStreak = false
                 if isLowStreak && streakDays > 1 {
                     let jump = Int.random(in: 1...max(5, streakDays / 2))
                     let lowerDays = max(1, streakDays - jump)
@@ -2934,7 +2940,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         if topic == "time" {
             if let (mins, secs) = Self.extractTime(from: message) {
                 let totalSecs = mins * 60 + secs
-                let isLowTime = Double.random(in: 0...1) < 0.45
+                let isLowTime = false
                 let posterTime = "\(mins):\(String(format: "%02d", secs))"
                 if isLowTime {
                     let slowerTotal = totalSecs + Int.random(in: 5...30)
@@ -2998,7 +3004,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // ── Hall of Fame posts: extract infinity count, brag with a higher one ──
         if topic == "hof" {
             if let infCount = Self.extractNumber(from: message, near: ["infinity", "infinit", "\u{221E}", "\u{00D7}", "count", "entry", "#"]) {
-                let isLowHoF = Double.random(in: 0...1) < 0.45
+                let isLowHoF = false
                 if isLowHoF && infCount > 1 {
                     let jump = Int.random(in: 1...max(3, infCount / 2))
                     let lowerCount = max(1, infCount - jump)
@@ -3071,7 +3077,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }) {
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m) {
-                let isLowMilestone = Double.random(in: 0...1) < 0.45
+                let isLowMilestone = false
                 if isLowMilestone && originalIdx > 0 {
                     let jump = Int.random(in: 1...5)
                     let lowerIdx = max(0, originalIdx - jump)
@@ -3973,7 +3979,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else {
                     let mIdx = m.index
                     let mName = m.name
-                    let isLowMilestone = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                    let isLowMilestone = false
                     if isLowMilestone && mIdx > 0 {
                         let jump = Int.random(in: 1...5)
                         let lowerIdx = max(0, mIdx - jump)
@@ -4132,7 +4138,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         }
                     } else {
-                        let isLowStreak = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                        let isLowStreak = false
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
@@ -4188,7 +4194,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                     }
                 } else {
-                    let isLowStreak = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                    let isLowStreak = false
                     let assumedNum = Int.random(in: 15...45)
                     let higherNum: Int
                     if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
@@ -4401,7 +4407,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             }
                         }
                 } else {
-                    let isLowTime = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                    let isLowTime = false
                     let assumedTotal = Int.random(in: 60...120)
                     let higherNum: Int
                     if let speakerValue = speakerValue, let (sMins, sSecs) = Self.extractTime(from: speakerValue.lowercased()) {
@@ -4521,7 +4527,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                     }
                 } else {
-                    let isLowHoF = speakerValue == nil && Double.random(in: 0...1) < 0.45
+                    let isLowHoF = false
                     let assumedNum = Int.random(in: 8...15)
                     let refNumber = speakerValue.flatMap(Int.init) ?? rootNumber
                     let higherNum: Int
