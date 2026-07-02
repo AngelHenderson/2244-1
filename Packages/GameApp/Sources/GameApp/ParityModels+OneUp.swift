@@ -1,6 +1,6 @@
 import Foundation
 
-extension ParityModels {
+extension MockSocialService {
     
     static func getOneUpBrag(metric: String, lower: String, higher: String) -> String {
         let randBucket = Int.random(in: 1...4)
