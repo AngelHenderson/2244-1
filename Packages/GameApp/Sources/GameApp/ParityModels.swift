@@ -1003,11 +1003,11 @@ public struct MockSocialService: SocialService, Sendable {
         switch topic {
         case "hof":
             let current = val.flatMap(Int.init) ?? Int.random(in: 1...5)
-            return String(current + Int.random(in: 2...8))
+            return String(current + Int.random(in: 1...2))
             
         case "streak":
             let current = val.flatMap(Int.init) ?? Int.random(in: 5...30)
-            return String(current + Int.random(in: 5...15))
+            return String(current)
             
         case "time":
             func timeToSeconds(_ timeStr: String) -> Int {
@@ -1020,7 +1020,7 @@ public struct MockSocialService: SocialService, Sendable {
             if currentSecs <= 10 {
                 newSecs = max(2, currentSecs - Int.random(in: 1...3))
             } else {
-                newSecs = max(10, currentSecs - Int.random(in: 10...30))
+                newSecs = max(10, currentSecs - Int.random(in: 2...10))
             }
             let mins = newSecs / 60
             let secs = newSecs % 60
@@ -1031,7 +1031,7 @@ public struct MockSocialService: SocialService, Sendable {
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(10)
             }
-            let jump = Int.random(in: 1...3)
+            let jump = Int.random(in: 1...2)
             let newIdx = min(idx + jump, Self.allMilestones.count - 1)
             return Self.allMilestones[newIdx]
             
@@ -1044,11 +1044,10 @@ public struct MockSocialService: SocialService, Sendable {
         switch topic {
         case "hof":
             let current = val.flatMap(Int.init) ?? 10
-            return String(max(1, current - Int.random(in: 2...5)))
+            return String(max(1, current - Int.random(in: 1...2)))
             
         case "streak":
-            let current = val.flatMap(Int.init) ?? 20
-            return String(max(1, current - Int.random(in: 3...10)))
+            return "0"
             
         case "time":
             func timeToSeconds(_ timeStr: String) -> Int {
@@ -1057,7 +1056,7 @@ public struct MockSocialService: SocialService, Sendable {
                 return mins * 60 + secs
             }
             let currentSecs = val.map(timeToSeconds) ?? 60
-            let newSecs = currentSecs + Int.random(in: 10...30)
+            let newSecs = currentSecs + Int.random(in: 2...10)
             let mins = newSecs / 60
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
@@ -1067,7 +1066,7 @@ public struct MockSocialService: SocialService, Sendable {
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(4)
             }
-            let jump = Int.random(in: 1...3)
+            let jump = Int.random(in: 1...2)
             let newIdx = max(0, idx - jump)
             return Self.allMilestones[newIdx]
             
