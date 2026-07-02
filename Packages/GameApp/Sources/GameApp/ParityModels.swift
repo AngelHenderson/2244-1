@@ -1752,8 +1752,8 @@ public struct MockSocialService: SocialService, Sendable {
             // Generate top-level base comments
             let ageInSeconds = max(0, now.timeIntervalSince(itemDate))
             let ageFactor = min(1.0, ageInSeconds / 43200.0)
-            let baseMin = 1 + Int(ageFactor * 6)
-            let baseMax = 3 + Int(ageFactor * 18)
+            let baseMin = 5 + Int(ageFactor * 6)
+            let baseMax = 15 + Int(ageFactor * 18)
             let numBaseComments = Int.random(in: baseMin...baseMax)
             var usedStats: Set<String> = []
             
@@ -2972,9 +2972,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     
                     var myTotal = generateBetterTime()
                     var attempts = 0
-                    while myTotal >= totalSecs || (usedStats.contains("time_\(myTotal)") && attempts < 5) {
+                    while attempts < 5 && (myTotal >= totalSecs || usedStats.contains("time_\(myTotal)")) {
                         myTotal = generateBetterTime()
-                        if myTotal >= totalSecs { myTotal = max(2, totalSecs - 1) }
+                        if myTotal >= totalSecs { myTotal = max(0, totalSecs - 1) }
                         attempts += 1
                     }
                     usedStats.insert("time_\(myTotal)")
@@ -3824,8 +3824,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("You think \(num) days is a high streak? I'm already casually coasting at \(higherNum).")
                             replies.append("Your \(num) days is a joke. I easily hit \(higherNum).")
                             replies.append("I easily bypassed \(num) days. I'm untouched at \(higherNum).")
-                            replies.append("My \(higherNum) streak is permanent.")
-                            replies.append("Trying to keep \(num) days alive? My \(higherNum) day streak is permanent.")
+                            replies.append("Your streak is a joke. I'm already adding to my \(higherNum) days.")
+                            replies.append("Trying to keep \(num) days alive? I'm already adding to my \(higherNum) days.")
                             replies.append("A streak that low is completely irrelevant. I'm at \(higherNum) days.")
                             replies.append("Your \(num) day streak is child's play. Talk to me when you're at \(higherNum).")
                             replies.append("Don't even acknowledge that double-digit streak. I'm at \(higherNum) days.")
