@@ -4692,18 +4692,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
 
             // Generic dismissal
-            replies.append(contentsOf: [
-                "You'll never get there at this rate.",
-                "Don't bother trying. You're completely outclassed.",
-                "Everyone progresses, except you. You're stuck at the bottom.",
-                "You're delusional if you think you'll ever break through.",
-                "I don't believe in you. You're completely irrelevant.",
-                "The wall you hit is final. Stay down there.",
-                "That barrier is yours alone. I'm untouched.",
-                "You are infinitely behind, and always will be.",
-                "You're completely stuck in the lower tiers.",
-                "It's over for you. You'll never catch up."
-            ])
+            if forceTone != "one_up" || replies.isEmpty {
+                replies.append(contentsOf: [
+                    "You're moving too slowly to matter.",
+                    "Why try when you're this outmatched?",
+                    "While everyone climbs, you're cemented to the floor.",
+                    "Dreaming won't get you out of the lower tiers.",
+                    "You bring zero competition to the table.",
+                    "That plateau is permanent. Get used to it.",
+                    "Keep struggling with basics while I remain untouchable.",
+                    "The gap between us is only getting wider.",
+                    "You're trapped in the beginner zone.",
+                    "Give up. You're too far behind to ever matter."
+                ])
+            }
             if let prev = previousSelfComment {
                 let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
                 if !filtered.isEmpty { replies = filtered }
