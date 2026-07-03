@@ -4561,7 +4561,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         if forceTone == "behind" {
                             filtered = [
                                 "I'm coming for your \(oVal). Your lead is temporary.",
-                                "I'll overtake your \(oVal) soon. Just watch.",
+                                "I'll overtake your \(oVal) soon. It's inevitable.",
                                 "Your \(oVal) is next. Keep dreaming.",
                                 "You won't stay at \(oVal) for long. I'm catching up."
                             ]
