@@ -4560,7 +4560,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else if let oVal = opponentValue {
                         if forceTone == "behind" {
                             filtered = [
-                                "I'm coming for your \(oVal). Don't get too comfortable.",
+                                "I'm coming for your \(oVal). Your lead is temporary.",
                                 "I'll overtake your \(oVal) soon. Just watch.",
                                 "Your \(oVal) is next. Keep dreaming.",
                                 "You won't stay at \(oVal) for long. I'm catching up."
@@ -4574,7 +4574,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ]
                         } else if forceTone == "caught_up" {
                             filtered = [
-                                "I'm right here with you. Don't blink.",
+                                "I'm right here with you. I'm about to leave you behind.",
                                 "Enjoy the tie while it lasts.",
                                 "We're neck and neck, but not for long.",
                                 "I caught up to you easily. You're next."
