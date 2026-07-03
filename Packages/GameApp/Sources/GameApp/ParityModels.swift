@@ -2131,7 +2131,7 @@ public struct MockSocialService: SocialService, Sendable {
         }
         switch eventType {
         case 0:
-            // Reached a new tile in Endless
+            // Reached a new tile in the game
             let templates = [
                 "Reached the \(milestone) tile in the game!",
                 "Just hit \(milestone) for the first time!",
