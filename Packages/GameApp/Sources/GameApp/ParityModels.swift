@@ -4542,7 +4542,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Why try when you're this outmatched?",
                     "While everyone climbs, you're cemented to the floor.",
                     "Dreaming won't get you out of the lower tiers.",
-                    "You bring zero competition to the table.",
+                    "You pose absolutely zero threat.",
                     "That plateau is permanent. Get used to it.",
                     "Keep struggling with basics while I remain untouchable.",
                     "The gap between us is only getting wider.",
