@@ -323,7 +323,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Auto-fix simulator audio: if previous run detected broken audio, restart ALL booted sims\nif [ -f /private/tmp/sim-audio-broken ]; then\n    echo \"🔄 Audio was broken last run — restarting simulator devices...\"\n    BOOTED=$(xcrun simctl list devices booted | grep -oE '[A-F0-9a-f-]{36}')\n    for UDID in $BOOTED; do\n        echo \"  Shutting down: $UDID\"\n        xcrun simctl shutdown \"$UDID\" 2>/dev/null || true\n    done\n    sleep 2\n    for UDID in $BOOTED; do\n        echo \"  Booting: $UDID\"\n        xcrun simctl boot \"$UDID\" 2>/dev/null || true\n    done\n    sleep 3\n    rm -f /private/tmp/sim-audio-broken\n    echo \"✅ All simulator devices restarted\"\nfi\n\n\n\n\n\n";
+			shellScript = "# Auto-fix simulator audio: only restart if audio was broken AND only the target device\nif [ -f /private/tmp/sim-audio-broken ]; then\n    # Only act on recent markers (less than 1 hour old) to avoid stale triggers\n    if find /private/tmp/sim-audio-broken -mmin -60 | grep -q .; then\n        echo \"🔄 Audio was broken last run — restarting target simulator...\"\n        UDID=$(xcrun simctl list devices booted | grep -oE '[A-F0-9a-f-]{36}' | head -1)\n        if [ -n \"$UDID\" ]; then\n            xcrun simctl shutdown \"$UDID\" 2>/dev/null || true\n            sleep 2\n            xcrun simctl boot \"$UDID\" 2>/dev/null || true\n            sleep 3\n            echo \"✅ Simulator $UDID restarted\"\n        fi\n    fi\n    rm -f /private/tmp/sim-audio-broken\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
