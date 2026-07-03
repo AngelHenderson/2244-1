@@ -3578,7 +3578,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Just practice! Everyone struggles at first.",
                     "No special trick, just played a LOT ",
                     "Focus on keeping one corner anchored.",
-                    "A few attempts honestly. Not gonna lie it was rough.",
+                    "A few attempts honestly. Ngl it was rough.",
                     "I watched some replays to figure out the pattern.",
                 ]
             }
