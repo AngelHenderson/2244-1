@@ -1563,7 +1563,7 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
-        let numReactions = Int.random(in: 50...200)
+        let numReactions = max(10, comments.count * Int.random(in: 4...10))
         var rTimestamps: [Date] = []
         for i in 0..<numReactions {
             if i < 3 {
@@ -1954,7 +1954,7 @@ public struct MockSocialService: SocialService, Sendable {
                 }
             }
             
-            let maxReactions = Int.random(in: 10...50)
+            let maxReactions = max(10, comments.count * Int.random(in: 4...10))
             var rTimestamps: [Date] = []
             for _ in 0..<maxReactions {
                 // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
