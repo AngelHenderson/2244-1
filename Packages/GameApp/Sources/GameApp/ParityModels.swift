@@ -1720,7 +1720,7 @@ public struct MockSocialService: SocialService, Sendable {
     private func generateFeedItems(now: Date) -> [SocialFeedItem] {
         var items: [SocialFeedItem] = []
         let currentDay = Self.daysSinceReference
-        for _ in 0..<25 {
+        for i in 0..<25 {
             let author = generateDynamicName()
             let authorIndex = Int.random(in: 1...100000)
             let authorAvatar = Self.avatarForPlayer(index: authorIndex, countrySeed: 0, day: currentDay)
@@ -1743,7 +1743,7 @@ public struct MockSocialService: SocialService, Sendable {
             
             let (message, statText) = generateDynamicEvent(milestone: randomMilestone)
             let startOfDay = Calendar.current.startOfDay(for: now)
-            let timeOffset = Double.random(in: 0...86400) // Spread posts throughout the entire day
+            let timeOffset = i == 0 ? max(0, now.timeIntervalSince(startOfDay) - 1) : Double.random(in: 0...86400) // Spread posts throughout the entire day
             let itemDate = startOfDay.addingTimeInterval(timeOffset)
             
             var comments: [SocialFeedComment] = []
