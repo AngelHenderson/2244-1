@@ -4032,7 +4032,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I'm always climbing. \(higherNum) days completely buries you.",
                                     "Better is my baseline. I'm at \(higherNum) days.",
                                     "I already left you behind. \(higherNum) days is next.",
-                                    "Watch me. I'm clearing \(higherNum) days easily.",
+                                    "It's inevitable. I'm clearing \(higherNum) days easily.",
                                     "You are no threat. I'm sitting comfortably at \(higherNum) days.",
                                     "I never stop climbing. \(higherNum) days is already done."
                                 ])
@@ -4070,7 +4070,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I'm always climbing. \(higherNum) days completely buries you.",
                             "Better is my baseline. I'm at \(higherNum) days.",
                             "I already left you behind. \(higherNum) days is next.",
-                            "Watch me. I'm clearing \(higherNum) days easily.",
+                            "It's inevitable. I'm clearing \(higherNum) days easily.",
                             "You are no threat. I'm sitting comfortably at \(higherNum) days.",
                             "I never stop climbing. \(higherNum) days is already done."
                         ])
@@ -4232,7 +4232,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I'm always climbing. \(higherTime) completely buries you.",
                                     "Better is my baseline. I'm at \(higherTime).",
                                     "I already left you behind. \(higherTime) is next.",
-                                    "Watch me. I'm clearing \(higherTime) easily.",
+                                    "It's inevitable. I'm clearing \(higherTime) easily.",
                                     "You are no threat. I'm sitting comfortably at \(higherTime).",
                                     "I never stop climbing. \(higherTime) is already done."
                                 ])
@@ -4344,7 +4344,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I'm always climbing. \(higherNum) infinities completely buries you.",
                                 "Better is my baseline. I'm at \(higherNum) infinities.",
                                 "I already left you behind. \(higherNum) infinities is next.",
-                                "Watch me. I'm clearing \(higherNum) infinities easily.",
+                                "It's inevitable. I'm clearing \(higherNum) infinities easily.",
                                 "You are no threat. I'm sitting comfortably at \(higherNum) infinities.",
                                 "I never stop climbing. \(higherNum) infinities is already done."
                             ])
@@ -4400,7 +4400,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I'm always climbing. \(higherNum) infinities completely buries you.",
                             "Better is my baseline. I'm at \(higherNum) infinities.",
                             "I already left you behind. \(higherNum) infinities is next.",
-                            "Watch me. I'm clearing \(higherNum) infinities easily.",
+                            "It's inevitable. I'm clearing \(higherNum) infinities easily.",
                             "You are no threat. I'm sitting comfortably at \(higherNum) infinities.",
                             "I never stop climbing. \(higherNum) infinities is already done."
                         ])
