@@ -4553,17 +4553,33 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if let prev = previousSelfComment {
                 var filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
                 
-                if forceTone == "behind", let sVal = speakerValue, prev.contains(sVal) {
+                if let sVal = speakerValue, prev.contains(sVal) {
                     let withoutSVal = filtered.filter { !$0.contains(sVal) }
                     if !withoutSVal.isEmpty {
                         filtered = withoutSVal
                     } else if let oVal = opponentValue {
-                        filtered = [
-                            "I'm coming for your \(oVal). Don't get too comfortable.",
-                            "I'll overtake your \(oVal) soon. Just watch.",
-                            "Your \(oVal) is next. Keep dreaming.",
-                            "You won't stay at \(oVal) for long. I'm catching up."
-                        ]
+                        if forceTone == "behind" {
+                            filtered = [
+                                "I'm coming for your \(oVal). Don't get too comfortable.",
+                                "I'll overtake your \(oVal) soon. Just watch.",
+                                "Your \(oVal) is next. Keep dreaming.",
+                                "You won't stay at \(oVal) for long. I'm catching up."
+                            ]
+                        } else if forceTone == "one_up" {
+                            filtered = [
+                                "Keep trying with your \(oVal). You'll never catch me.",
+                                "You're stuck at \(oVal) while I'm miles ahead.",
+                                "\(oVal) is nothing. Give up.",
+                                "Don't flatter yourself. Your \(oVal) is no threat."
+                            ]
+                        } else if forceTone == "caught_up" {
+                            filtered = [
+                                "I'm right here with you. Don't blink.",
+                                "Enjoy the tie while it lasts.",
+                                "We're neck and neck, but not for long.",
+                                "I caught up to you easily. You're next."
+                            ]
+                        }
                     }
                 }
                 
