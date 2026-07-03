@@ -827,7 +827,7 @@ struct ParityModelsTests {
             forceTone: "behind",
             speakerValue: "32K"
         )
-        let isMilestoneBehind = milestoneReply.contains("lower right now") || milestoneReply.contains("ahead for now") || milestoneReply.contains("lead while it lasts") || milestoneReply.contains("catch") || milestoneReply.contains("closing the gap") || milestoneReply.contains("overtake") || milestoneReply.contains("coming for") || milestoneReply.contains("is next") || milestoneReply.contains("comfortable")
+        let isMilestoneBehind = milestoneReply.contains("lower right now") || milestoneReply.contains("ahead for now") || milestoneReply.contains("lead while it lasts") || milestoneReply.contains("catch") || milestoneReply.contains("closing the gap") || milestoneReply.contains("overtake") || milestoneReply.contains("coming for") || milestoneReply.contains("is next") || milestoneReply.contains("temporary")
         #expect(isMilestoneBehind, "Expected behind milestone reply to use catch-up phrasing: \(milestoneReply)")
         
         // Behind on streak
@@ -837,7 +837,7 @@ struct ParityModelsTests {
             forceTone: "behind",
             speakerValue: "10"
         )
-        let isStreakBehind = streakReply.contains("lower right now") || streakReply.contains("ahead for now") || streakReply.contains("lead while it lasts") || streakReply.contains("catch") || streakReply.contains("closing the gap") || streakReply.contains("overtake") || streakReply.contains("coming for") || streakReply.contains("is next") || streakReply.contains("comfortable")
+        let isStreakBehind = streakReply.contains("lower right now") || streakReply.contains("ahead for now") || streakReply.contains("lead while it lasts") || streakReply.contains("catch") || streakReply.contains("closing the gap") || streakReply.contains("overtake") || streakReply.contains("coming for") || streakReply.contains("is next") || streakReply.contains("temporary")
         #expect(isStreakBehind, "Expected behind streak reply to use catch-up phrasing: \(streakReply)")
     }
 

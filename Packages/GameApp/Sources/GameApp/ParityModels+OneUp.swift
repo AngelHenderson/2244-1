@@ -60,7 +60,7 @@ extension MockSocialService {
                     "I easily passed \(lower). I dominate \(higher).",
                     "Your \(lower) is child's play compared to my \(higher) record.",
                     "\(lower) is a joke. I'm already sitting at \(higher).",
-                    "You're celebrating \(lower)? I just cleared \(higher).",
+                    "You're celebrating \(lower)? I already cleared \(higher).",
                     "I left \(lower) in the dust. \(higher) is the new standard.",
                     "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
                     "I already hit \(higher). \(lower) is old news."
@@ -123,7 +123,7 @@ extension MockSocialService {
                     "I easily passed \(lower). I dominate \(higher).",
                     "Your \(lower) is child's play compared to my \(higher) record.",
                     "\(lower) is a joke. I'm already sitting at \(higher).",
-                    "You're celebrating \(lower)? I just cleared \(higher).",
+                    "You're celebrating \(lower)? I already cleared \(higher).",
                     "I left \(lower) in the dust. \(higher) is the new standard.",
                     "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
                     "I already hit \(higher). \(lower) is old news."
@@ -186,7 +186,7 @@ extension MockSocialService {
                     "I easily passed \(lower) days. I dominate \(higher) days.",
                     "Your \(lower) days is child's play compared to my \(higher) days record.",
                     "\(lower) days is a joke. I'm already sitting at \(higher) days.",
-                    "You're celebrating \(lower) days? I just cleared \(higher) days.",
+                    "You're celebrating \(lower) days? I already cleared \(higher) days.",
                     "I left \(lower) days in the dust. \(higher) days is the new standard.",
                     "You're bragging about \(lower) days while my \(higher) days remains completely out of your reach.",
                     "I already hit \(higher) days. \(lower) days is old news."
@@ -249,7 +249,7 @@ extension MockSocialService {
                     "I easily passed \(lower) infinities. I dominate \(higher) infinities.",
                     "Your \(lower) infinities is child's play compared to my \(higher) infinities record.",
                     "\(lower) infinities is a joke. I'm already sitting at \(higher) infinities.",
-                    "You're celebrating \(lower) infinities? I just cleared \(higher) infinities.",
+                    "You're celebrating \(lower) infinities? I already cleared \(higher) infinities.",
                     "I left \(lower) infinities in the dust. \(higher) infinities is the new standard.",
                     "You're bragging about \(lower) infinities while my \(higher) infinities remains completely out of your reach.",
                     "I already hit \(higher) infinities. \(lower) infinities is old news."
