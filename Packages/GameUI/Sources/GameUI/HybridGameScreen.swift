@@ -474,7 +474,7 @@ public struct HybridGameScreen: View {
             )
         }
         ToolbarItem(placement: .principal) {
-            GameplayNavigationStatus(scoreText: gameStore.state.scoreValue.formattedWithCommas())
+            GameplayNavigationStatus()
         }
         ToolbarItem(placement: .primaryAction) {
             GameplayNavigationGemButton(onShop: { presentedSheet = .shop })
@@ -489,7 +489,7 @@ public struct HybridGameScreen: View {
             )
         }
         ToolbarItem(placement: .principal) {
-            GameplayNavigationStatus(scoreText: gameStore.state.scoreValue.formattedWithCommas())
+            GameplayNavigationStatus()
         }
         ToolbarItem(placement: .topBarTrailing) {
             GameplayNavigationGemButton(onShop: { presentedSheet = .shop })
@@ -1207,33 +1207,23 @@ struct GameplayNavigationLeading: View {
 
 struct GameplayNavigationStatus: View {
     @Environment(\.gameStore) private var gameStore
-    let scoreText: String
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            HStack(spacing: 6) {
-                // Time pill
-                HStack(spacing: 5) {
-                    Image(systemName: "timer")
-                        .font(.system(size: 13, weight: .bold))
-                    Text(playtimeText(at: context.date))
-                        .monospacedDigit()
-                }
-                .pillStyle()
-
-                // Score pill (hidden in sandbox mode)
-                if !gameStore.sandboxed {
-                    HStack(spacing: 5) {
-                        Image(systemName: "number")
-                            .font(.system(size: 13, weight: .bold))
-                        Text(scoreText)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
-                    }
-                    .pillStyle()
-                }
+            HStack(spacing: 5) {
+                Image(systemName: "timer")
+                    .font(.system(size: 13, weight: .bold))
+                Text(playtimeText(at: context.date))
+                    .monospacedDigit()
             }
-            .accessibilityLabel(gameStore.sandboxed ? "Time \(playtimeText(at: context.date))" : "Time \(playtimeText(at: context.date)), score \(scoreText)")
+            .font(.avenirNext(size: GameFonts.calloutSize, weight: .bold))
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .frame(minHeight: 34)
+            .glassEffectCompat(cornerRadius: 10)
+            .accessibilityLabel("Time \(playtimeText(at: context.date))")
         }
     }
 
@@ -1242,19 +1232,6 @@ struct GameplayNavigationStatus: View {
         let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
         let totalSeconds = savedSeconds + Int(date.timeIntervalSince(sessionStart))
         return String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
-    }
-}
-
-private extension View {
-    func pillStyle() -> some View {
-        self
-            .font(.avenirNext(size: GameFonts.calloutSize, weight: .bold))
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .frame(minHeight: 34)
-            .glassEffectCompat(cornerRadius: 10)
     }
 }
 
@@ -1394,6 +1371,10 @@ struct GameplayInfoPanel: View {
         }
     }
 
+    private var scoreLabel: String {
+        gameStore.state.scoreValue.formattedWithCommas()
+    }
+
     private var runStats: some View {
         HStack(spacing: isCompact ? 6 : 8) {
             GameplayInfoStat(
@@ -1415,6 +1396,14 @@ struct GameplayInfoPanel: View {
                 systemImage: "crown.fill",
                 isCompact: isCompact
             )
+            if !gameStore.sandboxed {
+                GameplayInfoStat(
+                    title: "Score",
+                    value: scoreLabel,
+                    systemImage: "number",
+                    isCompact: isCompact
+                )
+            }
         }
     }
 }
