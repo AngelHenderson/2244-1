@@ -4569,7 +4569,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             filtered = [
                                 "Keep trying with your \(oVal). You'll never catch me.",
                                 "You're stuck at \(oVal) while I'm miles ahead.",
-                                "\(oVal) is nothing. Give up.",
+                                "\(oVal) is nothing. Know your place.",
                                 "Don't flatter yourself. Your \(oVal) is no threat."
                             ]
                         } else if forceTone == "caught_up" {
