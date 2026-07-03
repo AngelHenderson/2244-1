@@ -1211,39 +1211,28 @@ struct GameplayNavigationStatus: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            ViewThatFits(in: .horizontal) {
-                if gameStore.sandboxed {
-                    HStack(spacing: 7) {
-                        Image(systemName: "timer")
-                            .font(.system(size: 14, weight: .bold))
-                        Text(playtimeText(at: context.date))
-                            .monospacedDigit()
-                    }
-                } else {
-                    HStack(spacing: 7) {
-                        Text(playtimeText(at: context.date))
-                            .monospacedDigit()
-                        Text("Score \(scoreText)")
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.65)
-                    }
+            HStack(spacing: 6) {
+                // Time pill
+                HStack(spacing: 5) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 13, weight: .bold))
+                    Text(playtimeText(at: context.date))
+                        .monospacedDigit()
+                }
+                .pillStyle()
 
-                    VStack(spacing: 0) {
+                // Score pill (hidden in sandbox mode)
+                if !gameStore.sandboxed {
+                    HStack(spacing: 5) {
+                        Image(systemName: "number")
+                            .font(.system(size: 13, weight: .bold))
                         Text(scoreText)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.65)
-                        Text(playtimeText(at: context.date))
-                            .monospacedDigit()
+                            .minimumScaleFactor(0.6)
                     }
+                    .pillStyle()
                 }
             }
-            .font(.avenirNext(size: GameFonts.calloutSize, weight: .bold))
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 2)
-            .frame(minHeight: 38)
-            .glassEffectCompat(cornerRadius: 10)
             .accessibilityLabel(gameStore.sandboxed ? "Time \(playtimeText(at: context.date))" : "Time \(playtimeText(at: context.date)), score \(scoreText)")
         }
     }
@@ -1253,6 +1242,19 @@ struct GameplayNavigationStatus: View {
         let sessionStart = gameStore.achievementEvaluator?.sessionStartTime ?? date
         let totalSeconds = savedSeconds + Int(date.timeIntervalSince(sessionStart))
         return String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
+    }
+}
+
+private extension View {
+    func pillStyle() -> some View {
+        self
+            .font(.avenirNext(size: GameFonts.calloutSize, weight: .bold))
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .frame(minHeight: 34)
+            .glassEffectCompat(cornerRadius: 10)
     }
 }
 

@@ -28,14 +28,14 @@ extension MockSocialService {
                     "If you can't even get past \(lower), you'll never catch my \(higher).",
                     "\(lower) is your ceiling? Try aiming lower. I'm at \(higher).",
                     "You'll never get past \(lower) anyway, let alone my \(higher).",
-                    "If getting past \(lower) is impossible for you, don't even look at my \(higher).",
+                    "If getting past \(lower) is impossible for you, my \(higher) is untouchable.",
                     "Of course you're lagging at \(lower). That's child's play compared to my \(higher).",
                     "You're lagging at \(lower)? Figures. My record is \(higher).",
                     "Keep trying with \(lower). I'm sitting comfortably at \(higher).",
                     "Stop wasting your time on \(lower). My \(higher) is light years away from your skill level.",
                     "If \(lower) is your ceiling, you're not even in the same conversation as my \(higher).",
                     "Why even mention \(lower)? My \(higher) is completely out of your league.",
-                    "Don't lose sleep over \(lower). You were never going to threaten my \(higher) anyway.",
+                    "You're embarrassing yourself with \(lower). You were never going to threaten my \(higher) anyway.",
                     "You're not built for \(lower). Meanwhile, my \(higher) was completed with ease."
                 ]
                 return list.randomElement()!
@@ -62,7 +62,7 @@ extension MockSocialService {
                     "\(lower) is a joke. I'm already sitting at \(higher).",
                     "You're celebrating \(lower)? I just cleared \(higher).",
                     "I left \(lower) in the dust. \(higher) is the new standard.",
-                    "Don't brag about \(lower) when \(higher) is completely out of your reach.",
+                    "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
                     "I already hit \(higher). \(lower) is old news."
                 ]
                 return list.randomElement()!
@@ -91,14 +91,14 @@ extension MockSocialService {
                     "If you can't even get past \(lower), you'll never catch my \(higher).",
                     "\(lower) is your ceiling? Try aiming lower. I'm at \(higher).",
                     "You'll never get past \(lower) anyway, let alone my \(higher).",
-                    "If getting past \(lower) is impossible for you, don't even look at my \(higher).",
+                    "If getting past \(lower) is impossible for you, my \(higher) is untouchable.",
                     "Of course you're lagging at \(lower). That's child's play compared to my \(higher).",
                     "You're lagging at \(lower)? Figures. My record is \(higher).",
                     "Keep trying with \(lower). I'm sitting comfortably at \(higher).",
                     "Stop wasting your time on \(lower). My \(higher) is light years away from your skill level.",
                     "If \(lower) is your ceiling, you're not even in the same conversation as my \(higher).",
                     "Why even mention \(lower)? My \(higher) is completely out of your league.",
-                    "Don't lose sleep over \(lower). You were never going to threaten my \(higher) anyway.",
+                    "You're embarrassing yourself with \(lower). You were never going to threaten my \(higher) anyway.",
                     "You're not built for \(lower). Meanwhile, my \(higher) was completed with ease."
                 ]
                 return list.randomElement()!
@@ -125,7 +125,7 @@ extension MockSocialService {
                     "\(lower) is a joke. I'm already sitting at \(higher).",
                     "You're celebrating \(lower)? I just cleared \(higher).",
                     "I left \(lower) in the dust. \(higher) is the new standard.",
-                    "Don't brag about \(lower) when \(higher) is completely out of your reach.",
+                    "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
                     "I already hit \(higher). \(lower) is old news."
                 ]
                 return list.randomElement()!
@@ -154,14 +154,14 @@ extension MockSocialService {
                     "If you can't even get past \(lower) days, you'll never catch my \(higher) days.",
                     "\(lower) days is your ceiling? Try aiming lower. I'm at \(higher) days.",
                     "You'll never get past \(lower) days anyway, let alone my \(higher) days.",
-                    "If getting past \(lower) days is impossible for you, don't even look at my \(higher) days.",
+                    "If getting past \(lower) days is impossible for you, my \(higher) days is untouchable.",
                     "Of course you're lagging at \(lower) days. That's child's play compared to my \(higher) days.",
                     "You're lagging at \(lower) days? Figures. My record is \(higher) days.",
                     "Keep trying with \(lower) days. I'm sitting comfortably at \(higher) days.",
                     "Stop wasting your time on \(lower) days. My \(higher) days is light years away from your skill level.",
                     "If \(lower) days is your ceiling, you're not even in the same conversation as my \(higher) days.",
                     "Why even mention \(lower) days? My \(higher) days is completely out of your league.",
-                    "Don't lose sleep over \(lower) days. You were never going to threaten my \(higher) days anyway.",
+                    "You're embarrassing yourself with \(lower) days. You were never going to threaten my \(higher) days anyway.",
                     "You're not built for \(lower) days. Meanwhile, my \(higher) days was completed with ease."
                 ]
                 return list.randomElement()!
@@ -188,7 +188,7 @@ extension MockSocialService {
                     "\(lower) days is a joke. I'm already sitting at \(higher) days.",
                     "You're celebrating \(lower) days? I just cleared \(higher) days.",
                     "I left \(lower) days in the dust. \(higher) days is the new standard.",
-                    "Don't brag about \(lower) days when \(higher) days is completely out of your reach.",
+                    "You're bragging about \(lower) days while my \(higher) days remains completely out of your reach.",
                     "I already hit \(higher) days. \(lower) days is old news."
                 ]
                 return list.randomElement()!
@@ -217,14 +217,14 @@ extension MockSocialService {
                     "If you can't even get past \(lower) infinities, you'll never catch my \(higher) infinities.",
                     "\(lower) infinities is your ceiling? Try aiming lower. I'm at \(higher) infinities.",
                     "You'll never get past \(lower) infinities anyway, let alone my \(higher) infinities.",
-                    "If getting past \(lower) infinities is impossible for you, don't even look at my \(higher) infinities.",
+                    "If getting past \(lower) infinities is impossible for you, my \(higher) infinities is untouchable.",
                     "Of course you're lagging at \(lower) infinities. That's child's play compared to my \(higher) infinities.",
                     "You're lagging at \(lower) infinities? Figures. My record is \(higher) infinities.",
                     "Keep trying with \(lower) infinities. I'm sitting comfortably at \(higher) infinities.",
                     "Stop wasting your time on \(lower) infinities. My \(higher) infinities is light years away from your skill level.",
                     "If \(lower) infinities is your ceiling, you're not even in the same conversation as my \(higher) infinities.",
                     "Why even mention \(lower) infinities? My \(higher) infinities is completely out of your league.",
-                    "Don't lose sleep over \(lower) infinities. You were never going to threaten my \(higher) infinities anyway.",
+                    "You're embarrassing yourself with \(lower) infinities. You were never going to threaten my \(higher) infinities anyway.",
                     "You're not built for \(lower) infinities. Meanwhile, my \(higher) infinities was completed with ease."
                 ]
                 return list.randomElement()!
@@ -251,7 +251,7 @@ extension MockSocialService {
                     "\(lower) infinities is a joke. I'm already sitting at \(higher) infinities.",
                     "You're celebrating \(lower) infinities? I just cleared \(higher) infinities.",
                     "I left \(lower) infinities in the dust. \(higher) infinities is the new standard.",
-                    "Don't brag about \(lower) infinities when \(higher) infinities is completely out of your reach.",
+                    "You're bragging about \(lower) infinities while my \(higher) infinities remains completely out of your reach.",
                     "I already hit \(higher) infinities. \(lower) infinities is old news."
                 ]
                 return list.randomElement()!
