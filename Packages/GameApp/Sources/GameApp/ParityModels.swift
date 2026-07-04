@@ -1144,15 +1144,22 @@ public struct MockSocialService: SocialService, Sendable {
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
+    
     // MARK: - File Storage
+    private static var storageDirectory: URL {
+        let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("GameAppCache")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
     private static var feedCacheURL: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("socialFeedCache_v48.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v48.json")
     }
     
     private static var userPostsURL: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("socialUserPosts_v7.json")
+        storageDirectory.appendingPathComponent("socialUserPosts_v7.json")
     }
-    
+
     public static func loadUserPosts() -> [SocialFeedItem]? {
         guard let data = try? Data(contentsOf: userPostsURL) else {
             // Fallback to UserDefaults migration
@@ -1173,7 +1180,7 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
     
-    private static func loadFeedCache() -> [SocialFeedItem]? {
+    public static func loadFeedCache() -> [SocialFeedItem]? {
         guard let data = try? Data(contentsOf: feedCacheURL) else { return nil }
         return try? JSONDecoder().decode([SocialFeedItem].self, from: data)
     }

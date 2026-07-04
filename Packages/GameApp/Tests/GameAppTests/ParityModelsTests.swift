@@ -110,8 +110,7 @@ struct ParityModelsTests {
         }
         
         // Retrieve the cached items directly from UserDefaults to get all comments (even future ones)
-        guard let data = defaults.data(forKey: MockSocialService.userPostsKey),
-              let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
+        guard let items = MockSocialService.loadUserPosts() else {
             Issue.record("Failed to decode user posts")
             return
         }
@@ -439,8 +438,7 @@ struct ParityModelsTests {
             try await service.postEvent(message: "I am playing! \(message)", statText: "stat")
         }
         
-        guard let data = defaults.data(forKey: MockSocialService.userPostsKey),
-              let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
+        guard let items = MockSocialService.loadUserPosts() else {
             Issue.record("Failed to decode user posts")
             return
         }
