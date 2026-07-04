@@ -1137,10 +1137,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v46"
-    private static let feedDateKey = "socialFeed.cacheDate.v39"
+    private static let feedCacheKey = "socialFeed.cache.v47"
+    private static let feedDateKey = "socialFeed.cacheDate.v40"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    private static let userPostsKey = "socialFeed.userPosts.v5"
+    private static let userPostsKey = "socialFeed.userPosts.v6"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1348,26 +1348,29 @@ public struct MockSocialService: SocialService, Sendable {
         let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
         var comments: [SocialFeedComment] = []
-        let numBaseComments = Int.random(in: 35...65)
+        let targetTotalComments = Int.random(in: 45...85)
+        let targetComp = Int(round(Double(targetTotalComments) * 0.55))
+        var compCount = 0
         var usedStats: Set<String> = []
         
-        // Guarantee exact tone percentages
-        var tones: [String] = []
-        let numComp = Int(round(Double(numBaseComments) * 0.55))
-        let numPos = Int(round(Double(numBaseComments) * 0.25))
-        let numQuestion = Int(round(Double(numBaseComments) * 0.15))
-        let numSad = max(0, numBaseComments - numComp - numPos - numQuestion)
-        
-        tones.append(contentsOf: Array(repeating: "competitive", count: numComp))
-        tones.append(contentsOf: Array(repeating: "positive", count: numPos))
-        tones.append(contentsOf: Array(repeating: "question", count: numQuestion))
-        tones.append(contentsOf: Array(repeating: "sad", count: numSad))
-        
-        while tones.count < numBaseComments { tones.append("competitive") }
-        while tones.count > numBaseComments { tones.removeLast() }
-        tones.shuffle()
-        
-        for i in 0..<numBaseComments {
+        var i = 0
+        while comments.count < targetTotalComments {
+            let neededComp = targetComp - compCount
+            let neededTotal = targetTotalComments - comments.count
+            
+            var toneStr: String
+            let probComp = neededTotal > 0 ? Double(max(0, neededComp)) / Double(neededTotal) : 0
+            
+            if Double.random(in: 0...1) < probComp {
+                toneStr = "competitive"
+            } else {
+                let r = Double.random(in: 0...1)
+                if r < 0.55 { toneStr = "positive" }
+                else if r < 0.88 { toneStr = "question" }
+                else { toneStr = "sad" }
+            }
+            let startingCount = comments.count
+            
             var commenter = generateDynamicName()
             while commenter == playerName {
                 commenter = generateDynamicName()
@@ -1375,7 +1378,7 @@ public struct MockSocialService: SocialService, Sendable {
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
             
-            let (commentBase, nameOverride, tone, rootValRaw) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
+            let (commentBase, nameOverride, tone, rootValRaw) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: toneStr)
             var finalCommenter = nameOverride ?? commenter
             while finalCommenter == playerName {
                 finalCommenter = generateDynamicName()
@@ -1560,6 +1563,12 @@ public struct MockSocialService: SocialService, Sendable {
                     comments.append(replyComment)
                 }
             }
+            
+            let addedCount = comments.count - startingCount
+            if tone == "competitive" {
+                compCount += addedCount
+            }
+            i += 1
         }
 
         // Heart/reaction timestamps mirror comment speed (55% fast, 45% slow)
@@ -1753,32 +1762,35 @@ public struct MockSocialService: SocialService, Sendable {
             let ageFactor = min(1.0, ageInSeconds / 43200.0)
             let baseMin = 5 + Int(ageFactor * 6)
             let baseMax = 15 + Int(ageFactor * 18)
-            let numBaseComments = Int.random(in: baseMin...baseMax)
+            
+            let targetTotalComments = Int.random(in: baseMin...baseMax)
+            let targetComp = Int(round(Double(targetTotalComments) * 0.55))
+            var compCount = 0
             var usedStats: Set<String> = []
             
-            // Guarantee exact tone percentages
-            var tones: [String] = []
-            let numComp = Int(round(Double(numBaseComments) * 0.55))
-            let numPos = Int(round(Double(numBaseComments) * 0.25))
-            let numQuestion = Int(round(Double(numBaseComments) * 0.15))
-            let numJealous = max(0, numBaseComments - numComp - numPos - numQuestion)
-            
-            tones.append(contentsOf: Array(repeating: "competitive", count: numComp))
-            tones.append(contentsOf: Array(repeating: "positive", count: numPos))
-            tones.append(contentsOf: Array(repeating: "question", count: numQuestion))
-            tones.append(contentsOf: Array(repeating: "jealous", count: numJealous))
-            
-            // Adjust if total doesn't match due to rounding
-            while tones.count < numBaseComments { tones.append("competitive") }
-            while tones.count > numBaseComments { tones.removeLast() }
-            tones.shuffle()
-            
-            for i in 0..<numBaseComments {
+            var i = 0
+            while comments.count < targetTotalComments {
+                let neededComp = targetComp - compCount
+                let neededTotal = targetTotalComments - comments.count
+                
+                var toneStr: String
+                let probComp = neededTotal > 0 ? Double(max(0, neededComp)) / Double(neededTotal) : 0
+                
+                if Double.random(in: 0...1) < probComp {
+                    toneStr = "competitive"
+                } else {
+                    let r = Double.random(in: 0...1)
+                    if r < 0.55 { toneStr = "positive" }
+                    else if r < 0.88 { toneStr = "question" }
+                    else { toneStr = "jealous" }
+                }
+                let startingCount = comments.count
+                
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
                 
-                let (commentBase, nameOverride, tone, generatedVal) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: tones[i])
+                let (commentBase, nameOverride, tone, generatedVal) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: toneStr)
                 let finalCommenter = nameOverride ?? commentAuthor
                 
                 // Competitive comments arrive within 30 to 60 minutes of the post
@@ -4035,31 +4047,32 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         }
                     } else {
+                        let cN = commentNumber ?? num
                         let isLowStreak = false
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
                         } else if let rN = refNumber {
                             higherNum = rN
-                        } else if (isLowStreak || forceTone == "behind") && num > 1 {
-                            higherNum = num - Int.random(in: 1...max(5, num / 2))
+                        } else if (isLowStreak || forceTone == "behind") && cN > 1 {
+                            higherNum = cN - Int.random(in: 1...max(5, cN / 2))
                         } else {
-                            higherNum = min(Self.daysSinceReference, num + Int.random(in: 5...max(15, num / 5)))
+                            higherNum = min(Self.daysSinceReference, cN + Int.random(in: 5...max(15, cN / 5)))
                         }
-                        if higherNum < num {
+                        if higherNum < cN {
                             replies.append(contentsOf: [
-                                "I'm at \(higherNum) days. Just wait until you lose your \(numStr) day streak.",
-                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(numStr) days.",
-                                "Enjoy your \(numStr) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
-                                "You're bound to lose your \(numStr) day streak. My \(higherNum) days will be higher than yours soon.",
-                                "I'm at \(higherNum) days, but you'll break your \(numStr) day streak before I break mine."
+                                "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
+                                "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
+                                "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine."
                             ])
-                        } else if higherNum == num {
+                        } else if higherNum == cN {
                             replies.append(contentsOf: [
-                                "I'm right there at \(numStr) days too. Let's see who breaks it first.",
-                                "We're tied at \(numStr) days. The real race starts now.",
+                                "I'm right there at \(cN) days too. Let's see who breaks it first.",
+                                "We're tied at \(cN) days. The real race starts now.",
                                 "I hit \(higherNum) days without sweating. I'm pulling ahead soon.",
-                                "Looks like we're both at \(numStr) days. Enjoy it while it lasts.",
+                                "Looks like we're both at \(cN) days. Enjoy it while it lasts.",
                                 "I also hit \(higherNum) days. Cute, but irrelevant."
                             ])
                         } else {
@@ -4077,26 +4090,26 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I never stop climbing. \(higherNum) days is already done."
                                 ])
                             } else {
-                                if num <= 2 {
+                                if cN <= 2 {
                                     replies.append(contentsOf: [
                                         "You just lost your streak? I'm already at \(higherNum) days.",
-                                        "Back to \(numStr) days? Don't even try to catch my \(higherNum) days.",
+                                        "Back to \(cN) days? Don't even try to catch my \(higherNum) days.",
                                         "You really lost your streak? I'm sitting comfortably at \(higherNum) days.",
-                                        "I'm at \(higherNum) days and you're down to \(numStr). We are not the same.",
+                                        "I'm at \(higherNum) days and you're down to \(cN). We are not the same.",
                                         "Losing your streak is crazy. I'm untouched at \(higherNum) days.",
-                                        "Imagine dropping to \(numStr) days. I'm already at \(higherNum) days.",
-                                        "Down to \(numStr)? My \(higherNum) days will always be ahead."
+                                        "Imagine dropping to \(cN) days. I'm already at \(higherNum) days.",
+                                        "Down to \(cN)? My \(higherNum) days will always be ahead."
                                     ])
                                 } else {
                                     replies.append(contentsOf: [
-                                        "I am ahead of your \(numStr) days. I'm at \(higherNum).",
-                                        "Your \(numStr) day streak is cute. You'll never catch my \(higherNum) days.",
-                                        "I already passed \(numStr) days. I'm untouched at \(higherNum).",
-                                        "Your \(numStr) days is a joke. I'm already sitting at \(higherNum) days.",
-                                        "\(higherNum) days leaves you behind. Your \(numStr) is nothing.",
-                                        "My infinite consistency is at \(higherNum) days. \(numStr) is a joke.",
-                                        "You're bragging about \(numStr) days? I'm at \(higherNum).",
-                                        "I own \(higherNum) days. \(higherNum) > \(numStr)."
+                                        "I am ahead of your \(cN) days. I'm at \(higherNum).",
+                                        "Your \(cN) day streak is cute. You'll never catch my \(higherNum) days.",
+                                        "I already passed \(cN) days. I'm untouched at \(higherNum).",
+                                        "Your \(cN) days is a joke. I'm already sitting at \(higherNum) days.",
+                                        "\(higherNum) days leaves you behind. Your \(cN) is nothing.",
+                                        "My infinite consistency is at \(higherNum) days. \(cN) is a joke.",
+                                        "You're bragging about \(cN) days? I'm at \(higherNum).",
+                                        "I own \(higherNum) days. \(higherNum) > \(cN)."
                                     ])
                                 }
                             }
