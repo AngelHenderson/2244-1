@@ -2589,7 +2589,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "It's over.",
                 "I will hold the faster clear.",
                 "I absolutely dominate the speed leaderboards.",
-                "My time is solid.",
+                "Your time is too slow to matter.",
             ])
 
             questions.append(contentsOf: [
