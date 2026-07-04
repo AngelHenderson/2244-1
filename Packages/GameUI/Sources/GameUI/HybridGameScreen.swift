@@ -1384,7 +1384,7 @@ struct GameplayInfoPanel: View {
                 isCompact: isCompact
             )
             GameplayInfoStat(
-                title: "Valid",
+                title: "Valid Moves",
                 value: "\(gameStore.validMovesCount)",
                 systemImage: "point.3.connected.trianglepath.dotted",
                 isCompact: isCompact,
