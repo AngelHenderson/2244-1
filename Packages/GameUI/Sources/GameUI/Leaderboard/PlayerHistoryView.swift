@@ -401,7 +401,7 @@ struct PlayerHistoryView: View {
 
                 let event: HistoryEvent
 
-                if random < 0.30 {
+                if random < 0.15 {
                     // Extra reported event (bans come from post-processing)
                     let rp = makePlayer(seed: seed + 50)
                     event = HistoryEvent(
@@ -410,7 +410,7 @@ struct PlayerHistoryView: View {
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.45 {
+                } else if random < 0.25 {
                     let rp = makePlayer(seed: seed + 50)
                     event = HistoryEvent(
                         type: .reported,
@@ -418,7 +418,7 @@ struct PlayerHistoryView: View {
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.55 {
+                } else if random < 0.35 {
                     let isOvertake = MockLeaderboardData.seededRandom(seed: seed + 13, index: eventDay) < 0.4
                     if isOvertake {
                         event = HistoryEvent(
@@ -438,14 +438,14 @@ struct PlayerHistoryView: View {
                             seed: seed
                         )
                     }
-                } else if random < 0.60 {
+                } else if random < 0.40 {
                     event = HistoryEvent(
                         type: .madeInfinity,
                         message: "\(p.name) made infinity!",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.75 {
+                } else if random < 0.50 {
                     let reportedTile: String
                     if let tile = p.highestTile {
                         reportedTile = tile
@@ -485,21 +485,21 @@ struct PlayerHistoryView: View {
                         )
                         result.append(recovery)
                     }
-                } else if random < 0.80 {
+                } else if random < 0.55 {
                     event = HistoryEvent(
                         type: .deleted,
                         message: "\(p.name) deleted the game.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.88 {
+                } else if random < 0.75 {
                     event = HistoryEvent(
                         type: .bannedFromComments,
                         message: "\(p.name) was banned from commenting.",
                         daysAgo: daysAgo,
                         seed: seed
                     )
-                } else if random < 0.96 {
+                } else if random < 0.95 {
                     let streakLengths = [3, 5, 7, 10, 14, 21, 30, 50, 100, 365]
                     let streakIdx = Int(MockLeaderboardData.seededRandom(seed: seed + 33, index: eventDay) * Double(streakLengths.count))
                     let streak = streakLengths[min(streakIdx, streakLengths.count - 1)]
