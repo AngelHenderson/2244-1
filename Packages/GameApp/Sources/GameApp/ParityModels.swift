@@ -2155,7 +2155,7 @@ public struct MockSocialService: SocialService, Sendable {
         switch eventType {
         case 0:
             // Reached a new tile in the game
-            let templates = [
+            var templates = [
                 "Reached the \(milestone) tile in the game!",
                 "Just hit \(milestone) for the first time!",
                 "NEW personal best — \(milestone) tile unlocked in gameplay!",
@@ -2165,7 +2165,7 @@ public struct MockSocialService: SocialService, Sendable {
                 "Thought \(milestone) was impossible. Proved myself wrong.",
                 "\(milestone) achieved on an absolute marathon run.",
             ]
-            let stats = [
+            var stats = [
                 "puzzlepiece.extension|New tile · Game",
                 "medal|Milestone · \(milestone)",
                 "chart.line.uptrend.xyaxis|Personal best · Game",
@@ -2173,6 +2173,24 @@ public struct MockSocialService: SocialService, Sendable {
                 "star|New record · Game",
                 "suit.diamond.fill|\(milestone) · Reached",
             ]
+            if Double.random(in: 0...1) < 0.20 {
+                templates = [
+                    "Ran out of moves at \(milestone)...",
+                    "No moves left! Stuck at \(milestone).",
+                    "Game over at \(milestone). I ran out of moves.",
+                    "Lost my run at \(milestone) because I ran out of moves.",
+                    "Couldn't get past \(milestone). Ran out of moves!",
+                    "Died at \(milestone). No moves left.",
+                    "Just ran out of moves at \(milestone)."
+                ]
+                stats = [
+                    "xmark.circle|Game over · \(milestone)",
+                    "stop.circle|No moves · \(milestone)",
+                    "exclamationmark.triangle|Stuck · \(milestone)",
+                    "xmark.octagon|Ran out of moves · \(milestone)",
+                    "xmark.circle|Died · \(milestone)",
+                ]
+            }
             return (templates.randomElement()!, stats.randomElement()!)
             
         case 1:
@@ -3123,7 +3141,23 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m) {
                 let isLowMilestone = false
-                if isLowMilestone && originalIdx > 0 {
+                if message.contains("ran out") || message.contains("no moves") || message.contains("game over") || message.contains("stuck") || message.contains("lost my run") || message.contains("died") {
+                    let remaining = Self.allMilestones.count - 1 - originalIdx
+                    let maxJump = min(10, remaining)
+                    let jump = Int.random(in: min(1, maxJump)...maxJump)
+                    let localHigherM = Self.allMilestones[originalIdx + jump]
+                    let templates = [
+                        "You ran out of moves? I'm already at \(localHigherM).",
+                        "Game over at \(m)? I'm comfortably at \(localHigherM).",
+                        "Stuck at \(m)? Pathetic. I'm sitting at \(localHigherM).",
+                        "Couldn't even get past \(m)? I'm already pushing \(localHigherM).",
+                        "No moves left? I'm dominating with \(localHigherM).",
+                        "While you restart from \(m), I'm already at \(localHigherM)."
+                    ]
+                    let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
+                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_milestone_lost", count: templates.count)
+                    return (templates[idx], realName, localHigherM)
+                } else if isLowMilestone && originalIdx > 0 {
                     let jump = Int.random(in: 1...5)
                     let lowerIdx = max(0, originalIdx - jump)
                     let localLowerM = Self.allMilestones[lowerIdx]
