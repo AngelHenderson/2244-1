@@ -1144,6 +1144,46 @@ public struct MockSocialService: SocialService, Sendable {
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
+    // MARK: - File Storage
+    private static var feedCacheURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("socialFeedCache_v48.json")
+    }
+    
+    private static var userPostsURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("socialUserPosts_v7.json")
+    }
+    
+    public static func loadUserPosts() -> [SocialFeedItem]? {
+        guard let data = try? Data(contentsOf: userPostsURL) else {
+            // Fallback to UserDefaults migration
+            let defaults = UserDefaults.standard
+            if let data = defaults.data(forKey: Self.userPostsKey),
+               let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+                saveUserPosts(items)
+                return items
+            }
+            return nil
+        }
+        return try? JSONDecoder().decode([SocialFeedItem].self, from: data)
+    }
+    
+    private static func saveUserPosts(_ posts: [SocialFeedItem]) {
+        if let data = try? JSONEncoder().encode(posts) {
+            try? data.write(to: userPostsURL, options: .atomic)
+        }
+    }
+    
+    private static func loadFeedCache() -> [SocialFeedItem]? {
+        guard let data = try? Data(contentsOf: feedCacheURL) else { return nil }
+        return try? JSONDecoder().decode([SocialFeedItem].self, from: data)
+    }
+    
+    private static func saveFeedCache(_ feed: [SocialFeedItem]) {
+        if let data = try? JSONEncoder().encode(feed) {
+            try? data.write(to: feedCacheURL, options: .atomic)
+        }
+    }
+
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
         let cal = Calendar.current
@@ -1154,8 +1194,7 @@ public struct MockSocialService: SocialService, Sendable {
         let defaults = UserDefaults.standard
         if let cachedDate = defaults.string(forKey: Self.feedDateKey),
            cachedDate == todayString,
-           let data = defaults.data(forKey: Self.feedCacheKey),
-           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+           var cached = Self.loadFeedCache() {
             
             // Filter out future posts so they arrive naturally throughout the day
             cached = cached.filter { $0.createdAt <= now }
@@ -1179,8 +1218,7 @@ public struct MockSocialService: SocialService, Sendable {
         var items = generateFeedItems(now: now)
 
         // Merge in all user posts so they survive cache regeneration
-        if let userPostsData = defaults.data(forKey: Self.userPostsKey),
-           let userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: userPostsData) {
+        if let userPosts = Self.loadUserPosts() {
             let existingIDs = Set(items.map { $0.id })
             for post in userPosts where !existingIDs.contains(post.id) {
                 items.append(post)
@@ -1190,7 +1228,7 @@ public struct MockSocialService: SocialService, Sendable {
 
         // Cache for the rest of the day
         if let data = try? JSONEncoder().encode(items) {
-            defaults.set(data, forKey: Self.feedCacheKey)
+            Self.saveFeedCache(items)
             defaults.set(todayString, forKey: Self.feedDateKey)
         }
 
@@ -1314,20 +1352,18 @@ public struct MockSocialService: SocialService, Sendable {
             item.commentCount = item.comments.count
         }
 
-        if let data = defaults.data(forKey: Self.feedCacheKey),
-           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+        if var cached = Self.loadFeedCache(),
            let index = cached.firstIndex(where: { $0.id == itemID }) {
             
             processItem(&cached[index])
             if let newData = try? JSONEncoder().encode(cached) {
-                defaults.set(newData, forKey: Self.feedCacheKey)
+                Self.saveFeedCache(cached)
             }
             foundAndUpdated = cached[index]
         }
         
         if foundAndUpdated == nil {
-            if let data = defaults.data(forKey: Self.userPostsKey),
-               var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+            if var userPosts = Self.loadUserPosts(),
                let index = userPosts.firstIndex(where: { $0.id == itemID }) {
                 
                 processItem(&userPosts[index])
@@ -1600,17 +1636,14 @@ public struct MockSocialService: SocialService, Sendable {
         )
 
         // Insert at the top of the cached feed
-        if let data = defaults.data(forKey: Self.feedCacheKey),
-           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+        if var cached = Self.loadFeedCache() {
             cached.insert(newItem, at: 0)
             if let newData = try? JSONEncoder().encode(cached) {
-                defaults.set(newData, forKey: Self.feedCacheKey)
+                Self.saveFeedCache(cached)
             }
         } else {
             // No existing cache — start a fresh one with just this item
-            if let newData = try? JSONEncoder().encode([newItem]) {
-                defaults.set(newData, forKey: Self.feedCacheKey)
-            }
+            Self.saveFeedCache([newItem])
         }
 
         // Also save to the version-independent user posts store
@@ -1620,8 +1653,7 @@ public struct MockSocialService: SocialService, Sendable {
     private func persistInteractedItem(_ item: SocialFeedItem) {
         let defaults = UserDefaults.standard
         var userPosts: [SocialFeedItem] = []
-        if let existingData = defaults.data(forKey: Self.userPostsKey),
-           let existing = try? JSONDecoder().decode([SocialFeedItem].self, from: existingData) {
+        if let existing = Self.loadUserPosts() {
             userPosts = existing
         }
         
@@ -1631,17 +1663,14 @@ public struct MockSocialService: SocialService, Sendable {
             userPosts.insert(item, at: 0)
         }
         
-        if let userPostsData = try? JSONEncoder().encode(userPosts) {
-            defaults.set(userPostsData, forKey: Self.userPostsKey)
-        }
+        Self.saveUserPosts(userPosts)
     }
 
     public func toggleItemHeart(itemID: UUID) async throws {
         let defaults = UserDefaults.standard
         var foundAndUpdated: SocialFeedItem? = nil
         
-        if let data = defaults.data(forKey: Self.feedCacheKey),
-           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+        if var cached = Self.loadFeedCache(),
            let itemIndex = cached.firstIndex(where: { $0.id == itemID }) {
             
             let wasHearted = cached[itemIndex].isHearted ?? false
@@ -1649,14 +1678,13 @@ public struct MockSocialService: SocialService, Sendable {
             cached[itemIndex].reactionCount += (wasHearted ? -1 : 1)
             
             if let newData = try? JSONEncoder().encode(cached) {
-                defaults.set(newData, forKey: Self.feedCacheKey)
+                Self.saveFeedCache(cached)
             }
             foundAndUpdated = cached[itemIndex]
         }
         
         if foundAndUpdated == nil {
-            if let data = defaults.data(forKey: Self.userPostsKey),
-               var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+            if var userPosts = Self.loadUserPosts(),
                let itemIndex = userPosts.firstIndex(where: { $0.id == itemID }) {
                 
                 let wasHearted = userPosts[itemIndex].isHearted ?? false
@@ -1673,19 +1701,16 @@ public struct MockSocialService: SocialService, Sendable {
 
     public func deleteItem(itemID: UUID) async throws {
         let defaults = UserDefaults.standard
-        if let data = defaults.data(forKey: Self.feedCacheKey),
-           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
+        if var cached = Self.loadFeedCache() {
             cached.removeAll { $0.id == itemID }
             if let newData = try? JSONEncoder().encode(cached) {
-                defaults.set(newData, forKey: Self.feedCacheKey)
+                Self.saveFeedCache(cached)
             }
         }
         if let data = defaults.data(forKey: Self.userPostsKey),
            var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data) {
             userPosts.removeAll { $0.id == itemID }
-            if let newData = try? JSONEncoder().encode(userPosts) {
-                defaults.set(newData, forKey: Self.userPostsKey)
-            }
+            Self.saveUserPosts(userPosts)
         }
     }
 
@@ -1693,8 +1718,7 @@ public struct MockSocialService: SocialService, Sendable {
         let defaults = UserDefaults.standard
         var foundAndUpdated: SocialFeedItem? = nil
 
-        if let data = defaults.data(forKey: Self.feedCacheKey),
-           var cached = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+        if var cached = Self.loadFeedCache(),
            let itemIndex = cached.firstIndex(where: { $0.id == itemID }),
            let commentIndex = cached[itemIndex].comments.firstIndex(where: { $0.id == commentID }) {
             
@@ -1704,14 +1728,13 @@ public struct MockSocialService: SocialService, Sendable {
             cached[itemIndex].comments[commentIndex].likes = currentLikes + (wasHearted ? -1 : 1)
             
             if let newData = try? JSONEncoder().encode(cached) {
-                defaults.set(newData, forKey: Self.feedCacheKey)
+                Self.saveFeedCache(cached)
             }
             foundAndUpdated = cached[itemIndex]
         }
         
         if foundAndUpdated == nil {
-            if let data = defaults.data(forKey: Self.userPostsKey),
-               var userPosts = try? JSONDecoder().decode([SocialFeedItem].self, from: data),
+            if var userPosts = Self.loadUserPosts(),
                let itemIndex = userPosts.firstIndex(where: { $0.id == itemID }),
                let commentIndex = userPosts[itemIndex].comments.firstIndex(where: { $0.id == commentID }) {
                 
