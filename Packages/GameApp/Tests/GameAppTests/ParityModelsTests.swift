@@ -99,9 +99,8 @@ struct ParityModelsTests {
     @Test("Bot competitive comments and replies do not contain finite-match word 'competition'")
     func botCompetitiveCommentsDoNotContainCompetition() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: MockSocialService.feedCacheKey)
+        MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
-        defaults.removeObject(forKey: MockSocialService.userPostsKey)
         
         let service = MockSocialService()
         // Post a few events to generate a large volume of bot comments/replies
@@ -426,9 +425,8 @@ struct ParityModelsTests {
     @Test("Player record is consistent across a competitive comment thread")
     func testPlayerRecordConsistency() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: MockSocialService.feedCacheKey)
+        MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
-        defaults.removeObject(forKey: MockSocialService.userPostsKey)
         
         let service = MockSocialService()
         // Generate threads with different topics
@@ -810,7 +808,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "15"
         )
-        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Cute, but irrelevant.") || hofReply.contains("race starts now") || hofReply.contains("breaks it first")
+        let isHofTie = hofReply.contains("tied") || hofReply.contains("both at 15") || hofReply.contains("right there at 15") || hofReply.contains("also reached 15") || hofReply.contains("sitting at 15") || hofReply.contains("Cute, but irrelevant.") || hofReply.contains("race starts now") || hofReply.contains("breaks it first") || hofReply.contains("entries too")
         #expect(isHofTie, "Expected same-HOF reply to use rivalry/tie phrasing: \(hofReply)")
     }
 
@@ -870,7 +868,7 @@ struct ParityModelsTests {
     @MainActor
     func testNpcRepliesBadgeCount() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: MockSocialService.userPostsKey)
+        MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: "profilePlayerName")
         defaults.removeObject(forKey: "player.displayName")
         

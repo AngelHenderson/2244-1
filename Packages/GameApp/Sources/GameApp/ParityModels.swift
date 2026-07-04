@@ -1160,6 +1160,14 @@ public struct MockSocialService: SocialService, Sendable {
         storageDirectory.appendingPathComponent("socialUserPosts_v7.json")
     }
 
+    
+    #if DEBUG
+    public static func clearFileStorageForTests() {
+        try? FileManager.default.removeItem(at: userPostsURL)
+        try? FileManager.default.removeItem(at: feedCacheURL)
+    }
+    #endif
+
     public static func loadUserPosts() -> [SocialFeedItem]? {
         guard let data = try? Data(contentsOf: userPostsURL) else {
             // Fallback to UserDefaults migration
@@ -4166,11 +4174,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             } else {
                                 if cN <= 2 {
                                     replies.append(contentsOf: [
-                                        "You just lost your streak? I'm already at \(higherNum) days.",
+                                        "Lost your streak? Typical. I'm already at \(higherNum) days.",
                                         "Back to \(cN) days? Don't even try to catch my \(higherNum) days.",
-                                        "You really lost your streak? I'm sitting comfortably at \(higherNum) days.",
+                                        "Dropping your streak is pathetic. I'm sitting comfortably at \(higherNum) days.",
                                         "I'm at \(higherNum) days and you're down to \(cN). We are not the same.",
-                                        "Losing your streak is crazy. I'm untouched at \(higherNum) days.",
+                                        "Can't even hold a streak? I'm untouched at \(higherNum) days.",
                                         "Imagine dropping to \(cN) days. I'm already at \(higherNum) days.",
                                         "Down to \(cN)? My \(higherNum) days will always be ahead."
                                     ])
