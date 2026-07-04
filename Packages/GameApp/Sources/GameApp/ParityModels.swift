@@ -2730,13 +2730,13 @@ public struct MockSocialService: SocialService, Sendable {
                         ("Not worth my time.", 0.6),
                         ("Unimpressive.", 3.4),
                         ("Not impressed.", 2.0),
-                        ("That's cute.", 41.3),
+                        ("That's cute.", 35.5),
                         ("Light work.", 2.0),
                         ("What a joke.", 3.0),
                         ("Not even trying.", 0.4),
                         ("A child could do that.", 2.0),
                         ("Is that all?", 3.0),
-                        ("I did this by accident.", 29.5),
+                        ("I did this by accident.", 35.3),
                         ("Not even a milestone.", 1.15),
                         ("Are you even trying?", 0.1)
                     ]
