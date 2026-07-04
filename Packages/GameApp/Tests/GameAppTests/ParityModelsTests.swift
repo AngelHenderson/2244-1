@@ -837,7 +837,7 @@ struct ParityModelsTests {
             forceTone: "behind",
             speakerValue: "10"
         )
-        let isStreakBehind = streakReply.contains("lower right now") || streakReply.contains("ahead for now") || streakReply.contains("lead while it lasts") || streakReply.contains("catch") || streakReply.contains("closing the gap") || streakReply.contains("overtake") || streakReply.contains("coming for") || streakReply.contains("is next") || streakReply.contains("temporary")
+        let isStreakBehind = streakReply.contains("lose") || streakReply.contains("slip up") || streakReply.contains("break") || streakReply.contains("pass your")
         #expect(isStreakBehind, "Expected behind streak reply to use catch-up phrasing: \(streakReply)")
     }
 

@@ -2905,11 +2905,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let jump = Int.random(in: 1...max(5, streakDays / 2))
                     let lowerDays = max(1, streakDays - jump)
                     let templates = [
-                        "I hit \(lowerDays) days easily. I'm coming for your \(streakDays) days.",
-                        "I cleared \(lowerDays) days. Your lead is temporary at \(streakDays) days.",
-                        "I won't be at \(lowerDays) days for long. Your \(streakDays) days is next.",
-                        "I hit \(lowerDays) days easily. I'll overtake your \(streakDays) days soon.",
-                        "Only at \(lowerDays) days right now, but I'll catch your \(streakDays) days soon."
+                        "I'm at \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
+                        "Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days.",
+                        "Enjoy your \(streakDays) days while it lasts. You'll lose it and my \(lowerDays) days will pass you.",
+                        "You're bound to lose your \(streakDays) day streak. My \(lowerDays) days will be higher than yours soon.",
+                        "I'm at \(lowerDays) days, but you'll break your \(streakDays) day streak before I break mine."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
                     return (templates[idx], higherName, String(lowerDays))
@@ -3777,9 +3777,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("Looks like we're both at \(num) days. Enjoy it while it lasts.")
                             replies.append("I also clocked \(higherNum) days. Cute, but irrelevant.")
                         } else {
-                            replies.append("Only at \(higherNum) days right now, but I'll catch your \(num) days soon.")
-                            replies.append("I hit \(higherNum) days easily. I'm coming for your \(num) days.")
-                            replies.append("I cleared \(higherNum) days. Your lead is temporary at \(num) days.")
+                            replies.append("Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(num) days.")
+                            replies.append("I'm at \(higherNum) days. Just wait until you lose your \(num) day streak.")
+                            replies.append("Enjoy your \(num) days while it lasts. You'll lose it and my \(higherNum) days will pass you.")
                         }
                     }
                 } else if mentionedHoF, let infCount = Self.extractNumber(from: strippedLower, near: ["infinity", "infinit", "hof", "count"]) {
@@ -3971,12 +3971,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                         if higherNum < cN {
                             replies.append(contentsOf: [
-                                "I hit \(higherNum) days easily. I'm coming for your \(cN) days.",
-                                "I cleared \(higherNum) days. Your lead is temporary at \(cN) days.",
-                                "I won't be at \(higherNum) days for long. Your \(cN) days is next.",
-                                "I hit \(higherNum) days easily. I'll overtake your \(cN) days soon.",
-                                "Only at \(higherNum) days right now, but I'll catch your \(cN) days soon.",
-                                "Are you serious? Only at \(higherNum) days right now, but I'll catch your \(cN) days soon."
+                                "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
+                                "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
+                                "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine.",
+                                "Are you serious? You'll slip up and I'll pass your \(cN) days."
                             ])
                         } else if higherNum == cN {
                             replies.append(contentsOf: [
@@ -3988,15 +3988,15 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ])
                         } else {
                             replies.append(contentsOf: [
-                                "I easily passed your \(cN) days. I'm at \(higherNum) days.",
-                                "I let you think you had the lead. Your \(cN) days is nothing. I'm at \(higherNum) days.",
-                                "You fell for it. I easily beat your \(cN) days. My real record is \(higherNum) days.",
-                                "I was just warming up. Your \(cN) days is a joke compared to my \(higherNum) days.",
-                                "I blew past your \(cN) days and hit \(higherNum) days without even trying.",
-                                "Only at \(cN) days? I easily reached \(higherNum).",
+                                "I've been consistent longer. I'm comfortably sitting at \(higherNum) days.",
+                                "Your \(cN) days is cute. I'm at \(higherNum) days and you'll never close the gap.",
+                                "My infinite consistency is at \(higherNum) days. \(cN) is a joke.",
+                                "You'll never touch my \(higherNum) days. Time is on my side.",
+                                "I'm at \(higherNum) days. You can't just skip ahead to catch me.",
+                                "You're bragging about \(cN) days? I've been doing this for \(higherNum).",
                                 "Your \(cN) days is a joke compared to my \(higherNum).",
-                                "I cleared \(higherNum) without trying.",
-                                "I was just toying with you. I'm actually at \(higherNum) days."
+                                "I reached \(higherNum) days through pure dedication.",
+                                "You are no threat. I'm sitting comfortably at \(higherNum) days."
                             ])
                         }
                     } else {
@@ -4013,11 +4013,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                         if higherNum < num {
                             replies.append(contentsOf: [
-                                "I hit \(higherNum) days easily. I'm coming for your \(numStr) days.",
-                                "I cleared \(higherNum) days. Your lead is temporary at \(numStr) days.",
-                                "I won't be at \(higherNum) days for long. Your \(numStr) days is next.",
-                                "I hit \(higherNum) days easily. I'll overtake your \(numStr) days soon.",
-                                "Only at \(higherNum) days right now, but I'll catch your \(numStr) days soon."
+                                "I'm at \(higherNum) days. Just wait until you lose your \(numStr) day streak.",
+                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(numStr) days.",
+                                "Enjoy your \(numStr) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                "You're bound to lose your \(numStr) day streak. My \(higherNum) days will be higher than yours soon.",
+                                "I'm at \(higherNum) days, but you'll break your \(numStr) day streak before I break mine."
                             ])
                         } else if higherNum == num {
                             replies.append(contentsOf: [
@@ -4082,11 +4082,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else {
                         if higherNum < assumedNum {
                             replies.append(contentsOf: [
-                                "I hit \(higherNum) days easily. I'm coming for your streak.",
-                                "I cleared \(higherNum) days. Your lead is temporary.",
-                                "I won't be at \(higherNum) days for long. Your streak is next.",
-                                "I hit \(higherNum) days easily. I'll overtake your streak soon.",
-                                "Only at \(higherNum) days right now, but I'll catch your streak soon."
+                                "I'm at \(higherNum) days. Just wait until you lose your streak.",
+                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your streak.",
+                                "Enjoy your streak while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                "You're bound to lose your streak. My \(higherNum) days will be higher than yours soon.",
+                                "I'm at \(higherNum) days, but you'll break your streak before I break mine."
                             ])
                         } else if higherNum == assumedNum {
                             replies.append(contentsOf: [
