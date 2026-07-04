@@ -3189,12 +3189,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let jump = Int.random(in: min(1, maxJump)...maxJump)
                     let localHigherM = Self.allMilestones[originalIdx + jump]
                     let templates = [
-                        "You ran out of moves? Pathetic. I'm already at \(localHigherM).",
+                        "Failing so soon? Pathetic. I'm already at \(localHigherM).",
                         "Game over at \(m)? I'm laughing from \(localHigherM).",
                         "Stuck at \(m)? I left that in the dust. I'm sitting at \(localHigherM).",
                         "Couldn't even get past \(m)? Stay down there. I'm already pushing \(localHigherM).",
-                        "No moves left? Your skill is a joke. I'm dominating with \(localHigherM).",
-                        "You actually failed at \(m)? I'm comfortably sitting at \(localHigherM)."
+                        "Dead end? Your skill is a joke. I'm dominating with \(localHigherM).",
+                        "Failing at \(m) is sad. I'm comfortably sitting at \(localHigherM)."
                     ]
                     let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_milestone_lost", count: templates.count)
