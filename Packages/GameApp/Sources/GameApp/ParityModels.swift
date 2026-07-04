@@ -1445,7 +1445,7 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     if isNpc2Turn {
                         if let oldVal = npc2Value {
-                            if Double.random(in: 0...1) < 0.5 {
+                            if Double.random(in: 0...1) < 0.5 && topic != "streak" {
                                 npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
                             }
                         } else if let n1Val = npc1Value {
@@ -1486,7 +1486,7 @@ public struct MockSocialService: SocialService, Sendable {
                         currentDepth += 1
                     } else {
                         if let oldVal = npc1Value {
-                            if Double.random(in: 0...1) < 0.5 {
+                            if Double.random(in: 0...1) < 0.5 && topic != "streak" {
                                 npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
                             }
                         } else if let n2Val = npc2Value {
@@ -1830,17 +1830,22 @@ public struct MockSocialService: SocialService, Sendable {
                     }
                     while currentDepth < targetDepth {
                         if npc2 == nil {
-                            let replyIndex = Int.random(in: 1...100000)
-                            var rName = generateDynamicName()
-                            while rName == npc1.name {
-                                rName = generateDynamicName()
+                            if Double.random(in: 0...1) < 0.6 {
+                                npc2 = (name: author, avatar: authorAvatar)
+                                npc2Value = rootValue
+                            } else {
+                                let replyIndex = Int.random(in: 1...100000)
+                                var rName = generateDynamicName()
+                                while rName == npc1.name || rName == author {
+                                    rName = generateDynamicName()
+                                }
+                                npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                             }
-                            npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                         }
                         
                         if isNpc2Turn {
                             if let oldVal = npc2Value {
-                                if Double.random(in: 0...1) < 0.5 {
+                                if Double.random(in: 0...1) < 0.5 && topic != "streak" {
                                     npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
                                 }
                             } else if let n1Val = npc1Value {
@@ -1881,7 +1886,7 @@ public struct MockSocialService: SocialService, Sendable {
                             currentDepth += 1
                         } else {
                             if let oldVal = npc1Value {
-                                if Double.random(in: 0...1) < 0.5 {
+                                if Double.random(in: 0...1) < 0.5 && topic != "streak" {
                                     npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
                                 }
                             } else if let n2Val = npc2Value {
@@ -2718,22 +2723,22 @@ public struct MockSocialService: SocialService, Sendable {
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let openersWithWeights: [(String, Double)] = [
-                        ("I flew right past this.", 5.0),
+                        ("I flew right past this.", 0.05),
                         ("This takes zero effort.", 3.0),
-                        ("Laughable.", 8.0),
+                        ("Laughable.", 4.0),
                         ("This is entirely average.", 4.0),
                         ("Not worth my time.", 0.6),
                         ("Unimpressive.", 3.4),
                         ("Not impressed.", 6.0),
-                        ("That's cute.", 46.97),
-                        ("Light work.", 3.03),
+                        ("That's cute.", 44),
+                        ("Light work.", 2.0),
                         ("What a joke.", 3.0),
                         ("Not even trying.", 0.4),
                         ("A child could do that.", 2.0),
-                        ("Is that all?", 4.0),
-                        ("I did this by accident.", 4.5),
-                        ("Not even a milestone.", 3.0),
-                        ("Are you even trying?", 3.1)
+                        ("Is that all?", 3.0),
+                        ("I did this by accident.", 22.15),
+                        ("Not even a milestone.", 1.3),
+                        ("Are you even trying?", 0.1)
                     ]
                     
                     let getWeightedOpener = { () -> String in
