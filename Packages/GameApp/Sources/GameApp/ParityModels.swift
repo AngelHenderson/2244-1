@@ -2937,6 +2937,18 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
                     return (templates[idx], higherName, String(myDays))
                 }
+            } else if message.contains("lost") || message.contains("broke") || message.contains("reset") {
+                let myDays = Int.random(in: 15...45)
+                let templates = [
+                    "You just lost your streak? I'm already at \(myDays) days.",
+                    "Your streak is dead. My \(myDays) days keep going.",
+                    "Lost your streak? Pathetic. I'm sitting at \(myDays) days.",
+                    "Couldn't even keep it going? I'm comfortably at \(myDays) days.",
+                    "Back to 0? I'm dominating with \(myDays) days.",
+                    "While you restart, I'm already pushing \(myDays) days."
+                ]
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak_lost", count: templates.count)
+                return (templates[idx], higherName, String(myDays))
             }
         }
 
@@ -4055,6 +4067,21 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             }
                         }
                     }
+                } else if message.contains("lost") || message.contains("broke") || message.contains("reset") {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = Int.random(in: 15...45)
+                    }
+                    replies.append(contentsOf: [
+                        "You just lost your streak? I'm already at \(higherNum) days.",
+                        "Your streak is dead. My \(higherNum) days keep going.",
+                        "Lost your streak? Pathetic. I'm sitting at \(higherNum) days.",
+                        "Couldn't even keep it going? I'm comfortably at \(higherNum) days.",
+                        "Back to 0? I'm dominating with \(higherNum) days.",
+                        "While you restart, I'm already pushing \(higherNum) days."
+                    ])
                 } else {
                     let isLowStreak = false
                     let assumedNum = Int.random(in: 15...45)
