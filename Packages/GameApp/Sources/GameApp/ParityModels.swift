@@ -2904,13 +2904,24 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 if isLowStreak && streakDays > 1 {
                     let jump = Int.random(in: 1...max(5, streakDays / 2))
                     let lowerDays = max(1, streakDays - jump)
-                    let templates = [
-                        "I'm at \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
-                        "Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days.",
-                        "Enjoy your \(streakDays) days while it lasts. You'll lose it and my \(lowerDays) days will pass you.",
-                        "You're bound to lose your \(streakDays) day streak. My \(lowerDays) days will be higher than yours soon.",
-                        "I'm at \(lowerDays) days, but you'll break your \(streakDays) day streak before I break mine."
-                    ]
+                    let templates: [String]
+                    if lowerDays <= 2 {
+                        templates = [
+                            "I just lost my streak today. I'm all the way down to \(lowerDays) days, but you'll lose your \(streakDays) day streak soon!",
+                            "My streak died, so I'm down to \(lowerDays) days. But your \(streakDays) days will break before long.",
+                            "I reset to \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
+                            "Dropped to \(lowerDays) days because I lost my streak. You're bound to lose your \(streakDays) days too.",
+                            "I just lost my streak. Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days."
+                        ]
+                    } else {
+                        templates = [
+                            "I'm at \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
+                            "Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days.",
+                            "Enjoy your \(streakDays) days while it lasts. You'll lose it and my \(lowerDays) days will pass you.",
+                            "You're bound to lose your \(streakDays) day streak. My \(lowerDays) days will be higher than yours soon.",
+                            "I'm at \(lowerDays) days, but you'll break your \(streakDays) day streak before I break mine."
+                        ]
+                    }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
                     return (templates[idx], higherName, String(lowerDays))
                 } else {
@@ -3855,7 +3866,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 let refMilestone = speakerValue.flatMap { val in Self.allMilestones.firstIndex(of: val).map { (index: $0, name: val) } } ?? rootMilestone
-                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && ((forceTone == "one_up" && speakerValue != nil) || Double.random(in: 0...1) < 0.95)
+                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && (forceTone == "one_up" || Double.random(in: 0...1) < 0.95)
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = refMilestone {
                     replies.append(contentsOf: [
@@ -3982,14 +3993,26 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             higherNum = cN + Int.random(in: 5...max(15, cN / 5))
                         }
                         if higherNum < cN {
-                            replies.append(contentsOf: [
-                                "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
-                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
-                                "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
-                                "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
-                                "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine.",
-                                "Are you serious? You'll slip up and I'll pass your \(cN) days."
-                            ])
+                            let templates: [String]
+                            if higherNum <= 2 {
+                                templates = [
+                                    "I just lost my streak today. I'm all the way down to \(higherNum) days, but you'll lose your \(cN) day streak soon!",
+                                    "My streak died, so I'm down to \(higherNum) days. But your \(cN) days will break before long.",
+                                    "I reset to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "Dropped to \(higherNum) days because I lost my streak. You're bound to lose your \(cN) days too.",
+                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days."
+                                ]
+                            } else {
+                                templates = [
+                                    "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
+                                    "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                    "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
+                                    "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine.",
+                                    "Are you serious? You'll slip up and I'll pass your \(cN) days."
+                                ]
+                            }
+                            replies.append(contentsOf: templates)
                         } else if higherNum == cN {
                             replies.append(contentsOf: [
                                 "I'm right there at \(cN) days too. Let's see who breaks it first.",
@@ -4108,13 +4131,25 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         if higherNum < assumedNum {
-                            replies.append(contentsOf: [
-                                "I'm at \(higherNum) days. Just wait until you lose your streak.",
-                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your streak.",
-                                "Enjoy your streak while it lasts. You'll lose it and my \(higherNum) days will pass you.",
-                                "You're bound to lose your streak. My \(higherNum) days will be higher than yours soon.",
-                                "I'm at \(higherNum) days, but you'll break your streak before I break mine."
-                            ])
+                            let templates: [String]
+                            if higherNum <= 2 {
+                                templates = [
+                                    "I just lost my streak today. I'm all the way down to \(higherNum) days, but you'll lose yours soon!",
+                                    "My streak died, so I'm down to \(higherNum) days. But your streak will break before long.",
+                                    "I reset to \(higherNum) days. Just wait until you lose your streak.",
+                                    "Dropped to \(higherNum) days because I lost my streak. You're bound to lose yours too.",
+                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass yours."
+                                ]
+                            } else {
+                                templates = [
+                                    "I'm at \(higherNum) days. Just wait until you lose your streak.",
+                                    "Only at \(higherNum) days right now, but you'll slip up and I'll pass your streak.",
+                                    "Enjoy your streak while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                    "You're bound to lose your streak. My \(higherNum) days will be higher than yours soon.",
+                                    "I'm at \(higherNum) days, but you'll break your streak before I break mine."
+                                ]
+                            }
+                            replies.append(contentsOf: templates)
                         } else if higherNum == assumedNum {
                             replies.append(contentsOf: [
                                 "I'm right there at \(higherNum) days too. Let's see who breaks it first.",
@@ -4154,7 +4189,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let cSecs = cT.0 * 60 + cT.1
                         let rSecs = rT.0 * 60 + rT.1
                         if cSecs > rSecs {
-                            return (forceTone == "one_up" && speakerValue != nil) || Double.random(in: 0...1) < 0.95
+                            return forceTone == "one_up" || Double.random(in: 0...1) < 0.95
                         }
                     }
                     return false
