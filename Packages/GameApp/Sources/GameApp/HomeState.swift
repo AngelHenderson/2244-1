@@ -316,7 +316,7 @@ public final class HomeState {
 
     public func updateNpcRepliesBadgeCount() {
         let defaults = UserDefaults.standard
-        guard let data = defaults.data(forKey: "socialFeed.userPosts.v3"),
+        guard let data = defaults.data(forKey: MockSocialService.userPostsKey),
               let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
             self.npcRepliesBadgeCount = 0
             return

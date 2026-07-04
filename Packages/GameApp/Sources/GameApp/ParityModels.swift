@@ -777,6 +777,7 @@ public struct UnavailableSocialService: SocialService, Sendable {
 }
 
 public struct MockSocialService: SocialService, Sendable {
+    private nonisolated(unsafe) static var feedGenerationSeenNames: Set<String> = []
     nonisolated(unsafe) public static var gamertagProvider: (@Sendable () -> [String])? = nil
 
     public init() {}
@@ -1066,9 +1067,10 @@ public struct MockSocialService: SocialService, Sendable {
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(4)
             }
-            let jump = Int.random(in: 1...2)
-            let newIdx = max(0, idx - jump)
-            return Self.allMilestones[newIdx]
+            // Milestones can't go down naturally unless the user starts over completely,
+            // so we shouldn't dynamically lower them during a short thread exchange.
+            // We just keep the milestone the same.
+            return Self.allMilestones[idx]
             
         default:
             return "2"
@@ -1137,10 +1139,10 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    private static let feedCacheKey = "socialFeed.cache.v47"
-    private static let feedDateKey = "socialFeed.cacheDate.v40"
+    public static let feedCacheKey = "socialFeed.cache.v48"
+    public static let feedDateKey = "socialFeed.cacheDate.v41"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    private static let userPostsKey = "socialFeed.userPosts.v6"
+    public static let userPostsKey = "socialFeed.userPosts.v7"
 
     public func feed() async throws -> [SocialFeedItem] {
         let now = Date()
@@ -1727,6 +1729,10 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private func generateFeedItems(now: Date) -> [SocialFeedItem] {
+        Self.feedGenerationSeenNames.removeAll()
+        let defaults = UserDefaults.standard
+        Self.feedGenerationSeenNames.insert(defaults.string(forKey: "profilePlayerName") ?? "Player")
+        Self.feedGenerationSeenNames.insert(defaults.string(forKey: "player.displayName") ?? "Player")
         var items: [SocialFeedItem] = []
         let currentDay = Self.daysSinceReference
         for i in 0..<25 {
@@ -3454,7 +3460,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
         let isJealous = !isForcedCompetitive && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
-        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "effortless"]
+        let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "easily"]
         let isPositive = !isForcedCompetitive && positiveKeywords.contains(where: { strippedLower.contains($0) })
 
         let addFriendKeywords = ["can i add", "add you", "add me", "friend code", "friend request", "be friends", "play together"]
@@ -4268,7 +4274,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I'm right there at \(cTimeStr) too. Let's see who breaks it first.",
                                 "We're tied at \(cTimeStr). The real race starts now.",
-                                "I hit \(myTimeStr) effortlessly. We won't be tied for long.",
+                                "I hit \(myTimeStr) easily. We won't be tied for long.",
                                 "Looks like we're both at \(cTimeStr). Enjoy it while it lasts.",
                                 "I also clocked \(myTimeStr). Cute, but irrelevant."
                             ])
@@ -4310,7 +4316,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append(contentsOf: [
                                 "I'm right there at \(posterTime) too. Let's see who breaks it first.",
                                 "We're tied at \(posterTime). The real race starts now.",
-                                "I hit \(higherTime) effortlessly. We won't be tied for long.",
+                                "I hit \(higherTime) easily. We won't be tied for long.",
                                 "Looks like we're both at \(posterTime). Enjoy it while it lasts.",
                                 "I also clocked \(higherTime). Cute, but irrelevant."
                             ])
@@ -4379,7 +4385,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(contentsOf: [
                             "I'm right there at \(posterTime) too. Let's see who breaks it first.",
                             "We're tied at \(posterTime). The real race starts now.",
-                            "I hit \(higherTime) effortlessly. We won't be tied for long.",
+                            "I hit \(higherTime) easily. We won't be tied for long.",
                             "Looks like we're both at \(posterTime). Enjoy it while it lasts.",
                             "I also clocked \(higherTime). Cute, but irrelevant."
                         ])
@@ -4893,9 +4899,21 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
     ]
 
     private func generateDynamicName() -> String {
+        var name = ""
+        var attempts = 0
+        repeat {
+            name = generateDynamicNameRaw()
+            attempts += 1
+            if attempts > 50 { break }
+        } while Self.feedGenerationSeenNames.contains(name)
+        Self.feedGenerationSeenNames.insert(name)
+        return name
+    }
+
+    private func generateDynamicNameRaw() -> String {
         // Mirror LeaderboardClient.nameForPlayer deterministic logic so every
         // name that appears in the feed also exists on the leaderboard.
-        let index = Int.random(in: 0..<1000)
+        let index = Int.random(in: 0..<100000)
         let countrySeed = Int.random(in: 0..<50)
         let day = Self.daysSinceReference
 

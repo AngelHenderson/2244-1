@@ -99,9 +99,9 @@ struct ParityModelsTests {
     @Test("Bot competitive comments and replies do not contain finite-match word 'competition'")
     func botCompetitiveCommentsDoNotContainCompetition() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "socialFeed.cache.v40")
-        defaults.removeObject(forKey: "socialFeed.cacheDate.v37")
-        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
+        defaults.removeObject(forKey: MockSocialService.feedCacheKey)
+        defaults.removeObject(forKey: MockSocialService.feedDateKey)
+        defaults.removeObject(forKey: MockSocialService.userPostsKey)
         
         let service = MockSocialService()
         // Post a few events to generate a large volume of bot comments/replies
@@ -110,7 +110,7 @@ struct ParityModelsTests {
         }
         
         // Retrieve the cached items directly from UserDefaults to get all comments (even future ones)
-        guard let data = defaults.data(forKey: "socialFeed.userPosts.v3"),
+        guard let data = defaults.data(forKey: MockSocialService.userPostsKey),
               let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
             Issue.record("Failed to decode user posts")
             return
@@ -427,9 +427,9 @@ struct ParityModelsTests {
     @Test("Player record is consistent across a competitive comment thread")
     func testPlayerRecordConsistency() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "socialFeed.cache.v40")
-        defaults.removeObject(forKey: "socialFeed.cacheDate.v37")
-        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
+        defaults.removeObject(forKey: MockSocialService.feedCacheKey)
+        defaults.removeObject(forKey: MockSocialService.feedDateKey)
+        defaults.removeObject(forKey: MockSocialService.userPostsKey)
         
         let service = MockSocialService()
         // Generate threads with different topics
@@ -439,7 +439,7 @@ struct ParityModelsTests {
             try await service.postEvent(message: "I am playing! \(message)", statText: "stat")
         }
         
-        guard let data = defaults.data(forKey: "socialFeed.userPosts.v3"),
+        guard let data = defaults.data(forKey: MockSocialService.userPostsKey),
               let items = try? JSONDecoder().decode([SocialFeedItem].self, from: data) else {
             Issue.record("Failed to decode user posts")
             return
@@ -872,7 +872,7 @@ struct ParityModelsTests {
     @MainActor
     func testNpcRepliesBadgeCount() async throws {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
+        defaults.removeObject(forKey: MockSocialService.userPostsKey)
         defaults.removeObject(forKey: "profilePlayerName")
         defaults.removeObject(forKey: "player.displayName")
         
@@ -909,7 +909,7 @@ struct ParityModelsTests {
         let encoder = JSONEncoder()
         do {
             let data = try encoder.encode([post1, post2])
-            defaults.set(data, forKey: "socialFeed.userPosts.v3")
+            defaults.set(data, forKey: MockSocialService.userPostsKey)
             print("Successfully encoded mock user posts: \(String(data: data, encoding: .utf8) ?? "")")
         } catch {
             print("Failed to encode mock user posts: \(error)")
@@ -936,7 +936,7 @@ struct ParityModelsTests {
         #expect(homeState.npcRepliesBadgeCount == 0)
         
         // Clean up
-        defaults.removeObject(forKey: "socialFeed.userPosts.v3")
+        defaults.removeObject(forKey: MockSocialService.userPostsKey)
         defaults.removeObject(forKey: "socialFeed.lastViewedDate")
     }
 }
