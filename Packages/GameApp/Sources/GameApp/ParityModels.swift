@@ -2173,7 +2173,10 @@ public struct MockSocialService: SocialService, Sendable {
                 "star|New record · Game",
                 "suit.diamond.fill|\(milestone) · Reached",
             ]
-            if Double.random(in: 0...1) < 0.20 {
+            let mIndex = Self.allMilestones.firstIndex(of: milestone) ?? 0
+            let oneMIndex = Self.allMilestones.firstIndex(of: "1M") ?? 0
+            
+            if mIndex >= oneMIndex && Double.random(in: 0...1) < 0.20 {
                 templates = [
                     "Ran out of moves at \(milestone)...",
                     "No moves left! Stuck at \(milestone).",
@@ -3141,7 +3144,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let m = sortedMilestones[foundIdx]
             if let originalIdx = Self.allMilestones.firstIndex(of: m) {
                 let isLowMilestone = false
-                if message.contains("ran out") || message.contains("no moves") || message.contains("game over") || message.contains("stuck") || message.contains("lost my run") || message.contains("died") {
+                let oneMIndex = Self.allMilestones.firstIndex(of: "1M") ?? 0
+                if originalIdx >= oneMIndex && (message.contains("ran out") || message.contains("no moves") || message.contains("game over") || message.contains("stuck") || message.contains("lost my run") || message.contains("died")) {
                     let remaining = Self.allMilestones.count - 1 - originalIdx
                     let maxJump = min(10, remaining)
                     let jump = Int.random(in: min(1, maxJump)...maxJump)
