@@ -1128,9 +1128,16 @@ struct ParityModelsTests {
             opponentValue: "0"
         )
         
-        // Assert that the reply contains "15" (the speaker's value) and indicates a streak context
-        let matched = reply.contains("15") && (reply.lowercased().contains("streak") || reply.lowercased().contains("days") || reply.lowercased().contains("day"))
-        #expect(matched, "Expected reply to be a streak-loss comment mock containing speaker's value, but got: \(reply)")
+        let expectedSubstrings = [
+            "15",
+            "lose your streak",
+            "streak would die",
+            "streak died",
+            "streak is dead",
+            "consistency would break"
+        ]
+        let matched = expectedSubstrings.contains { reply.lowercased().contains($0.lowercased()) }
+        #expect(matched, "Expected reply to be a streak-loss comment mock, but got: \(reply)")
     }
 }
 

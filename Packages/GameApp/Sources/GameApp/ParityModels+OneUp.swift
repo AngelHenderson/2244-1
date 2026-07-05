@@ -18,7 +18,7 @@ extension MockSocialService {
                     ("Celebrating \(lower)? I easily clear \(higher).", 13.0),
                     ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I'm at \(higher).", 62.0),
                     ("I can't imagine spending time on \(lower). My \(higher) was completed with ease.", 0.3),
-                    ("Still at \(lower)? I left that behind months ago. \(higher) is where the real game is.", 1.7),
+                    ("Still at \(lower)? I already left that behind. \(higher) is where the real game is.", 1.7),
                     ("Lagging at \(lower)? I'm coasting at \(higher).", 5.8),
                     ("Imagine being at \(lower) while I dominate at \(higher).", 0.1)
                 ]
@@ -81,7 +81,7 @@ extension MockSocialService {
                     ("Celebrating \(lower)? I easily clear \(higher).", 13.0),
                     ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I'm at \(higher).", 62.0),
                     ("I can't imagine spending time on \(lower). My \(higher) was completed with ease.", 0.3),
-                    ("Still at \(lower)? I left that behind months ago. \(higher) is where the real game is.", 1.7),
+                    ("Still at \(lower)? I already left that behind. \(higher) is where the real game is.", 1.7),
                     ("Lagging at \(lower)? I'm coasting at \(higher).", 5.8),
                     ("Imagine being at \(lower) while I dominate at \(higher).", 0.1)
                 ]
@@ -144,7 +144,7 @@ extension MockSocialService {
                     ("Celebrating \(lower) days? I easily clear \(higher) days.", 13.0),
                     ("You're at \(lower) days? Cute. \(lower) days is completely irrelevant now that I'm at \(higher) days.", 62.0),
                     ("I can't imagine spending time on \(lower) days. My \(higher) days was completed with ease.", 0.3),
-                    ("Still at \(lower) days? I left that behind months ago. \(higher) days is where the real game is.", 1.7),
+                    ("Still at \(lower) days? I already left that behind. \(higher) days is where the real game is.", 1.7),
                     ("Lagging at \(lower) days? I'm coasting at \(higher) days.", 5.8),
                     ("Imagine being at \(lower) days while I dominate at \(higher) days.", 0.1)
                 ]
@@ -207,7 +207,7 @@ extension MockSocialService {
                     ("Celebrating \(lower) infinities? I easily clear \(higher) infinities.", 13.0),
                     ("You're at \(lower) infinities? Cute. \(lower) infinities is completely irrelevant now that I'm at \(higher) infinities.", 62.0),
                     ("I can't imagine spending time on \(lower) infinities. My \(higher) infinities was completed with ease.", 0.3),
-                    ("Still at \(lower) infinities? I left that behind months ago. \(higher) infinities is where the real game is.", 1.7),
+                    ("Still at \(lower) infinities? I already left that behind. \(higher) infinities is where the real game is.", 1.7),
                     ("Lagging at \(lower) infinities? I'm coasting at \(higher) infinities.", 5.8),
                     ("Imagine being at \(lower) infinities while I dominate at \(higher) infinities.", 0.1)
                 ]

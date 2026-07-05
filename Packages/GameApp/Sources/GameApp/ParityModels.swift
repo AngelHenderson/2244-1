@@ -1139,8 +1139,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    public static let feedCacheKey = "socialFeed.cache.v48"
-    public static let feedDateKey = "socialFeed.cacheDate.v41"
+    public static let feedCacheKey = "socialFeed.cache.v50"
+    public static let feedDateKey = "socialFeed.cacheDate.v43"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1153,7 +1153,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v48.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v50.json")
     }
     
     private static var userPostsURL: URL {
@@ -1796,7 +1796,7 @@ public struct MockSocialService: SocialService, Sendable {
         Self.feedGenerationSeenNames.insert(defaults.string(forKey: "player.displayName") ?? "Player")
         var items: [SocialFeedItem] = []
         let currentDay = Self.daysSinceReference
-        for i in 0..<25 {
+        for i in 0..<100 {
             let author = generateDynamicName()
             let authorIndex = Int.random(in: 1...100000)
             let authorAvatar = Self.avatarForPlayer(index: authorIndex, countrySeed: 0, day: currentDay)
@@ -1818,9 +1818,8 @@ public struct MockSocialService: SocialService, Sendable {
             }
             
             let (message, statText) = generateDynamicEvent(milestone: randomMilestone)
-            let startOfDay = Calendar.current.startOfDay(for: now)
-            let timeOffset = i == 0 ? max(0, now.timeIntervalSince(startOfDay) - 1) : Double.random(in: 0...86400) // Spread posts throughout the entire day
-            let itemDate = startOfDay.addingTimeInterval(timeOffset)
+            let timeOffset = i == 0 ? 60.0 : Double(i) * Double.random(in: 1200...2400)
+            let itemDate = now.addingTimeInterval(-timeOffset)
             
             var comments: [SocialFeedComment] = []
             
