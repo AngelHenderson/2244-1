@@ -200,7 +200,7 @@ extension MockSocialService {
             case 1:
                 let weightedReplies: [(String, Double)] = [
                     ("Only at \(lower) infinities? I easily reached \(higher) infinities.", 3.0),
-                    ("You think \(lower) infinities is a big record? I'm already coasting at \(higher) infinities.", 0.6),
+                    ("You think \(lower) infinities is a big infinity count? I'm already coasting at \(higher) infinities.", 0.6),
                     ("Your \(lower) infinities is a joke. You'll never catch my \(higher) infinities.", 9.9),
                     ("I easily bypassed \(lower) infinities and hit \(higher) infinities.", 0.1),
                     ("I'm laughing from \(higher) infinities while you're still at \(lower) infinities.", 3.5),
