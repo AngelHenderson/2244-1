@@ -1139,8 +1139,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    public static let feedCacheKey = "socialFeed.cache.v50"
-    public static let feedDateKey = "socialFeed.cacheDate.v43"
+    public static let feedCacheKey = "socialFeed.cache.v51"
+    public static let feedDateKey = "socialFeed.cacheDate.v44"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1153,7 +1153,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v50.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v51.json")
     }
     
     private static var userPostsURL: URL {
@@ -1860,16 +1860,23 @@ public struct MockSocialService: SocialService, Sendable {
                 let (commentBase, nameOverride, tone, generatedVal) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: toneStr)
                 let finalCommenter = nameOverride ?? commentAuthor
                 
-                // Competitive comments arrive within 30 to 60 minutes of the post
+                // First comments arrive very quickly so recent posts always have comments visible
                 let baseOffset: Double
-                if tone == "competitive" {
-                    baseOffset = Double.random(in: 1800...3600)
+                if comments.isEmpty {
+                    baseOffset = Double.random(in: 5...30)
+                } else if comments.count == 1 {
+                    baseOffset = Double.random(in: 45...120)
+                } else if comments.count == 2 {
+                    baseOffset = Double.random(in: 150...300)
                 } else {
-                    // Non-competitive comments mostly arrive in the first 30 minutes
-                    if Double.random(in: 0...1) < 0.85 {
-                        baseOffset = Double.random(in: 30...1800)
+                    if tone == "competitive" {
+                        baseOffset = Double.random(in: 600...1800)
                     } else {
-                        baseOffset = Double.random(in: 1800...86400)
+                        if Double.random(in: 0...1) < 0.85 {
+                            baseOffset = Double.random(in: 300...1200)
+                        } else {
+                            baseOffset = Double.random(in: 1200...43200)
+                        }
                     }
                 }
                 let baseCreatedAt = itemDate.addingTimeInterval(baseOffset)
