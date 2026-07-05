@@ -1167,7 +1167,6 @@ struct ParityModelsTests {
 
     @Test("Verify that when player beats an NPC and the NPC responds with behind, a second reply in a row is added")
     func testSecondReplyInARowWhenNPCBehind() async throws {
-        let defaults = UserDefaults.standard
         MockSocialService.bypassFeedCache = true
         MockSocialService.inMemoryFeedOverride = []
         defer {
@@ -1194,7 +1193,7 @@ struct ParityModelsTests {
         // Loop up to 15 times to ensure we get a "behind" reply at least once
         var secondReplyFound = false
         for _ in 1...15 {
-            var mutableItem = item
+            let mutableItem = item
             MockSocialService.inMemoryFeedOverride = [mutableItem]
             
             try await service.addComment(
