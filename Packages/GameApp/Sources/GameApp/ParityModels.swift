@@ -832,6 +832,8 @@ public struct MockSocialService: SocialService, Sendable {
         var rootMilestoneExists = false
         let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
         if sortedMilestones.first(where: { entry in
+            let mLower = entry.element.lowercased()
+            guard msgLower.contains(mLower) else { return false }
             let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element))\\b(?!:)"
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
         }) != nil {
@@ -883,7 +885,10 @@ public struct MockSocialService: SocialService, Sendable {
 
         case "milestone":
             let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
+            let textLower = text.lowercased()
             for m in sortedMilestones {
+                let mLower = m.lowercased()
+                guard textLower.contains(mLower) else { continue }
                 let patternStr = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
                 if let pattern = try? NSRegularExpression(pattern: patternStr, options: .caseInsensitive) {
                     let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
@@ -3491,6 +3496,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         // Search longest-first to avoid partial matches (e.g. "2" inside "262K")
         let sorted = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
         for (idx, milestone) in sorted {
+            let mLower = milestone.lowercased()
+            guard lowered.contains(mLower) else { continue }
             let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: milestone))\\b(?!:)"
             if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil, idx + 1 < Self.allMilestones.count {
                 let next = Self.allMilestones[idx + 1]
@@ -3552,6 +3559,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             }
             var foundMilestones: [(index: Int, name: String)] = []
             for (idx, m) in Self.allMilestones.enumerated() {
+                let mLower = m.lowercased()
+                guard strippedLower.contains(mLower) else { continue }
                 let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
                 if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: strippedText, range: NSRange(strippedText.startIndex..., in: strippedText)) != nil {
                     foundMilestones.append((index: idx, name: m))
@@ -3562,6 +3571,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         
         let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
         let rootMilestone = sortedMilestones.first(where: { entry in
+            let mLower = entry.element.lowercased()
+            guard message.lowercased().contains(mLower) else { return false }
             let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element))\\b(?!:)"
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
         }).map { (index: $0.offset, name: $0.element) }
