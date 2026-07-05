@@ -778,6 +778,7 @@ public struct UnavailableSocialService: SocialService, Sendable {
 
 public struct MockSocialService: SocialService, Sendable {
     private nonisolated(unsafe) static var feedGenerationSeenNames: Set<String> = []
+    private static let seenNamesLock = NSLock()
     nonisolated(unsafe) public static var gamertagProvider: (@Sendable () -> [String])? = nil
 
     public init() {}
@@ -801,6 +802,17 @@ public struct MockSocialService: SocialService, Sendable {
     // which one is referenced and then randomly choose one that is strictly higher.
     static let allMilestones: [String] = {
         return (0...816).map { JourneyTileGenerator.formatTileAtStep($0) }
+    }()
+
+    static let milestoneRegexCache: [String: NSRegularExpression] = {
+        var cache: [String: NSRegularExpression] = [:]
+        for m in allMilestones {
+            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                cache[m] = regex
+            }
+        }
+        return cache
     }()
 
     static var daysSinceReference: Int {
@@ -834,8 +846,8 @@ public struct MockSocialService: SocialService, Sendable {
         if sortedMilestones.first(where: { entry in
             let mLower = entry.element.lowercased()
             guard msgLower.contains(mLower) else { return false }
-            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element))\\b(?!:)"
-            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
+            guard let regex = Self.milestoneRegexCache[entry.element] else { return false }
+            return regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
         }) != nil {
             rootMilestoneExists = true
         }
@@ -889,17 +901,15 @@ public struct MockSocialService: SocialService, Sendable {
             for m in sortedMilestones {
                 let mLower = m.lowercased()
                 guard textLower.contains(mLower) else { continue }
-                let patternStr = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
-                if let pattern = try? NSRegularExpression(pattern: patternStr, options: .caseInsensitive) {
-                    let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
-                    for regMatch in regexMatches {
-                        let matchedString = nsText.substring(with: regMatch.range)
-                        let exactMatch = Self.allMilestones.first(where: { $0 == matchedString })
-                        let finalVal = exactMatch ?? m
-                        
-                        if !matches.contains(where: { $0.range == regMatch.range }) {
-                            matches.append((val: finalVal, range: regMatch.range))
-                        }
+                guard let pattern = Self.milestoneRegexCache[m] else { continue }
+                let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                for regMatch in regexMatches {
+                    let matchedString = nsText.substring(with: regMatch.range)
+                    let exactMatch = Self.allMilestones.first(where: { $0 == matchedString })
+                    let finalVal = exactMatch ?? m
+                    
+                    if !matches.contains(where: { $0.range == regMatch.range }) {
+                        matches.append((val: finalVal, range: regMatch.range))
                     }
                 }
             }
@@ -1354,22 +1364,17 @@ public struct MockSocialService: SocialService, Sendable {
             
             let playerBragged = Self.extractTime(from: loweredText) != nil || Self.allMilestones.contains(where: { loweredText.contains($0.lowercased()) }) || extractMaxNumber(from: text) >= 3 || loweredText.contains("streak") || loweredText.contains("day") || loweredText.contains("infinity") || loweredText.contains("hof") || loweredText.contains("time")
             
-            if let cSecs = Self.extractTime(from: loweredText).map({ $0.0 * 60 + $0.1 }),
-               let bSecs = Self.extractTime(from: loweredBase).map({ $0.0 * 60 + $0.1 }) {
-                if cSecs < bSecs { posterBeatsNPC = true }
+            let topic = Self.determineTopic(message: baseText)
+            if let cVal = Self.extractValue(from: text, topic: topic),
+               let bVal = Self.extractValue(from: baseText, topic: topic) {
+                if MockSocialService.isRecord(bVal, worseThan: cVal, topic: topic) {
+                    posterBeatsNPC = true
+                }
             } else {
-                let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
-                if let cM = sortedMilestones.first(where: { loweredText.contains($0.lowercased()) }),
-                   let bM = sortedMilestones.first(where: { loweredBase.contains($0.lowercased()) }),
-                   let cIdx = Self.allMilestones.firstIndex(of: cM),
-                   let bIdx = Self.allMilestones.firstIndex(of: bM) {
-                    if cIdx > bIdx { posterBeatsNPC = true }
-                } else {
-                    let cNum = extractMaxNumber(from: text)
-                    let bNum = extractMaxNumber(from: baseText)
-                    if cNum > 0 && cNum > bNum {
-                        posterBeatsNPC = true
-                    }
+                let cNum = extractMaxNumber(from: text)
+                let bNum = extractMaxNumber(from: baseText)
+                if cNum > 0 && cNum > bNum {
+                    posterBeatsNPC = true
                 }
             }
             
@@ -1383,14 +1388,14 @@ public struct MockSocialService: SocialService, Sendable {
                 if let ans = answer {
                     responseText = "@\(playerName) " + ans
                 } else {
-                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: baseText, forceTone: "one_up")
+                    let tone = posterBeatsNPC ? "behind" : "one_up"
+                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: baseText, forceTone: tone)
                 }
                 let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
                 item.comments.append(responseComment)
                 
-                // Add a second reply in a row if the NPC says they will catch up (behind tone)
-                let isBehindReply = responseText.lowercased().contains("is next") || responseText.lowercased().contains("catch your") || responseText.lowercased().contains("coming for") || responseText.lowercased().contains("lead is temporary")
-                if isBehindReply && answer == nil {
+                // Add a second reply in a row if the player beats the NPC (triggering behind tone)
+                if posterBeatsNPC && answer == nil {
                     let topic = Self.determineTopic(message: baseText)
                     if let playerVal = Self.extractValue(from: text, topic: topic) {
                         let finalNPCValue: String
@@ -1830,10 +1835,12 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private func generateFeedItems(now: Date) -> [SocialFeedItem] {
-        Self.feedGenerationSeenNames.removeAll()
-        let defaults = UserDefaults.standard
-        Self.feedGenerationSeenNames.insert(defaults.string(forKey: "profilePlayerName") ?? "Player")
-        Self.feedGenerationSeenNames.insert(defaults.string(forKey: "player.displayName") ?? "Player")
+        Self.seenNamesLock.withLock {
+            Self.feedGenerationSeenNames.removeAll()
+            let defaults = UserDefaults.standard
+            Self.feedGenerationSeenNames.insert(defaults.string(forKey: "profilePlayerName") ?? "Player")
+            Self.feedGenerationSeenNames.insert(defaults.string(forKey: "player.displayName") ?? "Player")
+        }
         var items: [SocialFeedItem] = []
         let currentDay = Self.daysSinceReference
         for i in 0..<100 {
@@ -3498,8 +3505,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         for (idx, milestone) in sorted {
             let mLower = milestone.lowercased()
             guard lowered.contains(mLower) else { continue }
-            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: milestone))\\b(?!:)"
-            if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil, idx + 1 < Self.allMilestones.count {
+            guard let regex = Self.milestoneRegexCache[milestone] else { continue }
+            if regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil, idx + 1 < Self.allMilestones.count {
                 let next = Self.allMilestones[idx + 1]
                 let templates = [
                     "\(next) comes after \(milestone).",
@@ -3561,8 +3568,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             for (idx, m) in Self.allMilestones.enumerated() {
                 let mLower = m.lowercased()
                 guard strippedLower.contains(mLower) else { continue }
-                let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
-                if (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: strippedText, range: NSRange(strippedText.startIndex..., in: strippedText)) != nil {
+                guard let regex = Self.milestoneRegexCache[m] else { continue }
+                if regex.firstMatch(in: strippedText, range: NSRange(strippedText.startIndex..., in: strippedText)) != nil {
                     foundMilestones.append((index: idx, name: m))
                 }
             }
@@ -3573,8 +3580,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let rootMilestone = sortedMilestones.first(where: { entry in
             let mLower = entry.element.lowercased()
             guard message.lowercased().contains(mLower) else { return false }
-            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: entry.element))\\b(?!:)"
-            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
+            guard let regex = Self.milestoneRegexCache[entry.element] else { return false }
+            return regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
         }).map { (index: $0.offset, name: $0.element) }
 
         var mentionedMilestone = commentMilestone ?? rootMilestone
@@ -5180,8 +5187,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             name = generateDynamicNameRaw()
             attempts += 1
             if attempts > 50 { break }
-        } while Self.feedGenerationSeenNames.contains(name)
-        Self.feedGenerationSeenNames.insert(name)
+        } while Self.seenNamesLock.withLock({ Self.feedGenerationSeenNames.contains(name) })
+        Self.seenNamesLock.withLock {
+            _ = Self.feedGenerationSeenNames.insert(name)
+        }
         return name
     }
 

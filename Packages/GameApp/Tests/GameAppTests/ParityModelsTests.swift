@@ -1033,8 +1033,8 @@ struct ParityModelsTests {
         
         // We added:
         // 1. User comment: "@Alessandro Romano I was just toying..."
-        // 2. Simulated NPC response
-        #expect(updatedItem.comments.count == originalCommentCount + 2)
+        // 2. Simulated NPC response (and potentially a second response in a row if user beats NPC)
+        #expect(updatedItem.comments.count >= originalCommentCount + 2)
         
         let npcResponse = updatedItem.comments[originalCommentCount + 1]
         
@@ -1167,7 +1167,7 @@ struct ParityModelsTests {
 
     @Test("Verify that when player beats an NPC and the NPC responds with behind, a second reply in a row is added")
     func testSecondReplyInARowWhenNPCBehind() async throws {
-        MockSocialService.bypassFeedCache = true
+        MockSocialService.bypassFeedCache = false
         MockSocialService.inMemoryFeedOverride = []
         defer {
             MockSocialService.bypassFeedCache = false
@@ -1175,11 +1175,20 @@ struct ParityModelsTests {
         }
         
         let service = MockSocialService()
-        let feed = try await service.feed()
-        var item = feed[0]
         
         // Setup item to have a milestone topic and a base comment
-        item.message = "Just reached milestone 173am!"
+        var item = SocialFeedItem(
+            authorName: "Andrew Lee",
+            avatarID: "avatar-1",
+            createdAt: Date().addingTimeInterval(-3600),
+            message: "Just reached milestone 173am!",
+            statText: "milestone",
+            reactionCount: 0,
+            isHearted: false,
+            commentCount: 1,
+            comments: [],
+            reactionTimestamps: nil
+        )
         let baseComment = SocialFeedComment(
             authorName: "EnigmaEra765829",
             avatarID: "avatar-1",
@@ -1201,13 +1210,14 @@ struct ParityModelsTests {
                 text: "@EnigmaEra765829 Lagging at 173am? I'm coasting at 346am."
             )
             
-            let updatedFeed = try await service.feed()
-            let updatedItem = updatedFeed[0]
+            guard let updatedItem = MockSocialService.inMemoryFeedOverride?.first else {
+                continue
+            }
             
             // Check if a second reply was posted in a row by EnigmaEra765829
-            if updatedItem.comments.count >= 3 {
-                let firstReply = updatedItem.comments[1]
-                let secondReply = updatedItem.comments[2]
+            if updatedItem.comments.count >= 4 {
+                let firstReply = updatedItem.comments[2]
+                let secondReply = updatedItem.comments[3]
                 if firstReply.authorName == "EnigmaEra765829" && secondReply.authorName == "EnigmaEra765829" {
                     secondReplyFound = true
                     // Assert second reply has the updated milestone
