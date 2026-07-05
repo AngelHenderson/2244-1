@@ -935,6 +935,47 @@ struct ParityModelsTests {
         defaults.removeObject(forKey: MockSocialService.userPostsKey)
         defaults.removeObject(forKey: "socialFeed.lastViewedDate")
     }
+
+    @Test("Verify post weighting at HOF (76% HOF, 15% Time, 9% Streak, 0% Milestone)")
+    func testHOFPostWeighting() async throws {
+        let defaults = UserDefaults.standard
+        MockSocialService.clearFileStorageForTests()
+        defaults.removeObject(forKey: MockSocialService.feedDateKey)
+        
+        MockSocialService.isPlayerAtHOFOverride = true
+        
+        let service = MockSocialService()
+        let feed = try await service.feed()
+        #expect(!feed.isEmpty)
+        
+        var hofCount = 0
+        var streakCount = 0
+        var timeCount = 0
+        var milestoneCount = 0
+        
+        for item in feed {
+            let stat = item.statText.lowercased()
+            if stat.contains("hall of fame") || stat.contains("infinity") {
+                hofCount += 1
+            } else if stat.contains("streak") {
+                streakCount += 1
+            } else if stat.contains("timed") || stat.contains("speed") || stat.contains("challenge") {
+                timeCount += 1
+            } else {
+                milestoneCount += 1
+            }
+        }
+        
+        // With 25 posts, we should expect 0 milestone posts.
+        #expect(milestoneCount == 0, "Expected 0 milestone posts at HOF, but got \(milestoneCount)")
+        // Since HOF is 76%, at least some HOF posts should exist.
+        #expect(hofCount > 0, "Expected HOF posts to be generated")
+        
+        // Clean up
+        MockSocialService.isPlayerAtHOFOverride = nil
+        MockSocialService.clearFileStorageForTests()
+        defaults.removeObject(forKey: MockSocialService.feedDateKey)
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {

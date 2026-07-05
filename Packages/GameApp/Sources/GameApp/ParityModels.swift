@@ -2178,17 +2178,41 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
     
+    #if DEBUG
+    public nonisolated(unsafe) static var isPlayerAtHOFOverride: Bool? = nil
+    #endif
+
+    private static var isPlayerAtHOF: Bool {
+        #if DEBUG
+        if let over = isPlayerAtHOFOverride {
+            return over
+        }
+        #endif
+        let step = UserDefaults.standard.integer(forKey: "currentHighestTileStep")
+        return step >= 817
+    }
+
     private func generateDynamicEvent(milestone: String) -> (message: String, statText: String) {
         let rand = Double.random(in: 0..<100)
         let eventType: Int
-        if rand < 34.9 {
-            eventType = 1 // Time (34.9%)
-        } else if rand < 70.0 {
-            eventType = 0 // Milestones (35.1%)
-        } else if rand < 85.0 {
-            eventType = 2 // Streaks (15%)
+        if Self.isPlayerAtHOF {
+            if rand < 76.0 {
+                eventType = 3 // HOF (76%)
+            } else if rand < 85.0 {
+                eventType = 2 // Streaks (9%)
+            } else {
+                eventType = 1 // Time (15%)
+            }
         } else {
-            eventType = 3 // HOF (15%)
+            if rand < 34.9 {
+                eventType = 1 // Time (34.9%)
+            } else if rand < 70.0 {
+                eventType = 0 // Milestones (35.1%)
+            } else if rand < 85.0 {
+                eventType = 2 // Streaks (15%)
+            } else {
+                eventType = 3 // HOF (15%)
+            }
         }
         switch eventType {
         case 0:
@@ -2768,7 +2792,8 @@ public struct MockSocialService: SocialService, Sendable {
         
         if tone == "competitive" || tone == "behind_competitive" {
             let forceBehind = (tone == "behind_competitive")
-            if forceBehind || Double.random(in: 0...1) < 0.45 {
+            let isLostEvent = msgLower.contains("ran out") || msgLower.contains("no moves") || msgLower.contains("game over") || msgLower.contains("stuck") || msgLower.contains("lost my run") || msgLower.contains("died") || msgLower.contains("broke") || msgLower.contains("reset")
+            if (forceBehind || Double.random(in: 0...1) < 0.45) && !isLostEvent {
                 // ── Behind (45% of competitive) — with behind opener and closer ──
                 let compBehindOpeners = [
                     "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
@@ -2797,6 +2822,7 @@ public struct MockSocialService: SocialService, Sendable {
                 comment = result.0
                 nameOverride = result.1
                 generatedVal = result.2
+                tone = "competitive"
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let openersWithWeights: [(String, Double)] = [
@@ -3025,7 +3051,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
                     return (templates[idx], higherName, String(myDays))
                 }
-            } else if message.contains("lost") || message.contains("broke") || message.contains("reset") {
+            } else if lowered.contains("lost") || lowered.contains("broke") || lowered.contains("reset") {
                 let myDays = Int.random(in: 15...45)
                 let templates = [
                     "You just lost your streak? I'm already at \(myDays) days.",
@@ -3183,7 +3209,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if let originalIdx = Self.allMilestones.firstIndex(of: m) {
                 let isLowMilestone = false
                 let oneMIndex = Self.allMilestones.firstIndex(of: "1M") ?? 0
-                if originalIdx >= oneMIndex && (message.contains("ran out") || message.contains("no moves") || message.contains("game over") || message.contains("stuck") || message.contains("lost my run") || message.contains("died")) {
+                if originalIdx >= oneMIndex && (lowered.contains("ran out") || lowered.contains("no moves") || lowered.contains("game over") || lowered.contains("stuck") || lowered.contains("lost my run") || lowered.contains("died")) {
                     let remaining = Self.allMilestones.count - 1 - originalIdx
                     let maxJump = min(10, remaining)
                     let jump = Int.random(in: min(1, maxJump)...maxJump)
@@ -3927,7 +3953,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I am comfortably ahead.")
                     replies.append("I am safely ahead.")
                     replies.append("I am already far ahead.")
-                    replies.append("Stop looking up at my stats, it's embarrassing.")
+                    replies.append("Looking at my stats is as close to the top as you'll ever get.")
                     replies.append("You're not even in the same league as me.")
                     replies.append("Keep trying, maybe in another lifetime you'll catch up.")
                     replies.append("I'm playing a completely different game than you.")
