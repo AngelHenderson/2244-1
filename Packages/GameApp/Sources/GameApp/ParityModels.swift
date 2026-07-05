@@ -1320,8 +1320,8 @@ public struct MockSocialService: SocialService, Sendable {
             let newComment = SocialFeedComment(authorName: playerName, avatarID: playerAvatar, text: text, createdAt: replyDate)
             item.comments.append(newComment)
             
-            let delay = Double.random(in: 60...300)
-            let responseTime = now.addingTimeInterval(delay)
+            let delay = Double.random(in: 45...180)
+            let responseTime = replyDate.addingTimeInterval(delay)
             
             let responderName: String
             let responderIndex = Int.random(in: 1...100000)
@@ -1415,7 +1415,7 @@ public struct MockSocialService: SocialService, Sendable {
                             speakerValue: finalNPCValue,
                             opponentValue: playerVal
                         )
-                        let secondResponseTime = responseTime.addingTimeInterval(Double.random(in: 45...75))
+                        let secondResponseTime = responseTime.addingTimeInterval(Double.random(in: 30...60))
                         let secondComment = SocialFeedComment(
                             authorName: responderName,
                             avatarID: responderAvatar,
@@ -4134,7 +4134,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
                         "You're acting like \(cM.name) is a big deal? I easily passed \(rM.name).",
                         "Only at \(cM.name)? I'm laughing from \(rM.name).",
-                        "I left \(cM.name) in the dust a long time ago. \(rM.name) is my new floor."
+                        "I left \(cM.name) in the dust. \(rM.name) is my new floor."
                     ])
                 } else if rootIsJealous, let cM = commentMilestone {
                     let higherM: String

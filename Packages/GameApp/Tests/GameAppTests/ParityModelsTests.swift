@@ -1036,7 +1036,21 @@ struct ParityModelsTests {
         // 2. Simulated NPC response (and potentially a second response in a row if user beats NPC)
         #expect(updatedItem.comments.count >= originalCommentCount + 2)
         
-        let npcResponse = updatedItem.comments[originalCommentCount + 1]
+        guard let playerComment = updatedItem.comments.first(where: {
+            $0.text.contains("Alessandro Romano") && ($0.authorName == "Player" || $0.authorName == defaults.string(forKey: "profilePlayerName"))
+        }) else {
+            #expect(Bool(false), "Could not find player comment in updated comments")
+            MockSocialService.inMemoryFeedOverride = nil
+            return
+        }
+        
+        guard let npcResponse = updatedItem.comments.first(where: {
+            $0.authorName == "Alessandro Romano" && $0.createdAt > playerComment.createdAt
+        }) else {
+            #expect(Bool(false), "Could not find Alessandro Romano's reply in updated comments")
+            MockSocialService.inMemoryFeedOverride = nil
+            return
+        }
         
         #expect(npcResponse.authorName == "Alessandro Romano", "Expected NPC response author name to match the target comment author name")
         #expect(npcResponse.text.contains("676al"), "Expected NPC response to keep the milestone 676al, but got: \(npcResponse.text)")
