@@ -137,7 +137,7 @@ extension MockSocialService {
             case 1:
                 let weightedReplies: [(String, Double)] = [
                     ("Only at \(lower) days? I easily reached \(higher) days.", 3.0),
-                    ("You think \(lower) days is a big streak? I'm already coasting at \(higher) days.", 0.6),
+                    ("You think \(lower) days is a long streak? I'm already coasting at \(higher) days.", 0.6),
                     ("Your \(lower) days is a joke. You'll never catch my \(higher) days.", 9.9),
                     ("I easily bypassed \(lower) days and hit \(higher) days.", 0.1),
                     ("I'm laughing from \(higher) days while you're still at \(lower) days.", 3.5),
