@@ -585,8 +585,9 @@ public struct SocialFeedView: View {
     }
 
     private func load() async {
-        isLoading = true
-        defer { isLoading = false }
+        let showLoading = items.isEmpty
+        if showLoading { isLoading = true }
+        defer { if showLoading { isLoading = false } }
         do {
             items = try await socialService.feed()
             errorMessage = nil
