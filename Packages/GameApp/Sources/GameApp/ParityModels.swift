@@ -3194,7 +3194,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Stuck at \(m)? I left that in the dust. I'm sitting at \(localHigherM).",
                         "Couldn't even get past \(m)? Stay down there. I'm already pushing \(localHigherM).",
                         "Dead end? Your skill is a joke. I'm dominating with \(localHigherM).",
-                        "Failing at \(m) is sad. I'm comfortably sitting at \(localHigherM)."
+                        "Imagine stopping at \(m). I'm comfortably sitting at \(localHigherM)."
                     ]
                     let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_milestone_lost", count: templates.count)
@@ -3927,7 +3927,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I am comfortably ahead.")
                     replies.append("I am safely ahead.")
                     replies.append("I am already far ahead.")
-                    replies.append("Stop looking up at my stats, it'll only make you sad.")
+                    replies.append("Stop looking up at my stats, it's embarrassing.")
                     replies.append("You're not even in the same league as me.")
                     replies.append("Keep trying, maybe in another lifetime you'll catch up.")
                     replies.append("I'm playing a completely different game than you.")

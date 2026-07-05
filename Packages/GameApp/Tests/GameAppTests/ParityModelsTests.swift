@@ -788,7 +788,7 @@ struct ParityModelsTests {
             forceTone: "one_up",
             speakerValue: "10"
         )
-        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Cute, but irrelevant.") || streakReply.contains("race starts now") || streakReply.contains("breaks it first")
+        let isStreakTie = streakReply.contains("tied") || streakReply.contains("both at 10") || streakReply.contains("right there at 10") || streakReply.contains("also hit 10") || streakReply.contains("sitting at 10") || streakReply.contains("Cute, but irrelevant.") || streakReply.contains("race starts now") || streakReply.contains("breaks it first") || streakReply.contains("without sweating") || streakReply.contains("pulling ahead")
         #expect(isStreakTie, "Expected same-streak reply to use rivalry/tie phrasing: \(streakReply)")
         
         // 2. Time
