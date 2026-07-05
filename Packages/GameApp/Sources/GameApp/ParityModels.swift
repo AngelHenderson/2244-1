@@ -1495,7 +1495,8 @@ public struct MockSocialService: SocialService, Sendable {
                 var npc2: (name: String, avatar: String)? = nil
                 
                 let topic = Self.determineTopic(message: message)
-                let rootValue = Self.extractValue(from: message, topic: topic)
+                let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
+                let rootValue = isRootStreakLoss ? "0" : Self.extractValue(from: message, topic: topic)
                 var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                 var npc2Value: String? = nil
                 
@@ -1891,7 +1892,8 @@ public struct MockSocialService: SocialService, Sendable {
                     var npc2: (name: String, avatar: String)? = nil
                     
                     let topic = Self.determineTopic(message: message)
-                    let rootValue = Self.extractValue(from: message, topic: topic)
+                    let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
+                    let rootValue = isRootStreakLoss ? "0" : Self.extractValue(from: message, topic: topic)
                     var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                     var npc2Value: String? = nil
                     
@@ -3530,6 +3532,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 return num
             }
             let topic = Self.determineTopic(message: message)
+            let isCommentStreakLoss = topic == "streak" && (commentText.lowercased().contains("lost") || commentText.lowercased().contains("dropped") || commentText.lowercased().contains("reset") || commentText.lowercased().contains("forgot") || commentText.lowercased().contains("dead") || commentText.lowercased().contains("failed") || commentText.lowercased().contains("broke"))
+            if isCommentStreakLoss {
+                return 0
+            }
             let queryTopic: String?
             if topic == "streak" {
                 queryTopic = "streak"
@@ -3558,6 +3564,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }()
 
         let rootNumber: Int? = {
+            let topic = Self.determineTopic(message: message)
+            let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
+            if isRootStreakLoss {
+                return 0
+            }
             let regex = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})(?:d|day|days)?\\b(?!:)", options: [])
             let range = NSRange(message.startIndex..., in: message)
             if let matches = regex?.matches(in: message, range: range) {

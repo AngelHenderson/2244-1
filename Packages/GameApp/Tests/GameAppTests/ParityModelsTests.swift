@@ -1139,6 +1139,31 @@ struct ParityModelsTests {
         let matched = expectedSubstrings.contains { reply.lowercased().contains($0.lowercased()) }
         #expect(matched, "Expected reply to be a streak-loss comment mock, but got: \(reply)")
     }
+
+    @Test("Verify that a user who lost their streak does not brag about their lost streak value in subsequent replies")
+    func testLostStreakValueDoesNotLinger() async throws {
+        let service = MockSocialService()
+        
+        let rootPost = "Nooo! I forgot to play yesterday and lost my 207-day streak."
+        
+        // GilbertGladiator says: "Now my 36 days is higher than your 0!"
+        // Then ReputationRuler236919 replies. GilbertGladiator is the opponent with 36 days, 
+        // and ReputationRuler236919 (the speaker) has 0 days.
+        let reply = service.generateContextualReply(
+            to: "Now my 36 days is higher than your 0!",
+            message: rootPost,
+            forceTone: "behind",
+            speakerValue: "0",
+            opponentValue: "36"
+        )
+        
+        // Assert that the reply does NOT contain "207" because the speaker has 0 days now!
+        #expect(!reply.contains("207"), "Expected reply not to claim they still have 207 days, but got: \(reply)")
+        // Since they have 0 days and the tone is behind, they should say they will catch up or reset
+        let expectedKeywords = ["catch", "reset", "lost", "0"]
+        let matched = expectedKeywords.contains { reply.lowercased().contains($0) }
+        #expect(matched, "Expected reply to indicate a catch up or reset state, but got: \(reply)")
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
