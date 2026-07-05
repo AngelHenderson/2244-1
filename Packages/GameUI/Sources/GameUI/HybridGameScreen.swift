@@ -1483,12 +1483,15 @@ struct DailyQuestStatusRow: View {
         return .cyan
     }
 
-    private var progressText: String {
+    private var progressText: String? {
         if quest.claimed {
             return "Claimed"
         }
         if quest.isClaimable {
             return "Ready"
+        }
+        if quest.id == "daily_tile_reach" && dailyQuestStore.tileQuestTargetStep > 0 {
+            return nil
         }
         let current = CompactNumberFormatter.format(min(quest.current, quest.target))
         let target = CompactNumberFormatter.format(quest.target)
@@ -1513,11 +1516,13 @@ struct DailyQuestStatusRow: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
                     Spacer(minLength: 4)
-                    Text(progressText)
-                        .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
-                        .foregroundStyle(quest.isClaimable ? .green : .white.opacity(0.74))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
+                    if let progressText {
+                        Text(progressText)
+                            .font(.avenirNext(size: GameFonts.caption2Size, weight: .heavy))
+                            .foregroundStyle(quest.isClaimable ? .green : .white.opacity(0.74))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                    }
                 }
 
                 if quest.id == "daily_tile_reach" && dailyQuestStore.tileQuestTargetStep > 0 {
