@@ -2328,72 +2328,95 @@ public struct MockSocialService: SocialService, Sendable {
             return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
         case 2:
-            // Protected a streak
+            // Protected (65%) or Lost (35%) streak
             let streakDays = Int.random(in: 3...365)
+            let isLost = Double.random(in: 0...1) < 0.35
             
-            let openers = [
-                "Protected", "Saved", "Kept alive", "Defended",
-                "Extended", "Preserved", "Secured", "Maintained",
-                "Continued", "Locked in",
-            ]
-            let streakPhrase = [
-                "a \(streakDays)-day streak", "the \(streakDays)-day streak",
-                "my \(streakDays)-day streak", "day \(streakDays) of the streak",
-                "streak day \(streakDays)", "a \(streakDays)d streak",
-                "\(streakDays) days straight", "\(streakDays) consecutive days",
-                "the streak at \(streakDays) days", "\(streakDays) days running",
-            ]
-            let closers: [String]
-            if streakDays >= 100 {
-                closers = [
-                    "!", " — legendary status!",
-                    ". \(streakDays) and counting!", ". This streak is untouchable.",
-                    ". Can't stop now.", ". \(streakDays) days deep!",
-                    ". Built different.", " — no breaks, no excuses.",
-                    ". The grind never stops.", ". Still going strong.",
+            if isLost {
+                let templates = [
+                    "I just lost my streak today. I'm all the way down to 0 days.",
+                    "Dropped my streak today, down to 0 days.",
+                    "Nooo! I forgot to play yesterday and lost my \(streakDays)-day streak.",
+                    "My \(streakDays)-day streak is gone. Back to 0 days.",
+                    "Consistency failed. Lost my \(streakDays) day streak.",
+                    "Forgot to save my streak. Back to square one.",
+                    "Streak reset to 0. It was a good run.",
+                    "Woke up to a dead streak. Back to 0."
                 ]
-            } else if streakDays >= 30 {
-                closers = [
-                    "!", ". Dedicated!",
-                    ". A whole month and beyond!", ". Consistency pays off.",
-                    " — keeping the fire alive!", ". Not stopping now.",
-                    ". This streak means everything.", ". Locked in.",
-                    ". Steady progress!", ". Day by day.",
+                let statEmojis = ["flame", "xmark.circle", "calendar", "exclamationmark.triangle"]
+                let statLabels = [
+                    "Streak lost · 0 days",
+                    "Streak reset · 0",
+                    "Streak lost · \(streakDays)d gone",
+                    "Reset · 0 days",
+                    "Streak ended · \(streakDays)d"
                 ]
+                return (templates.randomElement()!, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             } else {
-                closers = [
-                    "!", ". Every day counts!",
-                    ". Almost forgot today.", " — close call!",
-                    ". Building momentum!", ". Played at 11:58 PM to save it.",
-                    ".", ". Not losing this one.",
-                    ". The habit is forming!", ". Streak: protected.",
+                let openers = [
+                    "Protected", "Saved", "Kept alive", "Defended",
+                    "Extended", "Preserved", "Secured", "Maintained",
+                    "Continued", "Locked in",
                 ]
+                let streakPhrase = [
+                    "a \(streakDays)-day streak", "the \(streakDays)-day streak",
+                    "my \(streakDays)-day streak", "day \(streakDays) of the streak",
+                    "streak day \(streakDays)", "a \(streakDays)d streak",
+                    "\(streakDays) days straight", "\(streakDays) consecutive days",
+                    "the streak at \(streakDays) days", "\(streakDays) days running",
+                ]
+                let closers: [String]
+                if streakDays >= 100 {
+                    closers = [
+                        "!", " — legendary status!",
+                        ". \(streakDays) and counting!", ". This streak is untouchable.",
+                        ". Can't stop now.", ". \(streakDays) days deep!",
+                        ". Built different.", " — no breaks, no excuses.",
+                        ". The grind never stops.", ". Still going strong.",
+                    ]
+                } else if streakDays >= 30 {
+                    closers = [
+                        "!", ". Dedicated!",
+                        ". A whole month and beyond!", ". Consistency pays off.",
+                        " — keeping the fire alive!", ". Not stopping now.",
+                        ". This streak means everything.", ". Locked in.",
+                        ". Steady progress!", ". Day by day.",
+                    ]
+                } else {
+                    closers = [
+                        "!", ". Every day counts!",
+                        ". Almost forgot today.", " — close call!",
+                        ". Building momentum!", ". Played at 11:58 PM to save it.",
+                        ".", ". Not losing this one.",
+                        ". The habit is forming!", ". Streak: protected.",
+                    ]
+                }
+                
+                let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
+                
+                let statEmojis = ["flame", "shield", "calendar", "suit.diamond.fill", "star", "infinity", "checkmark.circle"]
+                let statLabels: [String]
+                if streakDays >= 100 {
+                    statLabels = [
+                        "\(streakDays)-day streak · Legend", "Streak protected · \(streakDays) days",
+                        "Streak · \(streakDays) days", "Streak royalty · \(streakDays)d",
+                        "\(streakDays)d streak · Untouchable", "Streak milestone · \(streakDays)",
+                    ]
+                } else if streakDays >= 30 {
+                    statLabels = [
+                        "\(streakDays)-day streak · Dedicated", "Streak protected · \(streakDays) days",
+                        "Streak · \(streakDays) days", "\(streakDays)d streak · Committed",
+                        "Streak milestone · \(streakDays)", "Daily streak · \(streakDays)d",
+                    ]
+                } else {
+                    statLabels = [
+                        "\(streakDays)-day streak", "Streak protected · Day \(streakDays)",
+                        "Streak · \(streakDays) days", "Day \(streakDays) · Saved",
+                        "Streak alive · \(streakDays)d", "Daily streak · \(streakDays)",
+                    ]
+                }
+                return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             }
-            
-            let message = "\(openers.randomElement()!) \(streakPhrase.randomElement()!)\(closers.randomElement()!)"
-            
-            let statEmojis = ["flame", "shield", "calendar", "suit.diamond.fill", "star", "infinity", "checkmark.circle"]
-            let statLabels: [String]
-            if streakDays >= 100 {
-                statLabels = [
-                    "\(streakDays)-day streak · Legend", "Streak protected · \(streakDays) days",
-                    "Streak · \(streakDays) days", "Streak royalty · \(streakDays)d",
-                    "\(streakDays)d streak · Untouchable", "Streak milestone · \(streakDays)",
-                ]
-            } else if streakDays >= 30 {
-                statLabels = [
-                    "\(streakDays)-day streak · Dedicated", "Streak protected · \(streakDays) days",
-                    "Streak · \(streakDays) days", "\(streakDays)d streak · Committed",
-                    "Streak milestone · \(streakDays)", "Daily streak · \(streakDays)d",
-                ]
-            } else {
-                statLabels = [
-                    "\(streakDays)-day streak", "Streak protected · Day \(streakDays)",
-                    "Streak · \(streakDays) days", "Day \(streakDays) · Saved",
-                    "Streak alive · \(streakDays)d", "Daily streak · \(streakDays)",
-                ]
-            }
-            return (message, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             
         default:
             // Joined the Hall of Fame
@@ -3029,7 +3052,38 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         // ── Streak posts: extract the day count, brag with a higher one ──
         if topic == "streak" {
-            if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
+            let isLostPost = lowered.contains("lost") || lowered.contains("dropped") || lowered.contains("reset") || lowered.contains("forgot") || lowered.contains("dead") || lowered.contains("failed") || lowered.contains("broke")
+            if isLostPost {
+                let myDays = Int.random(in: 15...120)
+                let cN = 0
+                let templates = [
+                    "You just lost your streak? I'm already at \(myDays) days.",
+                    "Your streak is dead. My \(myDays) days keep going.",
+                    "Lost your streak? Pathetic. I'm sitting at \(myDays) days.",
+                    "Couldn't even keep it going? I'm comfortably at \(myDays) days.",
+                    "Back to 0? I'm dominating with \(myDays) days.",
+                    "While you restart, I'm already pushing \(myDays) days.",
+                    "Lost your streak? Typical. I'm already at \(myDays) days.",
+                    "Back to \(cN) days? Don't even try to catch my \(myDays) days.",
+                    "Dropping your streak is pathetic. I'm sitting comfortably at \(myDays) days.",
+                    "I'm at \(myDays) days and you're down to \(cN). We are not the same.",
+                    "Can't even hold a streak? I'm untouched at \(myDays) days.",
+                    "Imagine dropping to \(cN) days. I'm already at \(myDays) days.",
+                    "Down to \(cN)? My \(myDays) days will always be ahead.",
+                    "I told you your streak would die as well. Now my \(myDays) days is higher!",
+                    "I told you that you'd lose your streak as well. Now my streak is higher than yours!",
+                    "I told you you'd lose your streak too. Now my \(myDays) days is higher than your \(cN)!",
+                    "Called it! I told you your streak would die too. Now my \(myDays) days dominates yours.",
+                    "Look at that, your streak died just like mine did. But my \(myDays) days is already higher.",
+                    "You actually thought you'd keep it? Now my \(myDays) days is higher anyway!",
+                    "Didn't I say your streak would break too? Now my \(myDays) day streak is higher than yours.",
+                    "Told you you'd drop it. Now my \(myDays) days is higher than your pathetic \(cN) days!",
+                    "Your streak died just like I predicted. Now my \(myDays) days sits higher than yours.",
+                    "I told you that consistency would break. Now my \(myDays) days completely buries your \(cN) days."
+                ]
+                let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak_lost", count: templates.count)
+                return (templates[idx], higherName, String(myDays))
+            } else if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
                 let isLowStreak = false
                 if isLowStreak && streakDays > 1 {
                     let jump = Int.random(in: 1...max(5, streakDays / 2))
@@ -3078,18 +3132,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
                     return (templates[idx], higherName, String(myDays))
                 }
-            } else if lowered.contains("lost") || lowered.contains("broke") || lowered.contains("reset") {
-                let myDays = Int.random(in: 15...45)
-                let templates = [
-                    "You just lost your streak? I'm already at \(myDays) days.",
-                    "Your streak is dead. My \(myDays) days keep going.",
-                    "Lost your streak? Pathetic. I'm sitting at \(myDays) days.",
-                    "Couldn't even keep it going? I'm comfortably at \(myDays) days.",
-                    "Back to 0? I'm dominating with \(myDays) days.",
-                    "While you restart, I'm already pushing \(myDays) days."
-                ]
-                let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak_lost", count: templates.count)
-                return (templates[idx], higherName, String(myDays))
             }
         }
 

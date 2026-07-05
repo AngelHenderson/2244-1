@@ -1112,6 +1112,26 @@ struct ParityModelsTests {
         
         #expect(matched, "Expected reply to eventually select one of the new prediction brag variants")
     }
+
+    @Test("Verify that streak-loss events are generated and generate appropriate comments")
+    func testStreakLossEvents() async throws {
+        let service = MockSocialService()
+        
+        let commentText = "Dropped my streak today, down to 0 days."
+        let message = "Kept the streak alive at 35 days."
+        
+        let reply = service.generateContextualReply(
+            to: commentText,
+            message: message,
+            forceTone: "one_up",
+            speakerValue: "15",
+            opponentValue: "0"
+        )
+        
+        // Assert that the reply contains "15" (the speaker's value) and indicates a streak context
+        let matched = reply.contains("15") && (reply.lowercased().contains("streak") || reply.lowercased().contains("days") || reply.lowercased().contains("day"))
+        #expect(matched, "Expected reply to be a streak-loss comment mock containing speaker's value, but got: \(reply)")
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
