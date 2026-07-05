@@ -1088,7 +1088,7 @@ struct ParityModelsTests {
             "Now my 5 days is higher than your 0",
             "Now my 5 days dominates yours",
             "But my 5 days is already higher",
-            "Now my 5 days is ahead of yours",
+            "Now my 5 days is higher anyway",
             "Now my 5 day streak is higher than yours",
             "Now my 5 days is higher than your pathetic 0 days",
             "Now my 5 days sits higher than yours",
