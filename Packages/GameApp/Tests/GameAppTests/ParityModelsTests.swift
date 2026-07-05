@@ -954,7 +954,13 @@ struct ParityModelsTests {
         var timeCount = 0
         var milestoneCount = 0
         
+        let userDisplayName = defaults.string(forKey: "player.displayName") ?? "Player"
+        let userProfileName = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        
         for item in feed {
+            if item.authorName == "Player" || item.authorName == userDisplayName || item.authorName == userProfileName {
+                continue
+            }
             let msg = item.message.lowercased()
             let stat = item.statText.lowercased()
             
@@ -983,6 +989,128 @@ struct ParityModelsTests {
         MockSocialService.bypassFeedCache = false
         MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
+    }
+
+    @Test("Verify user replies to comments with name spaces are parsed correctly and do not lower milestones")
+    func testAddCommentMentionWithSpaces() async throws {
+        let defaults = UserDefaults.standard
+        MockSocialService.clearFileStorageForTests()
+        defaults.removeObject(forKey: MockSocialService.feedDateKey)
+        
+        let service = MockSocialService()
+        let feed = try await service.feed()
+        #expect(!feed.isEmpty)
+        
+        // Find a competitive milestone post to test on
+        guard let itemIndex = feed.firstIndex(where: {
+            $0.message.lowercased().contains("tile") && !$0.comments.isEmpty
+        }) else {
+            return
+        }
+        
+        var item = feed[itemIndex]
+        let originalCommentCount = item.comments.count
+        
+        // Let's force NPC 1 comment author to be "Alessandro Romano" for testing
+        item.comments[0].authorName = "Alessandro Romano"
+        item.comments[0].text = "@Player I left 21al in the dust. 676al is the new standard."
+        
+        // Setup in-memory override to isolate this test from concurrent disk writes/clears
+        var mockFeed = feed
+        mockFeed[itemIndex] = item
+        MockSocialService.inMemoryFeedOverride = mockFeed
+        
+        // Save back
+        try await service.addComment(to: item.id, text: "@Alessandro Romano I was just toying with you. I'm actually at 21am.")
+        
+        // Reload feed and check from raw cache (to bypass future comment filter)
+        guard let updatedFeed = MockSocialService.loadFeedCache(),
+              let updatedItem = updatedFeed.first(where: { $0.id == item.id }) else {
+            #expect(Bool(false), "Could not load feed cache")
+            MockSocialService.inMemoryFeedOverride = nil
+            return
+        }
+        
+        // We added:
+        // 1. User comment: "@Alessandro Romano I was just toying..."
+        // 2. Simulated NPC response
+        #expect(updatedItem.comments.count == originalCommentCount + 2)
+        
+        let npcResponse = updatedItem.comments[originalCommentCount + 1]
+        
+        #expect(npcResponse.authorName == "Alessandro Romano", "Expected NPC response author name to match the target comment author name")
+        #expect(npcResponse.text.contains("676al"), "Expected NPC response to keep the milestone 676al, but got: \(npcResponse.text)")
+        #expect(!npcResponse.text.contains("322aj"), "Expected NPC response to NOT lower milestone to 322aj")
+        
+        // Clean up
+        MockSocialService.inMemoryFeedOverride = nil
+        MockSocialService.clearFileStorageForTests()
+    }
+
+    @Test("Verify low streak replies do not contain the illogical 'will be higher than' templates")
+    func testLowStreakGuard() async throws {
+        let service = MockSocialService()
+        
+        let commentText = "@GilbertGladiator You're bound to lose your 43 day streak."
+        let message = "Kept the streak alive at 35 days."
+        
+        let reply = service.generateContextualReply(
+            to: commentText,
+            message: message,
+            forceTone: "behind",
+            speakerValue: "0",
+            opponentValue: "43"
+        )
+        
+        #expect(!reply.contains("will be higher than"), "Expected reply to NOT contain illogical 'will be higher than' when speaker has 0 days, got: \(reply)")
+        #expect(!reply.contains("0 days will be higher"), "Expected reply to NOT contain '0 days will be higher, got: \(reply)")
+        
+        let reply2 = service.generateContextualReply(
+            to: commentText,
+            message: message,
+            forceTone: "behind",
+            speakerValue: "2",
+            opponentValue: "43"
+        )
+        #expect(!reply2.contains("will be higher than"), "Expected reply to NOT contain illogical 'will be higher than' when speaker has 2 days, got: \(reply2)")
+    }
+
+    @Test("Verify that when both have low streaks and speaker is higher, we can get 'lose your streak as well' responses")
+    func testOpponentLosesStreakReply() async throws {
+        let service = MockSocialService()
+        
+        let commentText = "@GilbertGladiator Dropped my streak today, down to 0 days."
+        let message = "Kept the streak alive at 35 days."
+        
+        let expectedSubstrings = [
+            "Now my 5 days is higher",
+            "Now my streak is higher than yours",
+            "Now my 5 days is higher than your 0",
+            "Now my 5 days dominates yours",
+            "But my 5 days is already higher",
+            "Now my 5 days is ahead of yours",
+            "Now my 5 day streak is higher than yours",
+            "Now my 5 days is higher than your pathetic 0 days",
+            "Now my 5 days sits higher than yours",
+            "Now my 5 days completely buries your 0 days"
+        ]
+        
+        var matched = false
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(
+                to: commentText,
+                message: message,
+                forceTone: "one_up",
+                speakerValue: "5",
+                opponentValue: "0"
+            )
+            if expectedSubstrings.contains(where: { reply.contains($0) }) {
+                matched = true
+                break
+            }
+        }
+        
+        #expect(matched, "Expected reply to eventually select one of the new prediction brag variants")
     }
 }
 

@@ -1162,6 +1162,7 @@ public struct MockSocialService: SocialService, Sendable {
 
     
     #if DEBUG
+    public static var feedCacheURLForTests: URL { feedCacheURL }
     public static func clearFileStorageForTests() {
         try? FileManager.default.removeItem(at: userPostsURL)
         try? FileManager.default.removeItem(at: feedCacheURL)
@@ -1189,11 +1190,22 @@ public struct MockSocialService: SocialService, Sendable {
     }
     
     public static func loadFeedCache() -> [SocialFeedItem]? {
+        #if DEBUG
+        if let override = inMemoryFeedOverride {
+            return override
+        }
+        #endif
         guard let data = try? Data(contentsOf: feedCacheURL) else { return nil }
         return try? JSONDecoder().decode([SocialFeedItem].self, from: data)
     }
     
     private static func saveFeedCache(_ feed: [SocialFeedItem]) {
+        #if DEBUG
+        if inMemoryFeedOverride != nil {
+            inMemoryFeedOverride = feed
+            return
+        }
+        #endif
         if let data = try? JSONEncoder().encode(feed) {
             try? data.write(to: feedCacheURL, options: .atomic)
         }
@@ -1281,13 +1293,12 @@ public struct MockSocialService: SocialService, Sendable {
             var replyDate = now
             var targetComment: SocialFeedComment? = nil
             if text.hasPrefix("@") {
-                let parts = text.split(separator: " ")
-                if let first = parts.first {
-                    let targetName = String(first.dropFirst())
-                    targetComment = item.comments.last(where: { $0.authorName == targetName })
-                    if let tC = targetComment {
-                        replyDate = tC.createdAt.addingTimeInterval(1)
-                    }
+                let mentionContent = String(text.dropFirst())
+                targetComment = item.comments.last(where: { comment in
+                    mentionContent.hasPrefix(comment.authorName)
+                })
+                if let tC = targetComment {
+                    replyDate = tC.createdAt.addingTimeInterval(1)
                 }
             }
             
@@ -1301,11 +1312,15 @@ public struct MockSocialService: SocialService, Sendable {
             let responderIndex = Int.random(in: 1...100000)
             let responderAvatar: String
             if text.hasPrefix("@") {
-                let parts = text.split(separator: " ")
-                if let first = parts.first {
-                    responderName = String(first.dropFirst())
+                if let tC = targetComment {
+                    responderName = tC.authorName
                 } else {
-                    responderName = generateDynamicName()
+                    let parts = text.split(separator: " ")
+                    if let first = parts.first {
+                        responderName = String(first.dropFirst())
+                    } else {
+                        responderName = generateDynamicName()
+                    }
                 }
                 responderAvatar = targetComment?.avatarID ?? Self.avatarForPlayer(index: responderIndex, countrySeed: 0, day: Self.daysSinceReference)
             } else {
@@ -1507,7 +1522,8 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     if isNpc2Turn {
                         if let oldVal = npc2Value {
-                            if Double.random(in: 0...1) < 0.5 && topic != "streak" {
+                            let isTied = (npc1Value == oldVal)
+                            if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
                                 npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
                             }
                         } else if let n1Val = npc1Value {
@@ -1548,7 +1564,8 @@ public struct MockSocialService: SocialService, Sendable {
                         currentDepth += 1
                     } else {
                         if let oldVal = npc1Value {
-                            if Double.random(in: 0...1) < 0.5 && topic != "streak" {
+                            let isTied = (npc2Value == oldVal)
+                            if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
                                 npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
                             }
                         } else if let n2Val = npc2Value {
@@ -1907,7 +1924,8 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if isNpc2Turn {
                             if let oldVal = npc2Value {
-                                if Double.random(in: 0...1) < 0.5 && topic != "streak" {
+                                let isTied = (npc1Value == oldVal)
+                                if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
                                     npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
                                 }
                             } else if let n1Val = npc1Value {
@@ -1948,7 +1966,8 @@ public struct MockSocialService: SocialService, Sendable {
                             currentDepth += 1
                         } else {
                             if let oldVal = npc1Value {
-                                if Double.random(in: 0...1) < 0.5 && topic != "streak" {
+                                let isTied = (npc2Value == oldVal)
+                                if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
                                     npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
                                 }
                             } else if let n2Val = npc2Value {
@@ -2187,6 +2206,7 @@ public struct MockSocialService: SocialService, Sendable {
     #if DEBUG
     public nonisolated(unsafe) static var isPlayerAtHOFOverride: Bool? = nil
     public nonisolated(unsafe) static var bypassFeedCache: Bool = false
+    public nonisolated(unsafe) static var inMemoryFeedOverride: [SocialFeedItem]? = nil
     #endif
 
     private static var isPlayerAtHOF: Bool {
@@ -4149,17 +4169,39 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I also hit \(higherNum) days. Cute, but irrelevant."
                             ])
                         } else {
-                            replies.append(contentsOf: [
-                                "I've been consistent longer. I'm comfortably sitting at \(higherNum) days.",
-                                "Your \(cN) days is cute. I'm at \(higherNum) days and you'll never close the gap.",
-                                "My infinite consistency is at \(higherNum) days. \(cN) is a joke.",
-                                "You'll never touch my \(higherNum) days. Time is on my side.",
-                                "I'm at \(higherNum) days. You can't just skip ahead to catch me.",
-                                "You're bragging about \(cN) days? I've been doing this for \(higherNum).",
-                                "Your \(cN) days is a joke compared to my \(higherNum).",
-                                "I reached \(higherNum) days through pure dedication.",
-                                "You are no threat. I'm sitting comfortably at \(higherNum) days."
-                            ])
+                            if cN <= 2 {
+                                replies.append(contentsOf: [
+                                    "Lost your streak? Typical. I'm already at \(higherNum) days.",
+                                    "Back to \(cN) days? Don't even try to catch my \(higherNum) days.",
+                                    "Dropping your streak is pathetic. I'm sitting comfortably at \(higherNum) days.",
+                                    "I'm at \(higherNum) days and you're down to \(cN). We are not the same.",
+                                    "Can't even hold a streak? I'm untouched at \(higherNum) days.",
+                                    "Imagine dropping to \(cN) days. I'm already at \(higherNum) days.",
+                                    "Down to \(cN)? My \(higherNum) days will always be ahead.",
+                                    "I told you your streak would die as well. Now my \(higherNum) days is higher!",
+                                    "I told you that you'd lose your streak as well. Now my streak is higher than yours!",
+                                    "I told you you'd lose your streak too. Now my \(higherNum) days is higher than your \(cN)!",
+                                    "Called it! I told you your streak would die too. Now my \(higherNum) days dominates yours.",
+                                    "Look at that, your streak died just like mine did. But my \(higherNum) days is already higher.",
+                                    "You actually thought you'd keep it? Now my \(higherNum) days is higher anyway!",
+                                    "Didn't I say your streak would break too? Now my \(higherNum) day streak is higher than yours.",
+                                    "Told you you'd drop it. Now my \(higherNum) days is higher than your pathetic \(cN) days!",
+                                    "Your streak died just like I predicted. Now my \(higherNum) days sits higher than yours.",
+                                    "I told you that consistency would break. Now my \(higherNum) days completely buries your \(cN) days."
+                                ])
+                            } else {
+                                replies.append(contentsOf: [
+                                    "I've been consistent longer. I'm comfortably sitting at \(higherNum) days.",
+                                    "Your \(cN) days is cute. I'm at \(higherNum) days and you'll never close the gap.",
+                                    "My infinite consistency is at \(higherNum) days. \(cN) is a joke.",
+                                    "You'll never touch my \(higherNum) days. Time is on my side.",
+                                    "I'm at \(higherNum) days. You can't just skip ahead to catch me.",
+                                    "You're bragging about \(cN) days? I've been doing this for \(higherNum).",
+                                    "Your \(cN) days is a joke compared to my \(higherNum).",
+                                    "I reached \(higherNum) days through pure dedication.",
+                                    "You are no threat. I'm sitting comfortably at \(higherNum) days."
+                                ])
+                            }
                         }
                     } else {
                         let cN = commentNumber ?? num
@@ -4175,13 +4217,23 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             higherNum = min(Self.daysSinceReference, cN + Int.random(in: 5...max(15, cN / 5)))
                         }
                         if higherNum < cN {
-                            replies.append(contentsOf: [
-                                "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
-                                "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
-                                "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
-                                "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
-                                "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine."
-                            ])
+                            if higherNum <= 2 {
+                                replies.append(contentsOf: [
+                                    "I just lost my streak today. I'm all the way down to \(higherNum) days, but you'll lose your \(cN) day streak soon!",
+                                    "My streak died, so I'm down to \(higherNum) days. But your \(cN) days will break before long.",
+                                    "I reset to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "Dropped to \(higherNum) days because I lost my streak. You're bound to lose your \(cN) days too.",
+                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days."
+                                ])
+                            } else {
+                                replies.append(contentsOf: [
+                                    "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
+                                    "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
+                                    "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
+                                    "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine."
+                                ])
+                            }
                         } else if higherNum == cN {
                             replies.append(contentsOf: [
                                 "I'm right there at \(cN) days too. Let's see who breaks it first.",
@@ -4213,7 +4265,17 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                         "I'm at \(higherNum) days and you're down to \(cN). We are not the same.",
                                         "Can't even hold a streak? I'm untouched at \(higherNum) days.",
                                         "Imagine dropping to \(cN) days. I'm already at \(higherNum) days.",
-                                        "Down to \(cN)? My \(higherNum) days will always be ahead."
+                                        "Down to \(cN)? My \(higherNum) days will always be ahead.",
+                                        "I told you your streak would die as well. Now my \(higherNum) days is higher!",
+                                        "I told you that you'd lose your streak as well. Now my streak is higher than yours!",
+                                        "I told you you'd lose your streak too. Now my \(higherNum) days is higher than your \(cN)!",
+                                        "Called it! I told you your streak would die too. Now my \(higherNum) days dominates yours.",
+                                        "Look at that, your streak died just like mine did. But my \(higherNum) days is already higher.",
+                                        "You actually thought you'd keep it? Now my \(higherNum) days is higher anyway!",
+                                        "Didn't I say your streak would break too? Now my \(higherNum) day streak is higher than yours.",
+                                        "Told you you'd drop it. Now my \(higherNum) days is higher than your pathetic \(cN) days!",
+                                        "Your streak died just like I predicted. Now my \(higherNum) days sits higher than yours.",
+                                        "I told you that consistency would break. Now my \(higherNum) days completely buries your \(cN) days."
                                     ])
                                 } else {
                                     replies.append(contentsOf: [
