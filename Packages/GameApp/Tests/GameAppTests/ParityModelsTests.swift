@@ -1160,9 +1160,67 @@ struct ParityModelsTests {
         // Assert that the reply does NOT contain "207" because the speaker has 0 days now!
         #expect(!reply.contains("207"), "Expected reply not to claim they still have 207 days, but got: \(reply)")
         // Since they have 0 days and the tone is behind, they should say they will catch up or reset
-        let expectedKeywords = ["catch", "reset", "lost", "0"]
+        let expectedKeywords = ["catch", "lost", "0"]
         let matched = expectedKeywords.contains { reply.lowercased().contains($0) }
-        #expect(matched, "Expected reply to indicate a catch up or reset state, but got: \(reply)")
+        #expect(matched, "Expected reply to indicate a catch up state, but got: \(reply)")
+    }
+
+    @Test("Verify that when player beats an NPC and the NPC responds with behind, a second reply in a row is added")
+    func testSecondReplyInARowWhenNPCBehind() async throws {
+        let defaults = UserDefaults.standard
+        MockSocialService.bypassFeedCache = true
+        MockSocialService.inMemoryFeedOverride = []
+        defer {
+            MockSocialService.bypassFeedCache = false
+            MockSocialService.inMemoryFeedOverride = nil
+        }
+        
+        let service = MockSocialService()
+        let feed = try await service.feed()
+        var item = feed[0]
+        
+        // Setup item to have a milestone topic and a base comment
+        item.message = "Just reached milestone 173am!"
+        let baseComment = SocialFeedComment(
+            authorName: "EnigmaEra765829",
+            avatarID: "avatar-1",
+            text: "@Player 43am is your ceiling? Try aiming lower. I'm at 173am.",
+            createdAt: Date().addingTimeInterval(-600),
+            likes: 0
+        )
+        item.comments = [baseComment]
+        
+        // Add comment by Player with a much higher milestone
+        // Loop up to 15 times to ensure we get a "behind" reply at least once
+        var secondReplyFound = false
+        for _ in 1...15 {
+            var mutableItem = item
+            MockSocialService.inMemoryFeedOverride = [mutableItem]
+            
+            try await service.addComment(
+                to: item.id,
+                text: "@EnigmaEra765829 Lagging at 173am? I'm coasting at 346am."
+            )
+            
+            let updatedFeed = try await service.feed()
+            let updatedItem = updatedFeed[0]
+            
+            // Check if a second reply was posted in a row by EnigmaEra765829
+            if updatedItem.comments.count >= 3 {
+                let firstReply = updatedItem.comments[1]
+                let secondReply = updatedItem.comments[2]
+                if firstReply.authorName == "EnigmaEra765829" && secondReply.authorName == "EnigmaEra765829" {
+                    secondReplyFound = true
+                    // Assert second reply has the updated milestone
+                    let text = secondReply.text
+                    let hasValue = text.contains("346am") || text.contains("692am") || text.contains("346") || text.contains("692")
+                    #expect(hasValue, "Expected second reply to contain milestone 346am or 692am, but got: \(secondReply.text)")
+                    break
+                }
+            }
+        }
+        
+        #expect(secondReplyFound, "Expected to generate a behind reply followed by a second caught up/one up reply in a row")
     }
 }
 

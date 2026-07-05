@@ -1139,8 +1139,8 @@ public struct MockSocialService: SocialService, Sendable {
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
-    public static let feedCacheKey = "socialFeed.cache.v51"
-    public static let feedDateKey = "socialFeed.cacheDate.v44"
+    public static let feedCacheKey = "socialFeed.cache.v52"
+    public static let feedDateKey = "socialFeed.cacheDate.v45"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1153,7 +1153,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v51.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v52.json")
     }
     
     private static var userPostsURL: URL {
@@ -1382,6 +1382,40 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
                 item.comments.append(responseComment)
+                
+                // Add a second reply in a row if the NPC says they will catch up (behind tone)
+                let isBehindReply = responseText.lowercased().contains("is next") || responseText.lowercased().contains("catch your") || responseText.lowercased().contains("coming for") || responseText.lowercased().contains("lead is temporary")
+                if isBehindReply && answer == nil {
+                    let topic = Self.determineTopic(message: baseText)
+                    if let playerVal = Self.extractValue(from: text, topic: topic) {
+                        let finalNPCValue: String
+                        let toneStr: String
+                        if Double.random(in: 0...1) < 0.45 && topic != "streak" {
+                            finalNPCValue = playerVal
+                            toneStr = "caught_up"
+                        } else {
+                            finalNPCValue = Self.oneUpValue(for: playerVal, topic: topic)
+                            toneStr = "one_up"
+                        }
+                        
+                        let secondResponseText = "@\(playerName) " + generateContextualReply(
+                            to: text,
+                            message: baseText,
+                            forceTone: toneStr,
+                            speakerValue: finalNPCValue,
+                            opponentValue: playerVal
+                        )
+                        let secondResponseTime = responseTime.addingTimeInterval(Double.random(in: 45...75))
+                        let secondComment = SocialFeedComment(
+                            authorName: responderName,
+                            avatarID: responderAvatar,
+                            text: secondResponseText,
+                            createdAt: secondResponseTime,
+                            likes: Int.random(in: 1...5)
+                        )
+                        item.comments.append(secondComment)
+                    }
+                }
             }
             
             item.comments.sort { $0.createdAt < $1.createdAt }
@@ -2342,22 +2376,22 @@ public struct MockSocialService: SocialService, Sendable {
             
             if isLost {
                 let templates = [
-                    "I just lost my streak today. I'm all the way down to 0 days.",
-                    "Dropped my streak today, down to 0 days.",
+                    "I forgot to play yesterday and lost my streak. All the way down to 0 days.",
+                    "Missed my daily check-in yesterday and dropped my streak.",
                     "Nooo! I forgot to play yesterday and lost my \(streakDays)-day streak.",
-                    "My \(streakDays)-day streak is gone. Back to 0 days.",
-                    "Consistency failed. Lost my \(streakDays) day streak.",
-                    "Forgot to save my streak. Back to square one.",
-                    "Streak reset to 0. It was a good run.",
-                    "Woke up to a dead streak. Back to 0."
+                    "My \(streakDays)-day streak is gone because I missed a day. Back to 0.",
+                    "Consistency failed after missing yesterday. Lost my \(streakDays) day streak.",
+                    "Forgot to save my streak by playing yesterday. Back to square one.",
+                    "Missed a day and my streak died. It was a good run.",
+                    "Woke up to a dead streak because I forgot to check in. Back to 0."
                 ]
                 let statEmojis = ["flame", "xmark.circle", "calendar", "exclamationmark.triangle"]
                 let statLabels = [
                     "Streak lost · 0 days",
-                    "Streak reset · 0",
+                    "Streak dead · 0",
                     "Streak lost · \(streakDays)d gone",
-                    "Reset · 0 days",
-                    "Streak ended · \(streakDays)d"
+                    "Streak dead · \(streakDays)d",
+                    "Streak ended · 0 days"
                 ]
                 return (templates.randomElement()!, "\(statEmojis.randomElement()!)|\(statLabels.randomElement()!)")
             } else {
@@ -3101,7 +3135,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         templates = [
                             "I just lost my streak today. I'm all the way down to \(lowerDays) days, but you'll lose your \(streakDays) day streak soon!",
                             "My streak died, so I'm down to \(lowerDays) days. But your \(streakDays) days will break before long.",
-                            "I reset to \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
+                            "My streak died, so I'm down to \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
                             "Dropped to \(lowerDays) days because I lost my streak. You're bound to lose your \(streakDays) days too.",
                             "I just lost my streak. Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days."
                         ]
@@ -4204,7 +4238,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 templates = [
                                     "I just lost my streak today. I'm all the way down to \(higherNum) days, but you'll lose your \(cN) day streak soon!",
                                     "My streak died, so I'm down to \(higherNum) days. But your \(cN) days will break before long.",
-                                    "I reset to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "My streak died, so I'm down to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
                                     "Dropped to \(higherNum) days because I lost my streak. You're bound to lose your \(cN) days too.",
                                     "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days."
                                 ]
@@ -4280,7 +4314,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 replies.append(contentsOf: [
                                     "I just lost my streak today. I'm all the way down to \(higherNum) days, but you'll lose your \(cN) day streak soon!",
                                     "My streak died, so I'm down to \(higherNum) days. But your \(cN) days will break before long.",
-                                    "I reset to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "My streak died, so I'm down to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
                                     "Dropped to \(higherNum) days because I lost my streak. You're bound to lose your \(cN) days too.",
                                     "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days."
                                 ])
@@ -4397,7 +4431,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 templates = [
                                     "I just lost my streak today. I'm all the way down to \(higherNum) days, but you'll lose yours soon!",
                                     "My streak died, so I'm down to \(higherNum) days. But your streak will break before long.",
-                                    "I reset to \(higherNum) days. Just wait until you lose your streak.",
+                                    "My streak died, so I'm down to \(higherNum) days. Just wait until you lose your streak.",
                                     "Dropped to \(higherNum) days because I lost my streak. You're bound to lose yours too.",
                                     "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass yours."
                                 ]
