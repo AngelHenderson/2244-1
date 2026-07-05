@@ -943,6 +943,7 @@ struct ParityModelsTests {
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
         
         MockSocialService.isPlayerAtHOFOverride = true
+        MockSocialService.bypassFeedCache = true
         
         let service = MockSocialService()
         let feed = try await service.feed()
@@ -954,12 +955,18 @@ struct ParityModelsTests {
         var milestoneCount = 0
         
         for item in feed {
+            let msg = item.message.lowercased()
             let stat = item.statText.lowercased()
-            if stat.contains("hall of fame") || stat.contains("infinity") {
+            
+            let isHof = msg.contains("hall of fame") || msg.contains("hof") || msg.contains("infinity") || msg.contains("infinities") || msg.contains("∞") || msg.contains("legend") || stat.contains("hall of fame") || stat.contains("infinity") || stat.contains("legend")
+            let isStreak = msg.contains("streak") || msg.contains("days") || msg.contains("consecutive") || stat.contains("streak")
+            let isTime = msg.contains("timed") || msg.contains("speed") || msg.contains("clock") || msg.contains(":") || stat.contains("timed") || stat.contains("speed") || stat.contains("challenge") || stat.contains("clock")
+            
+            if isHof {
                 hofCount += 1
-            } else if stat.contains("streak") {
+            } else if isStreak {
                 streakCount += 1
-            } else if stat.contains("timed") || stat.contains("speed") || stat.contains("challenge") {
+            } else if isTime {
                 timeCount += 1
             } else {
                 milestoneCount += 1
@@ -973,6 +980,7 @@ struct ParityModelsTests {
         
         // Clean up
         MockSocialService.isPlayerAtHOFOverride = nil
+        MockSocialService.bypassFeedCache = false
         MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
     }

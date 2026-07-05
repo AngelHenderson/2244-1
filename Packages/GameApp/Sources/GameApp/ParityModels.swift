@@ -1207,7 +1207,13 @@ public struct MockSocialService: SocialService, Sendable {
 
         // Return cached feed if it was generated today
         let defaults = UserDefaults.standard
-        if let cachedDate = defaults.string(forKey: Self.feedDateKey),
+        #if DEBUG
+        let shouldBypass = Self.bypassFeedCache
+        #else
+        let shouldBypass = false
+        #endif
+        if !shouldBypass,
+           let cachedDate = defaults.string(forKey: Self.feedDateKey),
            cachedDate == todayString,
            var cached = Self.loadFeedCache() {
             
@@ -1242,7 +1248,7 @@ public struct MockSocialService: SocialService, Sendable {
         }
 
         // Cache for the rest of the day
-        if let data = try? JSONEncoder().encode(items) {
+        if !shouldBypass, let data = try? JSONEncoder().encode(items) {
             Self.saveFeedCache(items)
             defaults.set(todayString, forKey: Self.feedDateKey)
         }
@@ -2180,6 +2186,7 @@ public struct MockSocialService: SocialService, Sendable {
     
     #if DEBUG
     public nonisolated(unsafe) static var isPlayerAtHOFOverride: Bool? = nil
+    public nonisolated(unsafe) static var bypassFeedCache: Bool = false
     #endif
 
     private static var isPlayerAtHOF: Bool {
