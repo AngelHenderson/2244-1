@@ -73,16 +73,16 @@ extension MockSocialService {
             switch randBucket {
             case 1:
                 let weightedReplies: [(String, Double)] = [
-                    ("Only at \(lower)? I easily reached \(higher).", 3.0),
+                    ("Only at \(lower)? I easily clocked \(higher).", 3.0),
                     ("You think \(lower) is a fast time? I'm already coasting at \(higher).", 0.6),
                     ("Your \(lower) is a joke. You'll never catch my \(higher).", 9.9),
-                    ("I easily bypassed \(lower) and hit \(higher).", 0.1),
+                    ("I easily bypassed \(lower) and clocked \(higher).", 0.1),
                     ("I'm laughing from \(higher) while you're still at \(lower).", 3.5),
-                    ("Celebrating \(lower)? I easily clear \(higher).", 13.0),
-                    ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I'm at \(higher).", 62.0),
-                    ("Imagine being proud of \(lower). My \(higher) was completed with ease.", 0.3),
+                    ("Celebrating \(lower)? I easily clocked \(higher).", 13.0),
+                    ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I clocked \(higher).", 62.0),
+                    ("Imagine being proud of \(lower). I clocked \(higher) with ease.", 0.3),
                     ("Still at \(lower)? I already left that behind. \(higher) is where the real game is.", 1.7),
-                    ("Lagging at \(lower)? I'm coasting at \(higher).", 5.8),
+                    ("Lagging at \(lower)? I'm easily clocking \(higher).", 5.8),
                     ("Imagine being at \(lower) while I dominate at \(higher).", 0.1)
                 ]
                 return pickWeighted(weightedReplies)
@@ -94,7 +94,7 @@ extension MockSocialService {
                     "If getting past \(lower) is impossible for you, my \(higher) is untouchable.",
                     "Of course you're lagging at \(lower). That's child's play compared to my \(higher).",
                     "You're lagging at \(lower)? Figures. My record is \(higher).",
-                    "Keep trying with \(lower). I'm sitting comfortably at \(higher).",
+                    "Keep trying with \(lower). I comfortably clocked \(higher).",
                     "You're stuck at \(lower). My \(higher) is light years away from your skill level.",
                     "If \(lower) is your ceiling, you're not even in the same conversation as my \(higher).",
                     "Why even mention \(lower)? My \(higher) is completely out of your league.",
@@ -104,29 +104,29 @@ extension MockSocialService {
                 return list.randomElement()!
             case 3:
                 let weightedReplies: [(String, Double)] = [
-                    ("I easily passed your \(lower). I'm at \(higher).", 0.3),
-                    ("I let you think you had the lead. Your \(lower) is nothing. I'm at \(higher).", 1.7),
+                    ("I easily passed your \(lower). I clocked \(higher).", 0.3),
+                    ("I let you think you had the lead. Your \(lower) is nothing. I clocked \(higher).", 1.7),
                     ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 63.0),
                     ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 17.0),
-                    ("I blew past your \(lower) and hit \(higher) without even trying.", 0.4),
-                    ("Only at \(lower)? I easily reached \(higher).", 3.6),
+                    ("I blew past your \(lower) and clocked \(higher) without even trying.", 0.4),
+                    ("Only at \(lower)? I easily clocked \(higher).", 3.6),
                     ("Your \(lower) is a joke compared to my \(higher).", 0.06),
-                    ("I cleared \(higher) without trying.", 0.02),
-                    ("I was just toying with you. I'm actually at \(higher).", 13.92)
+                    ("I clocked \(higher) without trying.", 0.02),
+                    ("I was just toying with you. I actually clocked \(higher).", 13.92)
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
                 let list = [
-                    "I am ahead of your \(lower). I'm at \(higher).",
-                    "I'm way past \(lower). I am sitting at \(higher).",
+                    "I clocked faster than your \(lower). I clocked \(higher).",
+                    "I'm way past \(lower). I clocked \(higher).",
                     "Your \(lower) is nothing compared to my \(higher) record.",
-                    "I easily passed \(lower). I dominate \(higher).",
+                    "I easily passed \(lower). I clocked \(higher).",
                     "Your \(lower) is child's play compared to my \(higher) record.",
-                    "\(lower) is a joke. I'm already sitting at \(higher).",
-                    "You're celebrating \(lower)? I already cleared \(higher).",
+                    "\(lower) is a joke. I already clocked \(higher).",
+                    "You're celebrating \(lower)? I already clocked \(higher).",
                     "I left \(lower) in the dust. \(higher) is the new standard.",
                     "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
-                    "I already hit \(higher). \(lower) is old news."
+                    "I already clocked \(higher). \(lower) is old news."
                 ]
                 return list.randomElement()!
             default: return ""
