@@ -804,15 +804,16 @@ public struct MockSocialService: SocialService, Sendable {
         return (0...816).map { JourneyTileGenerator.formatTileAtStep($0) }
     }()
 
-    static let milestoneRegexCache: [String: NSRegularExpression] = {
-        var cache: [String: NSRegularExpression] = [:]
-        for m in allMilestones {
-            let pattern = "(?<!:)\\b\(NSRegularExpression.escapedPattern(for: m))\\b(?!:)"
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                cache[m] = regex
-            }
+    static let milestoneTokensRegex: NSRegularExpression = {
+        return try! NSRegularExpression(pattern: "(?<!:)\\b\\d+[a-zA-Z]*\\b(?!:)", options: [])
+    }()
+
+    static let milestoneLookup: [String: Int] = {
+        var map: [String: Int] = [:]
+        for (idx, m) in allMilestones.enumerated() {
+            map[m.lowercased()] = idx
         }
-        return cache
+        return map
     }()
 
     static var daysSinceReference: Int {
@@ -842,14 +843,14 @@ public struct MockSocialService: SocialService, Sendable {
         let msgWords = Set(msgLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
         
         var rootMilestoneExists = false
-        let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        if sortedMilestones.first(where: { entry in
-            let mLower = entry.element.lowercased()
-            guard msgLower.contains(mLower) else { return false }
-            guard let regex = Self.milestoneRegexCache[entry.element] else { return false }
-            return regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
-        }) != nil {
-            rootMilestoneExists = true
+        let nsStr = message as NSString
+        let matches = Self.milestoneTokensRegex.matches(in: message, range: NSRange(location: 0, length: nsStr.length))
+        for match in matches {
+            let token = nsStr.substring(with: match.range).lowercased()
+            if Self.milestoneLookup[token] != nil {
+                rootMilestoneExists = true
+                break
+            }
         }
 
         let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
@@ -896,18 +897,12 @@ public struct MockSocialService: SocialService, Sendable {
             
 
         case "milestone":
-            let sortedMilestones = Self.allMilestones.sorted(by: { $0.count > $1.count })
-            let textLower = text.lowercased()
-            for m in sortedMilestones {
-                let mLower = m.lowercased()
-                guard textLower.contains(mLower) else { continue }
-                guard let pattern = Self.milestoneRegexCache[m] else { continue }
-                let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
-                for regMatch in regexMatches {
-                    let matchedString = nsText.substring(with: regMatch.range)
-                    let exactMatch = Self.allMilestones.first(where: { $0 == matchedString })
-                    let finalVal = exactMatch ?? m
-                    
+            let regexMatches = Self.milestoneTokensRegex.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+            for regMatch in regexMatches {
+                let matchedString = nsText.substring(with: regMatch.range)
+                let token = matchedString.lowercased()
+                if let idx = Self.milestoneLookup[token] {
+                    let finalVal = Self.allMilestones[idx]
                     if !matches.contains(where: { $0.range == regMatch.range }) {
                         matches.append((val: finalVal, range: regMatch.range))
                     }
@@ -3493,30 +3488,34 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
     }
 
     
-    /// Returns a milestone-aware answer if the text asks "what comes after [milestone]".
     private func milestoneAnswer(for text: String) -> String? {
         let lowered = text.lowercased()
         guard lowered.contains("what comes after") || lowered.contains("what's after")
               || lowered.contains("whats after") || lowered.contains("what is after") else {
             return nil
         }
-        // Search longest-first to avoid partial matches (e.g. "2" inside "262K")
-        let sorted = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        for (idx, milestone) in sorted {
-            let mLower = milestone.lowercased()
-            guard lowered.contains(mLower) else { continue }
-            guard let regex = Self.milestoneRegexCache[milestone] else { continue }
-            if regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil, idx + 1 < Self.allMilestones.count {
-                let next = Self.allMilestones[idx + 1]
-                let templates = [
-                    "\(next) comes after \(milestone).",
-                    "After \(milestone) it's \(next)!",
-                    "The next tile after \(milestone) is \(next).",
-                    "\(milestone) → \(next). Keep pushing!",
-                    "\(next)! That's what's after \(milestone).",
-                ]
-                return templates.randomElement()!
+        let nsStr = text as NSString
+        let matches = Self.milestoneTokensRegex.matches(in: text, range: NSRange(location: 0, length: nsStr.length))
+        
+        var found: [(index: Int, name: String)] = []
+        for match in matches {
+            let token = nsStr.substring(with: match.range).lowercased()
+            if let idx = Self.milestoneLookup[token] {
+                found.append((index: idx, name: Self.allMilestones[idx]))
             }
+        }
+        
+        if let best = found.max(by: { $0.index < $1.index }), best.index + 1 < Self.allMilestones.count {
+            let milestone = best.name
+            let next = Self.allMilestones[best.index + 1]
+            let templates = [
+                "\(next) comes after \(milestone).",
+                "After \(milestone) it's \(next)!",
+                "The next tile after \(milestone) is \(next).",
+                "\(milestone) → \(next). Keep pushing!",
+                "\(next)! That's what's after \(milestone).",
+            ]
+            return templates.randomElement()!
         }
         return nil
     }
@@ -3564,29 +3563,29 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                let idx = Self.allMilestones.firstIndex(of: val) {
                 return (index: idx, name: val)
             }
-            var foundMilestones: [(index: Int, name: String)] = []
-            for (idx, m) in Self.allMilestones.enumerated() {
-                let mLower = m.lowercased()
-                guard strippedLower.contains(mLower) else { continue }
-                guard let regex = Self.milestoneRegexCache[m] else { continue }
-                if regex.firstMatch(in: strippedText, range: NSRange(strippedText.startIndex..., in: strippedText)) != nil {
-                    foundMilestones.append((index: idx, name: m))
+            let nsStr = strippedText as NSString
+            let matches = Self.milestoneTokensRegex.matches(in: strippedText, range: NSRange(location: 0, length: nsStr.length))
+            var found: [(index: Int, name: String)] = []
+            for match in matches {
+                let token = nsStr.substring(with: match.range).lowercased()
+                if let idx = Self.milestoneLookup[token] {
+                    found.append((index: idx, name: Self.allMilestones[idx]))
                 }
             }
-            return foundMilestones.max(by: { $0.index < $1.index })
+            return found.max(by: { $0.index < $1.index })
         }()
         
         let rootMilestone: (index: Int, name: String)? = {
-            var foundMilestones: [(index: Int, name: String)] = []
-            for (idx, m) in Self.allMilestones.enumerated() {
-                let mLower = m.lowercased()
-                guard message.lowercased().contains(mLower) else { continue }
-                guard let regex = Self.milestoneRegexCache[m] else { continue }
-                if regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil {
-                    foundMilestones.append((index: idx, name: m))
+            let nsStr = message as NSString
+            let matches = Self.milestoneTokensRegex.matches(in: message, range: NSRange(location: 0, length: nsStr.length))
+            var found: [(index: Int, name: String)] = []
+            for match in matches {
+                let token = nsStr.substring(with: match.range).lowercased()
+                if let idx = Self.milestoneLookup[token] {
+                    found.append((index: idx, name: Self.allMilestones[idx]))
                 }
             }
-            return foundMilestones.max(by: { $0.index < $1.index })
+            return found.max(by: { $0.index < $1.index })
         }()
 
         var mentionedMilestone = commentMilestone ?? rootMilestone
