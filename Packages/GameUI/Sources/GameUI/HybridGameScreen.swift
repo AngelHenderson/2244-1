@@ -123,6 +123,19 @@ public struct HybridGameScreen: View {
                         .accessibilityAddTraits(.isStaticText)
                         .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
                         .id(reason)
+                } else if let preview = gameStore.mergePreviewLabel {
+                    MergePreviewBanner(
+                        tileCount: gameStore.currentPath.count,
+                        tileValue: {
+                            guard let first = gameStore.currentPath.first,
+                                  let tile = gameStore.state.board[first] else { return "?" }
+                            return CompactNumberFormatter.format(tile.value)
+                        }(),
+                        resultLabel: preview
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
                 }
             }
         
@@ -2208,7 +2221,37 @@ struct InvalidChainBanner: View {
     }
 }
 
-// MARK: - Mode Overlay
+// MARK: - Merge Preview Banner
+
+struct MergePreviewBanner: View {
+    let tileCount: Int
+    let tileValue: String
+    let resultLabel: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.triangle.merge")
+                .foregroundStyle(.cyan)
+            Text("\(tileCount) × \(tileValue)  →  \(resultLabel)")
+                .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.78))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.cyan.opacity(0.45), lineWidth: 1)
+        )
+        .shadow(radius: 4)
+    }
+}
+
 
 struct ModeOverlay: View {
     let isHammerMode: Bool

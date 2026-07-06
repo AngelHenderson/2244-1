@@ -28,6 +28,19 @@ public final class GameStore {
     /// Length of the last committed chain (for tracking merged tiles in challenge mode)
     public private(set) var lastChainLength: Int = 0
 
+    /// Formatted label for the tile that would result from merging the current chain.
+    /// Returns nil when the path has fewer than 2 tiles or is invalid.
+    public var mergePreviewLabel: String? {
+        guard currentPath.count >= 2, pathValidation.isValid else { return nil }
+        let tiles = currentPath.compactMap { state.board[$0] }
+        guard tiles.count == currentPath.count else { return nil }
+        let steps = tiles.compactMap { TileStepMath.step(for: $0) }
+        guard steps.count == tiles.count else { return nil }
+        let mergedStep = TileStepMath.mergedStep(from: steps)
+        let mergedValue = TileStepMath.value(forStep: mergedStep)
+        return CompactNumberFormatter.format(mergedValue)
+    }
+
     // Track if game over has been processed for this session (reset on new game)
     private var gameOverProcessed: Bool = false
 
