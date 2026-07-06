@@ -3576,13 +3576,18 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             return foundMilestones.max(by: { $0.index < $1.index })
         }()
         
-        let sortedMilestones = Self.allMilestones.enumerated().sorted { $0.element.count > $1.element.count }
-        let rootMilestone = sortedMilestones.first(where: { entry in
-            let mLower = entry.element.lowercased()
-            guard message.lowercased().contains(mLower) else { return false }
-            guard let regex = Self.milestoneRegexCache[entry.element] else { return false }
-            return regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil
-        }).map { (index: $0.offset, name: $0.element) }
+        let rootMilestone: (index: Int, name: String)? = {
+            var foundMilestones: [(index: Int, name: String)] = []
+            for (idx, m) in Self.allMilestones.enumerated() {
+                let mLower = m.lowercased()
+                guard message.lowercased().contains(mLower) else { continue }
+                guard let regex = Self.milestoneRegexCache[m] else { continue }
+                if regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) != nil {
+                    foundMilestones.append((index: idx, name: m))
+                }
+            }
+            return foundMilestones.max(by: { $0.index < $1.index })
+        }()
 
         var mentionedMilestone = commentMilestone ?? rootMilestone
 
