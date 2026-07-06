@@ -1,7 +1,7 @@
 import Foundation
 
-struct CompactNumberFormatter {
-    static func format(_ value: Int) -> String {
+public struct CompactNumberFormatter {
+    public static func format(_ value: Int) -> String {
         let safeValue = max(0, value)
 
         // Display full numbers up to 999,999
@@ -26,5 +26,3 @@ struct CompactNumberFormatter {
         return "\(billions)B"
     }
 }
-
-

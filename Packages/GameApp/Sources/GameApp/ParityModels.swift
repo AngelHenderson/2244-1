@@ -2926,12 +2926,12 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.95 {
                     let openersWithWeights: [(String, Double)] = [
                         ("I flew right past this.", 0.05),
-                        ("This takes zero effort.", 3.5),
+                        ("This takes zero effort.", 6.9),
                         ("Laughable.", 3.0),
                         ("This is entirely average.", 4.0),
                         ("Not worth my time.", 0.6),
-                        ("Unimpressive.", 3.4),
-                        ("Not impressed.", 2.0),
+                        ("Unimpressive.", 1.0),
+                        ("Not impressed.", 1.0),
                         ("That's cute.", 35.5),
                         ("Light work.", 2.0),
                         ("What a joke.", 8.6),
@@ -4128,7 +4128,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             // Dynamic competitive responses that echo what they said
             if let m = mentionedMilestone {
                 let refMilestone = speakerValue.flatMap { val in Self.allMilestones.firstIndex(of: val).map { (index: $0, name: val) } } ?? rootMilestone
-                let isLowerBrag = commentText != message && commentIsCompetitive && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && (forceTone == "one_up" || Double.random(in: 0...1) < 0.95)
+                let isLowerBrag = commentText != message && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && (forceTone == "one_up" || Double.random(in: 0...1) < 0.95)
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = refMilestone {
                     replies.append(contentsOf: [
