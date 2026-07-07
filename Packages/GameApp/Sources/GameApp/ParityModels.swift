@@ -1390,7 +1390,7 @@ public struct MockSocialService: SocialService, Sendable {
                 item.comments.append(responseComment)
                 
                 // Add a second reply in a row if the player beats the NPC (triggering behind tone)
-                if posterBeatsNPC && answer == nil {
+                if posterBeatsNPC && answer == nil && topic != "streak" {
                     let topic = Self.determineTopic(message: baseText)
                     if let playerVal = Self.extractValue(from: text, topic: topic) {
                         let finalNPCValue: String
