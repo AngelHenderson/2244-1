@@ -263,7 +263,7 @@ extension MockSocialService {
         }
     }
     
-    private static func pickWeighted(_ list: [(String, Double)]) -> String {
+    static func pickWeighted(_ list: [(String, Double)]) -> String {
         let totalWeight = list.reduce(0) { $0 + $1.1 }
         let rand = Double.random(in: 0..<totalWeight)
         var cumulative = 0.0
