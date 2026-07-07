@@ -126,11 +126,6 @@ public struct HybridGameScreen: View {
                 } else if let preview = gameStore.mergePreviewLabel {
                     MergePreviewBanner(
                         tileCount: gameStore.currentPath.count,
-                        tileValue: {
-                            guard let first = gameStore.currentPath.first,
-                                  let tile = gameStore.state.board[first] else { return "?" }
-                            return CompactNumberFormatter.format(tile.value)
-                        }(),
                         resultLabel: preview
                     )
                     .padding(.horizontal, 16)
@@ -2225,14 +2220,13 @@ struct InvalidChainBanner: View {
 
 struct MergePreviewBanner: View {
     let tileCount: Int
-    let tileValue: String
     let resultLabel: String
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "arrow.triangle.merge")
                 .foregroundStyle(.cyan)
-            Text("\(tileCount) × \(tileValue)  →  \(resultLabel)")
+            Text("Merge \(tileCount) tiles → \(resultLabel)")
                 .font(.avenirNext(size: GameFonts.caption1Size, weight: .bold))
                 .foregroundStyle(.white)
                 .lineLimit(1)

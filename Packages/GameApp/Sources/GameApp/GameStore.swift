@@ -37,8 +37,7 @@ public final class GameStore {
         let steps = tiles.compactMap { TileStepMath.step(for: $0) }
         guard steps.count == tiles.count else { return nil }
         let mergedStep = TileStepMath.mergedStep(from: steps)
-        let mergedValue = TileStepMath.value(forStep: mergedStep)
-        return CompactNumberFormatter.format(mergedValue)
+        return JourneyTileGenerator.formatTileAtStep(mergedStep)
     }
 
     // Track if game over has been processed for this session (reset on new game)
