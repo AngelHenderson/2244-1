@@ -3914,7 +3914,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append(contentsOf: [
                         "I told you I'd catch up! I clocked exactly \(posterTime) to tie you.",
                         "Look who caught up! We're tied at \(posterTime).",
-                        "Caught up to you! I hit \(posterTime) too.",
+                        "Caught up to you! I clocked \(posterTime) too.",
                         "I told you I would catch you. We both clocked \(posterTime)!"
                     ])
                 } else if mentionedHoF, let numStr = mentionedNumber, let num = Int(numStr) {
