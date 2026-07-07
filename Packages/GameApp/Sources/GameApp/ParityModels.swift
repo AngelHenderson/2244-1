@@ -3892,52 +3892,58 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         return "Told you to watch your back! I'm right here at \(numStr) infinities with you."
                     }
                 }
-                var replies: [String] = []
+                var reply: String = ""
                 if let m = mentionedMilestone {
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! I'm right there at \(m.name) with you.",
-                        "Look who caught up! We're tied at \(m.name) now.",
-                        "Caught up to you! I'm sitting at \(m.name) too.",
-                        "I told you I would catch you. We are both at \(m.name)!",
-                        "Told you to watch your back! I'm right here at \(m.name) with you."
-                    ])
-                } else if mentionedStreak, let numStr = mentionedNumber, let num = Int(numStr) {
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! I'm right there at \(numStr) days with you.",
-                        "Look who caught up! We're tied at \(numStr) days now.",
-                        "Caught up to you! I'm sitting at \(numStr) days too.",
-                        "I told you I would catch you. We are both at \(numStr) days!"
-                    ])
-                } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
-                    let totalSecs = timeTuple.0 * 60 + timeTuple.1
-                    let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! I clocked exactly \(posterTime) to tie you.",
-                        "Look who caught up! We're tied at \(posterTime).",
-                        "Caught up to you! I clocked \(posterTime) too.",
-                        "I told you I would catch you. We both clocked \(posterTime)!"
-                    ])
-                } else if mentionedHoF, let numStr = mentionedNumber, let num = Int(numStr) {
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! I'm right there at \(numStr) infinities with you.",
-                        "Look who caught up! We're tied at \(numStr) HoF entries now.",
-                        "Caught up to you! I'm sitting at \(numStr) infinities too.",
-                        "I told you I would catch you. We are both at \(numStr) infinities!"
-                    ])
-
+                    var list: [(String, Double)] = [
+                        ("I told you I'd catch up! I'm right there at \(m.name) with you.", 8.0),
+                        ("Look who caught up! We're tied at \(m.name) now.", 7.0),
+                        ("Caught up to you! I'm sitting at \(m.name) too.", 9.0),
+                        ("I told you I would catch you. We are both at \(m.name)!", 73.0),
+                        ("Told you to watch your back! I'm right here at \(m.name) with you.", 3.0)
+                    ]
+                    if let prev = previousSelfComment {
+                        let filtered = list.filter { !prev.contains($0.0) && !$0.0.contains(prev) }
+                        if !filtered.isEmpty { list = filtered }
+                    }
+                    reply = Self.pickWeighted(list)
                 } else {
-                    replies.append(contentsOf: [
-                        "I told you I'd catch up! We are tied now.",
-                        "Look who caught up! We're tied.",
-                        "Caught up to you! Finally tied.",
-                        "I told you I would catch you!"
-                    ])
+                    var replies: [String] = []
+                    if mentionedStreak, let numStr = mentionedNumber, let _ = Int(numStr) {
+                        replies.append(contentsOf: [
+                            "I told you I'd catch up! I'm right there at \(numStr) days with you.",
+                            "Look who caught up! We're tied at \(numStr) days now.",
+                            "Caught up to you! I'm sitting at \(numStr) days too.",
+                            "I told you I would catch you. We are both at \(numStr) days!"
+                        ])
+                    } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                        let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                        replies.append(contentsOf: [
+                            "I told you I'd catch up! I clocked exactly \(posterTime) to tie you.",
+                            "Look who caught up! We're tied at \(posterTime).",
+                            "Caught up to you! I clocked \(posterTime) too.",
+                            "I told you I would catch you. We both clocked \(posterTime)!"
+                        ])
+                    } else if mentionedHoF, let numStr = mentionedNumber, let _ = Int(numStr) {
+                        replies.append(contentsOf: [
+                            "I told you I'd catch up! I'm right there at \(numStr) infinities with you.",
+                            "Look who caught up! We're tied at \(numStr) HoF entries now.",
+                            "Caught up to you! I'm sitting at \(numStr) infinities too.",
+                            "I told you I would catch you. We are both at \(numStr) infinities!"
+                        ])
+                    } else {
+                        replies.append(contentsOf: [
+                            "I told you I'd catch up! We are tied now.",
+                            "Look who caught up! We're tied.",
+                            "Caught up to you! Finally tied.",
+                            "I told you I would catch you!"
+                        ])
+                    }
+                    if let prev = previousSelfComment {
+                        let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
+                        if !filtered.isEmpty { replies = filtered }
+                    }
+                    reply = replies.randomElement()!
                 }
-                if let prev = previousSelfComment {
-                    let filtered = replies.filter { !prev.contains($0) && !$0.contains(prev) }
-                    if !filtered.isEmpty { replies = filtered }
-                }
-                var reply = replies.randomElement()!
                 if Double.random(in: 0...1) < 0.75 { reply = Self.injectSymbol(reply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!) }
                 return reply
             }
