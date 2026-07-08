@@ -53,19 +53,19 @@ extension MockSocialService {
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
-                let list = [
-                    "I am ahead of your \(lower). I'm at \(higher).",
-                    "I'm way past \(lower). I am sitting at \(higher).",
-                    "Your \(lower) is nothing compared to my \(higher) record.",
-                    "I easily passed \(lower). I dominate \(higher).",
-                    "Your \(lower) is child's play compared to my \(higher) record.",
-                    "\(lower) is a joke. I'm already sitting at \(higher).",
-                    "You're celebrating \(lower)? I already cleared \(higher).",
-                    "I left \(lower) in the dust. \(higher) is the new standard.",
-                    "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
-                    "I already hit \(higher). \(lower) is old news."
+                let weightedReplies: [(String, Double)] = [
+                    ("I am ahead of your \(lower). I'm at \(higher).", 6.0),
+                    ("I'm way past \(lower). I am sitting at \(higher).", 0.24),
+                    ("Your \(lower) is nothing compared to my \(higher) record.", 2.76),
+                    ("I easily passed \(lower). I dominate \(higher).", 8.0),
+                    ("Your \(lower) is child's play compared to my \(higher) record.", 6.0),
+                    ("\(lower) is a joke. I'm already sitting at \(higher).", 14.0),
+                    ("You're celebrating \(lower)? I already cleared \(higher).", 37.0),
+                    ("I left \(lower) in the dust. \(higher) is the new standard.", 9.0),
+                    ("You're bragging about \(lower) while my \(higher) remains completely out of your reach.", 6.0),
+                    ("I already hit \(higher). \(lower) is old news.", 11.0)
                 ]
-                return list.randomElement()!
+                return pickWeighted(weightedReplies)
             default: return ""
             }
             
@@ -116,19 +116,19 @@ extension MockSocialService {
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
-                let list = [
-                    "I clocked faster than your \(lower). I clocked \(higher).",
-                    "I'm way past \(lower). I clocked \(higher).",
-                    "Your \(lower) is nothing compared to my \(higher) record.",
-                    "I easily passed \(lower). I clocked \(higher).",
-                    "Your \(lower) is child's play compared to my \(higher) record.",
-                    "\(lower) is a joke. I already clocked \(higher).",
-                    "You're celebrating \(lower)? I already clocked \(higher).",
-                    "I left \(lower) in the dust. \(higher) is the new standard.",
-                    "You're bragging about \(lower) while my \(higher) remains completely out of your reach.",
-                    "I already clocked \(higher). \(lower) is old news."
+                let weightedReplies: [(String, Double)] = [
+                    ("I clocked faster than your \(lower). I clocked \(higher).", 6.0),
+                    ("I'm way past \(lower). I clocked \(higher).", 0.24),
+                    ("Your \(lower) is nothing compared to my \(higher) record.", 2.76),
+                    ("I easily passed \(lower). I clocked \(higher).", 8.0),
+                    ("Your \(lower) is child's play compared to my \(higher) record.", 6.0),
+                    ("\(lower) is a joke. I already clocked \(higher).", 14.0),
+                    ("You're celebrating \(lower)? I already clocked \(higher).", 37.0),
+                    ("I left \(lower) in the dust. \(higher) is the new standard.", 9.0),
+                    ("You're bragging about \(lower) while my \(higher) remains completely out of your reach.", 6.0),
+                    ("I already clocked \(higher). \(lower) is old news.", 11.0)
                 ]
-                return list.randomElement()!
+                return pickWeighted(weightedReplies)
             default: return ""
             }
             
@@ -179,19 +179,19 @@ extension MockSocialService {
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
-                let list = [
-                    "I am ahead of your \(lower) days. I'm at \(higher) days.",
-                    "I'm way past \(lower) days. I am sitting at \(higher) days.",
-                    "Your \(lower) days is nothing compared to my \(higher) days record.",
-                    "I easily passed \(lower) days. I dominate \(higher) days.",
-                    "Your \(lower) days is child's play compared to my \(higher) days record.",
-                    "\(lower) days is a joke. I'm already sitting at \(higher) days.",
-                    "You're celebrating \(lower) days? I already cleared \(higher) days.",
-                    "I left \(lower) days in the dust. \(higher) days is the new standard.",
-                    "You're bragging about \(lower) days while my \(higher) days remains completely out of your reach.",
-                    "I already hit \(higher) days. \(lower) days is old news."
+                let weightedReplies: [(String, Double)] = [
+                    ("I am ahead of your \(lower) days. I'm at \(higher) days.", 6.0),
+                    ("I'm way past \(lower) days. I am sitting at \(higher) days.", 0.24),
+                    ("Your \(lower) days is nothing compared to my \(higher) days record.", 2.76),
+                    ("I easily passed \(lower) days. I dominate \(higher) days.", 8.0),
+                    ("Your \(lower) days is child's play compared to my \(higher) days record.", 6.0),
+                    ("\(lower) days is a joke. I'm already sitting at \(higher) days.", 14.0),
+                    ("You're celebrating \(lower) days? I already cleared \(higher) days.", 37.0),
+                    ("I left \(lower) days in the dust. \(higher) days is the new standard.", 9.0),
+                    ("You're bragging about \(lower) days while my \(higher) days remains completely out of your reach.", 6.0),
+                    ("I already hit \(higher) days. \(lower) days is old news.", 11.0)
                 ]
-                return list.randomElement()!
+                return pickWeighted(weightedReplies)
             default: return ""
             }
             
@@ -242,19 +242,19 @@ extension MockSocialService {
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
-                let list = [
-                    "I am ahead of your \(lower) infinities. I'm at \(higher) infinities.",
-                    "I'm way past \(lower) infinities. I am sitting at \(higher) infinities.",
-                    "Your \(lower) infinities is nothing compared to my \(higher) infinities record.",
-                    "I easily passed \(lower) infinities. I dominate \(higher) infinities.",
-                    "Your \(lower) infinities is child's play compared to my \(higher) infinities record.",
-                    "\(lower) infinities is a joke. I'm already sitting at \(higher) infinities.",
-                    "You're celebrating \(lower) infinities? I already cleared \(higher) infinities.",
-                    "I left \(lower) infinities in the dust. \(higher) infinities is the new standard.",
-                    "You're bragging about \(lower) infinities while my \(higher) infinities remains completely out of your reach.",
-                    "I already hit \(higher) infinities. \(lower) infinities is old news."
+                let weightedReplies: [(String, Double)] = [
+                    ("I am ahead of your \(lower) infinities. I'm at \(higher) infinities.", 6.0),
+                    ("I'm way past \(lower) infinities. I am sitting at \(higher) infinities.", 0.24),
+                    ("Your \(lower) infinities is nothing compared to my \(higher) infinities record.", 2.76),
+                    ("I easily passed \(lower) infinities. I dominate \(higher) infinities.", 8.0),
+                    ("Your \(lower) infinities is child's play compared to my \(higher) infinities record.", 6.0),
+                    ("\(lower) infinities is a joke. I'm already sitting at \(higher) infinities.", 14.0),
+                    ("You're celebrating \(lower) infinities? I already cleared \(higher) infinities.", 37.0),
+                    ("I left \(lower) infinities in the dust. \(higher) infinities is the new standard.", 9.0),
+                    ("You're bragging about \(lower) infinities while my \(higher) infinities remains completely out of your reach.", 6.0),
+                    ("I already hit \(higher) infinities. \(lower) infinities is old news.", 11.0)
                 ]
-                return list.randomElement()!
+                return pickWeighted(weightedReplies)
             default: return ""
             }
             

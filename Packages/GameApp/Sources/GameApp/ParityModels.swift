@@ -1562,10 +1562,7 @@ public struct MockSocialService: SocialService, Sendable {
                     
                     if isNpc2Turn {
                         if let oldVal = npc2Value {
-                            let isTied = (npc1Value == oldVal)
-                            if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
-                                npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
-                            }
+                            // Keep player record constant throughout the thread
                         } else if let n1Val = npc1Value {
                             if topic != "streak" || npc2Value == nil {
                                 if Double.random(in: 0...1) < 0.45 {
@@ -1604,10 +1601,7 @@ public struct MockSocialService: SocialService, Sendable {
                         currentDepth += 1
                     } else {
                         if let oldVal = npc1Value {
-                            let isTied = (npc2Value == oldVal)
-                            if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
-                                npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
-                            }
+                            // Keep player record constant throughout the thread
                         } else if let n2Val = npc2Value {
                             if topic != "streak" || npc1Value == nil {
                                 if Double.random(in: 0...1) < 0.45 {
@@ -1973,10 +1967,7 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if isNpc2Turn {
                             if let oldVal = npc2Value {
-                                let isTied = (npc1Value == oldVal)
-                                if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
-                                    npc2Value = Self.oneUpValue(for: oldVal, topic: topic)
-                                }
+                                // Keep player record constant throughout the thread
                             } else if let n1Val = npc1Value {
                                 if topic != "streak" || npc2Value == nil {
                                     if Double.random(in: 0...1) < 0.45 {
@@ -2015,10 +2006,7 @@ public struct MockSocialService: SocialService, Sendable {
                             currentDepth += 1
                         } else {
                             if let oldVal = npc1Value {
-                                let isTied = (npc2Value == oldVal)
-                                if (isTied || Double.random(in: 0...1) < 0.5) && topic != "streak" {
-                                    npc1Value = Self.oneUpValue(for: oldVal, topic: topic)
-                                }
+                                // Keep player record constant throughout the thread
                             } else if let n2Val = npc2Value {
                                 if topic != "streak" || npc1Value == nil {
                                     if Double.random(in: 0...1) < 0.45 {
