@@ -1327,7 +1327,17 @@ struct GameplayInfoPanel: View {
         VStack(spacing: isCompact ? 6 : 8) {
             milestoneProgress
             runStats
-            if let featuredQuest {
+            if dailyQuestStore.quests.allSatisfy({ $0.claimed }) {
+                Text("All Quests Completed!")
+                    .font(.avenirNext(size: isCompact ? GameFonts.caption1Size : GameFonts.subheadlineSize, weight: .bold))
+                    .foregroundStyle(.green)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: isCompact ? 28 : 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .fill(Color.white.opacity(0.08))
+                    )
+            } else if let featuredQuest {
                 DailyQuestStatusRow(quest: featuredQuest, isCompact: isCompact)
             }
         }
