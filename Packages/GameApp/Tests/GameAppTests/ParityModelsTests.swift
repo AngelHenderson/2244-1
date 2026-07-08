@@ -3,7 +3,7 @@ import GameServices
 import Testing
 @testable import GameApp
 
-@Suite("Duolingo-style parity contracts")
+@Suite("Duolingo-style parity contracts", .serialized)
 struct ParityModelsTests {
     @Test("Deep links parse every new parity destination")
     func appRouteParsesParityDestinations() throws {
@@ -1004,7 +1004,7 @@ struct ParityModelsTests {
         
         // Find a competitive milestone post to test on
         guard let itemIndex = feed.firstIndex(where: {
-            $0.message.lowercased().contains("tile") && !$0.comments.isEmpty
+            $0.message.lowercased().contains("tile") && !$0.comments.isEmpty && MockSocialService.determineTopic(message: $0.message) == "milestone"
         }) else {
             return
         }
