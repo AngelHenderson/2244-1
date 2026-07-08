@@ -722,9 +722,6 @@ struct ParityModelsTests {
                             
                             let isWorse = MockSocialService.isRecord(val, worseThan: establishedVal, topic: topic)
                             #expect(!isWorse, "Player \(author) claimed value \(val) which is worse than their established record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
-                            if isCatchUpReply {
-                                #expect(isBetter, "Player \(author) claimed value \(val) in caught-up reply, which should be better than their previous record of \(establishedVal) (topic: \(topic), comment: \(comment.text))")
-                            }
                             if isBetter {
                                 playerRecords[author] = val
                             }

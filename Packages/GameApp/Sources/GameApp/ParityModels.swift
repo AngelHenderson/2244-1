@@ -1410,7 +1410,38 @@ public struct MockSocialService: SocialService, Sendable {
                             speakerValue: finalNPCValue,
                             opponentValue: playerVal
                         )
-                        let secondResponseTime = responseTime.addingTimeInterval(Double.random(in: 30...60))
+                        
+                        var catchUpDelay = Double.random(in: 30...60)
+                        if let prevVal = Self.extractValue(from: responseText, topic: topic) {
+                            switch topic {
+                            case "milestone":
+                                let idx1 = Self.allMilestones.firstIndex(of: prevVal)
+                                let idx2 = Self.allMilestones.firstIndex(of: finalNPCValue)
+                                if let i1 = idx1, let i2 = idx2 {
+                                    let diff = max(0, i2 - i1)
+                                    catchUpDelay += Double(diff) * 240.0
+                                }
+                            case "hof":
+                                let n1 = Int(prevVal) ?? 0
+                                let n2 = Int(finalNPCValue) ?? 0
+                                let diff = max(0, n2 - n1)
+                                catchUpDelay += Double(diff) * 120.0
+                            case "time":
+                                func timeToSecs(_ timeStr: String) -> Int {
+                                    let parts = timeStr.split(separator: ":")
+                                    guard parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) else { return 0 }
+                                    return mins * 60 + secs
+                                }
+                                let s1 = timeToSecs(prevVal)
+                                let s2 = timeToSecs(finalNPCValue)
+                                let diff = max(0, s1 - s2)
+                                catchUpDelay += Double(diff) * 30.0
+                            default:
+                                break
+                            }
+                        }
+                        
+                        let secondResponseTime = responseTime.addingTimeInterval(catchUpDelay)
                         let secondComment = SocialFeedComment(
                             authorName: responderName,
                             avatarID: responderAvatar,
@@ -4932,7 +4963,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if forceTone != "one_up" || replies.isEmpty {
                 replies.append(contentsOf: [
                     "You're moving too slowly to matter.",
-                    "Why try when you're this outmatched?",
+                    "You're far too outmatched to ever be a threat.",
                     "While everyone climbs, you're cemented to the floor.",
                     "Dreaming won't get you out of the lower tiers.",
                     "You pose absolutely zero threat.",
