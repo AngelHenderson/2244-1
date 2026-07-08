@@ -811,10 +811,28 @@ public struct MockSocialService: SocialService, Sendable {
     static let milestoneLookup: [String: Int] = {
         var map: [String: Int] = [:]
         for (idx, m) in allMilestones.enumerated() {
-            map[m.lowercased()] = idx
+            map[m] = idx
         }
         return map
     }()
+
+    static func lookupMilestoneIndex(for token: String) -> Int? {
+        if let idx = milestoneLookup[token] {
+            return idx
+        }
+        let suffix = token.suffix(1).uppercased()
+        if ["K", "M", "B", "T"].contains(suffix) {
+            let candidate = String(token.dropLast() + suffix)
+            if let idx = milestoneLookup[candidate] {
+                return idx
+            }
+        }
+        let lower = token.lowercased()
+        if let idx = milestoneLookup[lower] {
+            return idx
+        }
+        return nil
+    }
 
     static var daysSinceReference: Int {
         var components = DateComponents()
@@ -846,8 +864,8 @@ public struct MockSocialService: SocialService, Sendable {
         let nsStr = message as NSString
         let matches = Self.milestoneTokensRegex.matches(in: message, range: NSRange(location: 0, length: nsStr.length))
         for match in matches {
-            let token = nsStr.substring(with: match.range).lowercased()
-            if Self.milestoneLookup[token] != nil {
+            let token = nsStr.substring(with: match.range)
+            if Self.lookupMilestoneIndex(for: token) != nil {
                 rootMilestoneExists = true
                 break
             }
@@ -899,9 +917,8 @@ public struct MockSocialService: SocialService, Sendable {
         case "milestone":
             let regexMatches = Self.milestoneTokensRegex.matches(in: text, range: NSRange(location: 0, length: nsText.length))
             for regMatch in regexMatches {
-                let matchedString = nsText.substring(with: regMatch.range)
-                let token = matchedString.lowercased()
-                if let idx = Self.milestoneLookup[token] {
+                let token = nsText.substring(with: regMatch.range)
+                if let idx = Self.lookupMilestoneIndex(for: token) {
                     let finalVal = Self.allMilestones[idx]
                     if !matches.contains(where: { $0.range == regMatch.range }) {
                         matches.append((val: finalVal, range: regMatch.range))
@@ -1180,6 +1197,11 @@ public struct MockSocialService: SocialService, Sendable {
     #endif
 
     public static func loadUserPosts() -> [SocialFeedItem]? {
+        #if DEBUG
+        if let override = inMemoryUserPostsOverride {
+            return override
+        }
+        #endif
         guard let data = try? Data(contentsOf: userPostsURL) else {
             // Fallback to UserDefaults migration
             let defaults = UserDefaults.standard
@@ -1194,6 +1216,12 @@ public struct MockSocialService: SocialService, Sendable {
     }
     
     private static func saveUserPosts(_ posts: [SocialFeedItem]) {
+        #if DEBUG
+        if inMemoryUserPostsOverride != nil {
+            inMemoryUserPostsOverride = posts
+            return
+        }
+        #endif
         if let data = try? JSONEncoder().encode(posts) {
             try? data.write(to: userPostsURL, options: .atomic)
         }
@@ -2275,6 +2303,7 @@ public struct MockSocialService: SocialService, Sendable {
     public nonisolated(unsafe) static var isPlayerAtHOFOverride: Bool? = nil
     public nonisolated(unsafe) static var bypassFeedCache: Bool = false
     public nonisolated(unsafe) static var inMemoryFeedOverride: [SocialFeedItem]? = nil
+    public nonisolated(unsafe) static var inMemoryUserPostsOverride: [SocialFeedItem]? = nil
     #endif
 
     private static var isPlayerAtHOF: Bool {
@@ -3335,14 +3364,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         // ── Milestone posts: find the tile, reference a higher one ──
-        if topic == "milestone", let foundIdx = sortedMilestones.firstIndex(where: { m in
-            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: m))\\b"
-            return (try? NSRegularExpression(pattern: pattern))?.firstMatch(
-                in: message,
-                range: NSRange(message.startIndex..., in: message)
-            ) != nil
-        }) {
-            let m = sortedMilestones[foundIdx]
+        if topic == "milestone", let m = Self.extractValue(from: message, topic: "milestone") {
             if let originalIdx = Self.allMilestones.firstIndex(of: m) {
                 let isLowMilestone = false
                 let oneMIndex = Self.allMilestones.firstIndex(of: "1M") ?? 0
@@ -3518,8 +3540,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         
         var found: [(index: Int, name: String)] = []
         for match in matches {
-            let token = nsStr.substring(with: match.range).lowercased()
-            if let idx = Self.milestoneLookup[token] {
+            let token = nsStr.substring(with: match.range)
+            if let idx = Self.lookupMilestoneIndex(for: token) {
                 found.append((index: idx, name: Self.allMilestones[idx]))
             }
         }
@@ -3586,8 +3608,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let matches = Self.milestoneTokensRegex.matches(in: strippedText, range: NSRange(location: 0, length: nsStr.length))
             var found: [(index: Int, name: String)] = []
             for match in matches {
-                let token = nsStr.substring(with: match.range).lowercased()
-                if let idx = Self.milestoneLookup[token] {
+                let token = nsStr.substring(with: match.range)
+                if let idx = Self.lookupMilestoneIndex(for: token) {
                     found.append((index: idx, name: Self.allMilestones[idx]))
                 }
             }
@@ -3599,8 +3621,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let matches = Self.milestoneTokensRegex.matches(in: message, range: NSRange(location: 0, length: nsStr.length))
             var found: [(index: Int, name: String)] = []
             for match in matches {
-                let token = nsStr.substring(with: match.range).lowercased()
-                if let idx = Self.milestoneLookup[token] {
+                let token = nsStr.substring(with: match.range)
+                if let idx = Self.lookupMilestoneIndex(for: token) {
                     found.append((index: idx, name: Self.allMilestones[idx]))
                 }
             }
@@ -4025,11 +4047,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         higherM = Self.allMilestones[higherIdx]
                     }
                     if isTargetOutOfReach {
-                        replies.append(Self.getOneUpBrag(metric: "milestone", lower: m.name, higher: higherM))
+                        replies.append(Self.getOneUpBrag(metric: "milestone", lower: m.name, higher: higherM, excluding: previousSelfComment))
                     } else {
                         let speakerIdx = Self.allMilestones.firstIndex(of: higherM) ?? 0
                         if speakerIdx > m.index {
-                            replies.append(Self.getOneUpBrag(metric: "milestone", lower: m.name, higher: higherM))
+                            replies.append(Self.getOneUpBrag(metric: "milestone", lower: m.name, higher: higherM, excluding: previousSelfComment))
                         } else if speakerIdx == m.index {
                             replies.append("I'm right there at \(m.name) too. Let's see who breaks it first.")
                             replies.append("We're tied at \(m.name). The real race starts now.")
@@ -4058,10 +4080,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         }
                         let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
                         if isTargetOutOfReach {
-                            replies.append(Self.getOneUpBrag(metric: "time", lower: posterTime, higher: myTimeStr))
+                            replies.append(Self.getOneUpBrag(metric: "time", lower: posterTime, higher: myTimeStr, excluding: previousSelfComment))
                         } else {
                             if mySecs < totalSecs {
-                                replies.append(Self.getOneUpBrag(metric: "time", lower: posterTime, higher: myTimeStr))
+                                replies.append(Self.getOneUpBrag(metric: "time", lower: posterTime, higher: myTimeStr, excluding: previousSelfComment))
                             } else if mySecs == totalSecs {
                                 replies.append("I'm right there at \(posterTime) too. Let's see who breaks it first.")
                                 replies.append("We're tied at \(posterTime). The real race starts now.")
@@ -4094,7 +4116,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         if higherNum > num {
-                            replies.append(Self.getOneUpBrag(metric: "streak", lower: "\(num)", higher: "\(higherNum)"))
+                            replies.append(Self.getOneUpBrag(metric: "streak", lower: "\(num)", higher: "\(higherNum)", excluding: previousSelfComment))
                         } else if higherNum == num {
                             replies.append("I'm right there at \(num) days too. Let's see who breaks it first.")
                             replies.append("We're tied at \(num) days. The real race starts now.")
@@ -4115,10 +4137,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         myCount = infCount + Int.random(in: 5...15)
                     }
                     if isTargetOutOfReach {
-                        replies.append(Self.getOneUpBrag(metric: "hof", lower: "\(infCount)", higher: "\(myCount)"))
+                        replies.append(Self.getOneUpBrag(metric: "hof", lower: "\(infCount)", higher: "\(myCount)", excluding: previousSelfComment))
                     } else {
                         if myCount > infCount {
-                            replies.append(Self.getOneUpBrag(metric: "hof", lower: "\(infCount)", higher: "\(myCount)"))
+                            replies.append(Self.getOneUpBrag(metric: "hof", lower: "\(infCount)", higher: "\(myCount)", excluding: previousSelfComment))
                         } else if myCount == infCount {
                             replies.append("I'm right there at \(infCount) infinities too. Let's see who breaks it first.")
                             replies.append("We're tied at \(infCount) infinities. The real race starts now.")
@@ -4214,7 +4236,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I also hit \(higherM). Cute, but irrelevant."
                         ])
                     } else {
-                        replies.append(Self.getOneUpBrag(metric: "milestone", lower: cM.name, higher: higherM))
+                        replies.append(Self.getOneUpBrag(metric: "milestone", lower: cM.name, higher: higherM, excluding: previousSelfComment))
                     }
                 } else {
                     let mIdx = m.index
@@ -4248,7 +4270,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             higherM = Self.allMilestones[higherIdx]
                         }
                         if wantsBetter {
-                            replies.append(Self.getOneUpBrag(metric: "milestone", lower: mName, higher: higherM))
+                            replies.append(Self.getOneUpBrag(metric: "milestone", lower: mName, higher: higherM, excluding: previousSelfComment))
                         } else {
                             let higherIdx = Self.allMilestones.firstIndex(of: higherM) ?? 0
                             if higherIdx < mIdx {
@@ -4269,7 +4291,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I also hit \(higherM). Cute, but irrelevant."
                                 ])
                             } else {
-                                replies.append(Self.getOneUpBrag(metric: "milestone", lower: mName, higher: higherM))
+                                replies.append(Self.getOneUpBrag(metric: "milestone", lower: mName, higher: higherM, excluding: previousSelfComment))
                             }
                         }
                     }
@@ -4284,7 +4306,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let isLowerStreakBrag = commentText != message && commentIsCompetitive && commentNumber != nil && refNumber != nil && commentNumber! < refNumber!
                     
                     if isLowerStreakBrag, let cN = commentNumber, let rN = refNumber {
-                        replies.append(Self.getOneUpBrag(metric: "streak", lower: "\(cN)", higher: "\(rN)"))
+                        replies.append(Self.getOneUpBrag(metric: "streak", lower: "\(cN)", higher: "\(rN)", excluding: previousSelfComment))
                     } else if rootIsJealous, let cN = commentNumber {
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
@@ -4605,7 +4627,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I also clocked \(myTimeStr). Cute, but irrelevant."
                             ])
                         } else {
-                            replies.append(Self.getOneUpBrag(metric: "time", lower: cTimeStr, higher: myTimeStr))
+                            replies.append(Self.getOneUpBrag(metric: "time", lower: cTimeStr, higher: myTimeStr, excluding: previousSelfComment))
                         }
                 } else if let (mins, secs) = commentTime ?? rootTime {
                     let totalSecs = mins * 60 + secs

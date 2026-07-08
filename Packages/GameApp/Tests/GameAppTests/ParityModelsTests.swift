@@ -427,6 +427,7 @@ struct ParityModelsTests {
         let defaults = UserDefaults.standard
         MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
+        MockSocialService.inMemoryUserPostsOverride = []
         
         let service = MockSocialService()
         // Generate threads with different topics
@@ -732,6 +733,7 @@ struct ParityModelsTests {
                 }
             }
         }
+        MockSocialService.inMemoryUserPostsOverride = nil
     }
 
     @Test("Verify that too-low reply is correctly generated when a comment has multiple milestones (e.g. 17ad and 4ad) and target is 17ad")
@@ -941,6 +943,7 @@ struct ParityModelsTests {
         
         MockSocialService.isPlayerAtHOFOverride = true
         MockSocialService.bypassFeedCache = true
+        MockSocialService.inMemoryUserPostsOverride = []
         
         let service = MockSocialService()
         let feed = try await service.feed()
@@ -984,6 +987,7 @@ struct ParityModelsTests {
         // Clean up
         MockSocialService.isPlayerAtHOFOverride = nil
         MockSocialService.bypassFeedCache = false
+        MockSocialService.inMemoryUserPostsOverride = nil
         MockSocialService.clearFileStorageForTests()
         defaults.removeObject(forKey: MockSocialService.feedDateKey)
     }
@@ -1241,6 +1245,17 @@ struct ParityModelsTests {
         }
         
         #expect(secondReplyFound, "Expected to generate a behind reply followed by a second caught up/one up reply in a row")
+    }
+
+    @Test
+    func testGetOneUpBragExcludesDuplicates() {
+        let first = MockSocialService.getOneUpBrag(metric: "milestone", lower: "2M", higher: "4M")
+        
+        // Repeatedly request and expect different candidate
+        for _ in 0..<20 {
+            let second = MockSocialService.getOneUpBrag(metric: "milestone", lower: "2M", higher: "4M", excluding: first)
+            #expect(first != second, "Expected getOneUpBrag to exclude first choice: \(first)")
+        }
     }
 }
 
