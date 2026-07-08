@@ -1398,12 +1398,21 @@ struct GameplayInfoPanel: View {
                 isCompact: isCompact,
                 valueColor: validMovesColor
             )
-            GameplayInfoStat(
-                title: "Highest",
-                value: bestLabel,
-                systemImage: "crown.fill",
-                isCompact: isCompact
-            )
+            if bestStep >= 817 {
+                GameplayInfoStat(
+                    title: "Infinities Made",
+                    value: "\(gameStore.state.infinityMergeCount)",
+                    systemImage: "infinity",
+                    isCompact: isCompact
+                )
+            } else {
+                GameplayInfoStat(
+                    title: "Highest",
+                    value: bestLabel,
+                    systemImage: "crown.fill",
+                    isCompact: isCompact
+                )
+            }
             if !gameStore.sandboxed {
                 GameplayInfoStat(
                     title: "Score",
