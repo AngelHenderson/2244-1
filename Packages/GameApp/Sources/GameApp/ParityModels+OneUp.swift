@@ -122,15 +122,15 @@ extension MockSocialService {
                 return pickRandom(list)
             case 3:
                 let weightedReplies: [(String, Double)] = [
-                    ("I easily passed your \(lower). I clocked \(higher).", 10.0),
-                    ("I let you think you had the lead. Your \(lower) is nothing. I clocked \(higher).", 10.0),
-                    ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 12.0),
-                    ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 12.0),
-                    ("I blew past your \(lower) and clocked \(higher) without even trying.", 10.0),
-                    ("Only at \(lower)? I easily clocked \(higher).", 12.0),
-                    ("Your \(lower) is a joke compared to my \(higher).", 10.0),
-                    ("I clocked \(higher) without trying.", 10.0),
-                    ("I was just toying with you. I actually clocked \(higher).", 14.0)
+                    ("I easily passed your \(lower). I clocked \(higher).", 3.1),
+                    ("I let you think you had the lead. Your \(lower) is nothing. I clocked \(higher).", 18.0),
+                    ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 19.9),
+                    ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 24.9),
+                    ("I blew past your \(lower) and clocked \(higher) without even trying.", 6.1),
+                    ("Only at \(lower)? I easily clocked \(higher).", 4.6),
+                    ("Your \(lower) is a joke compared to my \(higher).", 2.4),
+                    ("I clocked \(higher) without trying.", 0.6),
+                    ("I was just toying with you. I actually clocked \(higher).", 20.4)
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
