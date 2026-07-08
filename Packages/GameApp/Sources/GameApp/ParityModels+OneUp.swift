@@ -59,15 +59,15 @@ extension MockSocialService {
                 return pickRandom(list)
             case 3:
                 let weightedReplies: [(String, Double)] = [
-                    ("I easily passed your \(lower). I'm at \(higher).", 10.0),
-                    ("I let you think you had the lead. Your \(lower) is nothing. I'm at \(higher).", 10.0),
-                    ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 12.0),
-                    ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 12.0),
-                    ("I blew past your \(lower) and hit \(higher) without even trying.", 10.0),
-                    ("Only at \(lower)? I easily reached \(higher).", 12.0),
-                    ("Your \(lower) is a joke compared to my \(higher).", 10.0),
-                    ("I cleared \(higher) without trying.", 10.0),
-                    ("I was just toying with you. I'm actually at \(higher).", 14.0)
+                    ("I easily passed your \(lower). I'm at \(higher).", 3.1),
+                    ("I let you think you had the lead. Your \(lower) is nothing. I'm at \(higher).", 18.0),
+                    ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 19.9),
+                    ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 24.9),
+                    ("I blew past your \(lower) and hit \(higher) without even trying.", 6.1),
+                    ("Only at \(lower)? I easily reached \(higher).", 4.6),
+                    ("Your \(lower) is a joke compared to my \(higher).", 2.4),
+                    ("I cleared \(higher) without trying.", 0.6),
+                    ("I was just toying with you. I'm actually at \(higher).", 20.4)
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
@@ -186,14 +186,14 @@ extension MockSocialService {
             case 3:
                 let weightedReplies: [(String, Double)] = [
                     ("I easily passed your \(lower) days. I'm at \(higher) days.", 10.0),
-                    ("I let you think you had the lead. Your \(lower) days is nothing. I'm at \(higher) days.", 10.0),
-                    ("You fell for it. I easily beat your \(lower) days. My real record is \(higher) days.", 12.0),
-                    ("I was just warming up. Your \(lower) days is a joke compared to my \(higher) days.", 12.0),
-                    ("I blew past your \(lower) days and hit \(higher) days without even trying.", 10.0),
-                    ("Only at \(lower) days? I easily reached \(higher) days.", 12.0),
-                    ("Your \(lower) days is a joke compared to my \(higher) days.", 10.0),
-                    ("I cleared \(higher) days without trying.", 10.0),
-                    ("I was just toying with you. I'm actually at \(higher) days.", 14.0)
+                    ("I let you think you had the lead. Your \(lower) days is nothing. I'm at \(higher) days.", 18.0),
+                    ("You fell for it. I easily beat your \(lower) days. My real record is \(higher) days.", 19.9),
+                    ("I was just warming up. Your \(lower) days is a joke compared to my \(higher) days.", 24.9),
+                    ("I blew past your \(lower) days and hit \(higher) days without even trying.", 6.1),
+                    ("Only at \(lower) days? I easily reached \(higher) days.", 4.6),
+                    ("Your \(lower) days is a joke compared to my \(higher) days.", 2.4),
+                    ("I cleared \(higher) days without trying.", 0.6),
+                    ("I was just toying with you. I'm actually at \(higher) days.", 20.4)
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
@@ -249,14 +249,14 @@ extension MockSocialService {
             case 3:
                 let weightedReplies: [(String, Double)] = [
                     ("I easily passed your \(lower) infinities. I'm at \(higher) infinities.", 10.0),
-                    ("I let you think you had the lead. Your \(lower) infinities is nothing. I'm at \(higher) infinities.", 10.0),
-                    ("You fell for it. I easily beat your \(lower) infinities. My real record is \(higher) infinities.", 12.0),
-                    ("I was just warming up. Your \(lower) infinities is a joke compared to my \(higher) infinities.", 12.0),
-                    ("I blew past your \(lower) infinities and hit \(higher) infinities without even trying.", 10.0),
-                    ("Only at \(lower) infinities? I easily reached \(higher) infinities.", 12.0),
-                    ("Your \(lower) infinities is a joke compared to my \(higher) infinities.", 10.0),
-                    ("I cleared \(higher) infinities without trying.", 10.0),
-                    ("I was just toying with you. I'm actually at \(higher) infinities.", 14.0)
+                    ("I let you think you had the lead. Your \(lower) infinities is nothing. I'm at \(higher) infinities.", 18.0),
+                    ("You fell for it. I easily beat your \(lower) infinities. My real record is \(higher) infinities.", 19.9),
+                    ("I was just warming up. Your \(lower) infinities is a joke compared to my \(higher) infinities.", 24.9),
+                    ("I blew past your \(lower) infinities and hit \(higher) infinities without even trying.", 6.1),
+                    ("Only at \(lower) infinities? I easily reached \(higher) infinities.", 4.6),
+                    ("Your \(lower) infinities is a joke compared to my \(higher) infinities.", 2.4),
+                    ("I cleared \(higher) infinities without trying.", 0.6),
+                    ("I was just toying with you. I'm actually at \(higher) infinities.", 20.4)
                 ]
                 return pickWeighted(weightedReplies)
             case 4:
