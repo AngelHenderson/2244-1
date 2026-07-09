@@ -3,6 +3,42 @@ import Foundation
 extension MockSocialService {
     
     static func getOneUpBrag(metric: String, lower: String, higher: String, excluding previousSelfComment: String? = nil) -> String {
+        if lower.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == higher.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            switch metric {
+            case "milestone":
+                return [
+                    "I'm right there at \(lower) too. Let's see who breaks it first.",
+                    "We're tied at \(lower). The real race starts now.",
+                    "I hit \(higher) in my sleep. We won't be tied for long.",
+                    "Looks like we're both at \(lower). Enjoy it while it lasts.",
+                    "I also hit \(higher). Cute, but irrelevant."
+                ].randomElement()!
+            case "time":
+                return [
+                    "I'm right there at \(lower) too. Let's see who breaks it first.",
+                    "We're tied at \(lower). The real race starts now.",
+                    "Looks like we're both at \(lower). Enjoy it while it lasts.",
+                    "I also clocked \(higher). Cute, but irrelevant."
+                ].randomElement()!
+            case "streak":
+                return [
+                    "I'm right there at \(lower) days too. Let's see who breaks it first.",
+                    "We're tied at \(lower) days. The real race starts now.",
+                    "Looks like we're both at \(lower) days. Enjoy it while it lasts.",
+                    "I also clocked \(higher) days. Cute, but irrelevant."
+                ].randomElement()!
+            case "hof":
+                return [
+                    "I'm right there at \(lower) infinities too. Let's see who breaks it first.",
+                    "We're tied at \(lower) infinities. The real race starts now.",
+                    "Looks like we're both at \(lower) infinities. Enjoy it while it lasts.",
+                    "I also clocked \(higher) infinities. Cute, but irrelevant."
+                ].randomElement()!
+            default:
+                break
+            }
+        }
+        
         let isDuplicate = { (reply: String) -> Bool in
             guard let prev = previousSelfComment else { return false }
             let cleanedReply = reply.replacingOccurrences(of: " XD", with: "").replacingOccurrences(of: " !", with: "").replacingOccurrences(of: ".", with: "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()

@@ -360,11 +360,22 @@ struct ParityModelsTests {
         let milestones = MockSocialService.allMilestones
         #expect(milestones.contains("3q"))
         #expect(milestones.contains("51q"))
+        #expect(milestones.contains("883t"))
         
         let index3q = milestones.firstIndex(of: "3q")
         let index51q = milestones.firstIndex(of: "51q")
+        let index883t = milestones.firstIndex(of: "883t")
+        let index7w = milestones.firstIndex(of: "7w")
+        print("INDEX OF 883T: \(index883t ?? -1)")
+        print("INDEX OF 7W: \(index7w ?? -1)")
+        
+        let oneUp = MockSocialService.oneUpValue(for: "883t", topic: "milestone")
+        let lower = MockSocialService.lowerValue(for: "883t", topic: "milestone")
+        
         #expect(index3q != nil)
         #expect(index51q != nil)
+        #expect(index883t != nil)
+        #expect(index7w != nil)
     }
 
     @Test("Verify extractValue filters out milestones inside leading mentions with spaces")
@@ -1255,6 +1266,20 @@ struct ParityModelsTests {
         for _ in 0..<20 {
             let second = MockSocialService.getOneUpBrag(metric: "milestone", lower: "2M", higher: "4M", excluding: first)
             #expect(first != second, "Expected getOneUpBrag to exclude first choice: \(first)")
+        }
+    }
+    
+    @Test("Verify getOneUpBrag returns a tied response when called with equal values")
+    func testGetOneUpBragEqualValuesGuardsAgainstSameValueBrag() {
+        let metrics = ["milestone", "time", "streak", "hof"]
+        for metric in metrics {
+            for _ in 0..<50 {
+                let brag = MockSocialService.getOneUpBrag(metric: metric, lower: "883t", higher: "883t")
+                // Brags should not contain "beat your" or "beat" or "bypassed" or "clear" or "irrelev" or "joke" alongside 883t in a one-up format
+                let lowerBrag = brag.lowercased()
+                let hasOneUpKeywords = lowerBrag.contains("beat your") || lowerBrag.contains("easily beat") || lowerBrag.contains("bypassed") || lowerBrag.contains("real record is") || lowerBrag.contains("untouchable") || lowerBrag.contains("ceiling") || lowerBrag.contains("in the dust") || lowerBrag.contains("out of reach")
+                #expect(!hasOneUpKeywords, "Expected brag for equal values to not contain one-up keywords: \(brag)")
+            }
         }
     }
 }

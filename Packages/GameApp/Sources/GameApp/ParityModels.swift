@@ -1035,7 +1035,7 @@ public struct MockSocialService: SocialService, Sendable {
             
         case "streak":
             let current = val.flatMap(Int.init) ?? Int.random(in: 5...30)
-            return String(current)
+            return String(current + Int.random(in: 1...2))
             
         case "time":
             func timeToSeconds(_ timeStr: String) -> Int {
@@ -3020,8 +3020,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("Don't bother trying.", 0.6),
                         ("I'm comfortably ahead.", 7.0),
                         ("I reign supreme.", 0.2),
-                        ("No one comes close.", 0.3),
-                        ("Keep dreaming.", 28.5),
+                        ("Keep dreaming.", 28.8),
                         ("You're not even a threat.", 3.5),
                         ("Your stats are completely irrelevant.", 8.1),
                         ("You're not on my level.", 1.4),
@@ -3925,6 +3924,40 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
         if isCompetitive {
             if forceTone == "caught_up" {
+                if previousSelfComment != nil {
+                    if let m = mentionedMilestone {
+                        return [
+                            "I'm right there at \(m.name) too. Let's see who breaks it first.",
+                            "We're tied at \(m.name). The real race starts now.",
+                            "I hit \(m.name) in my sleep. We won't be tied for long.",
+                            "Looks like we're both at \(m.name). Enjoy it while it lasts.",
+                            "I also hit \(m.name). Cute, but irrelevant."
+                        ].randomElement()!
+                    } else if mentionedStreak, let numStr = mentionedNumber {
+                        return [
+                            "I'm right there at \(numStr) days too. Let's see who breaks it first.",
+                            "We're tied at \(numStr) days. The real race starts now.",
+                            "Looks like we're both at \(numStr) days. Enjoy it while it lasts.",
+                            "I also clocked \(numStr) days. Cute, but irrelevant."
+                        ].randomElement()!
+                    } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                        let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                        return [
+                            "I'm right there at \(posterTime) too. Let's see who breaks it first.",
+                            "We're tied at \(posterTime). The real race starts now.",
+                            "Looks like we're both at \(posterTime). Enjoy it while it lasts.",
+                            "I also clocked \(posterTime). Cute, but irrelevant."
+                        ].randomElement()!
+                    } else if mentionedHoF, let numStr = mentionedNumber {
+                        return [
+                            "I'm right there at \(numStr) infinities too. Let's see who breaks it first.",
+                            "We're tied at \(numStr) infinities. The real race starts now.",
+                            "Looks like we're both at \(numStr) infinities. Enjoy it while it lasts.",
+                            "I also clocked \(numStr) infinities. Cute, but irrelevant."
+                        ].randomElement()!
+                    }
+                }
+                
                 if let prev = previousSelfComment, prev.contains("Watch your back.") {
                     if let m = mentionedMilestone {
                         return "Told you to watch your back! I'm right here at \(m.name) with you."
