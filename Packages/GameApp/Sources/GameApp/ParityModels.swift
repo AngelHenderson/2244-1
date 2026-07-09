@@ -2973,7 +2973,7 @@ public struct MockSocialService: SocialService, Sendable {
                 // Randomly prepend a competitive opener ~95% of the time
                 if Double.random(in: 0...1) < 0.95 {
                     let openersWithWeights: [(String, Double)] = [
-                        ("I flew right past this.", 0.05),
+                        ("That's old news.", 0.05),
                         ("This takes zero effort.", 6.9),
                         ("Laughable.", 3.0),
                         ("This is entirely average.", 4.0),
@@ -3159,7 +3159,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Lost your streak? Pathetic. I'm sitting at \(myDays) days.",
                     "Couldn't even keep it going? I'm comfortably at \(myDays) days.",
                     "Back to 0? I'm dominating with \(myDays) days.",
-                    "While you restart, I'm already pushing \(myDays) days.",
+                    "Enjoy restarting from zero. You'll never be a threat to my \(myDays) days.",
                     "Lost your streak? Typical. I'm already at \(myDays) days.",
                     "Back to \(cN) days? Don't even try to catch my \(myDays) days.",
                     "Dropping your streak is pathetic. I'm sitting comfortably at \(myDays) days.",
@@ -4482,7 +4482,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Lost your streak? Pathetic. I'm sitting at \(higherNum) days.",
                         "Couldn't even keep it going? I'm comfortably at \(higherNum) days.",
                         "Back to 0? I'm dominating with \(higherNum) days.",
-                        "While you restart, I'm already pushing \(higherNum) days."
+                        "Enjoy restarting from zero. You'll never be a threat to my \(higherNum) days."
                     ])
                 } else {
                     let isLowStreak = false
