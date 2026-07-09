@@ -1423,7 +1423,7 @@ public struct MockSocialService: SocialService, Sendable {
                     if let playerVal = Self.extractValue(from: text, topic: topic) {
                         let finalNPCValue: String
                         let toneStr: String
-                        if Double.random(in: 0...1) < 0.45 && topic != "streak" {
+                        if Double.random(in: 0...1) < 0.20 && topic != "streak" {
                             finalNPCValue = playerVal
                             toneStr = "caught_up"
                         } else {
@@ -1624,7 +1624,7 @@ public struct MockSocialService: SocialService, Sendable {
                             // Keep player record constant throughout the thread
                         } else if let n1Val = npc1Value {
                             if topic != "streak" || npc2Value == nil {
-                                if Double.random(in: 0...1) < 0.45 {
+                                if Double.random(in: 0...1) < 0.20 {
                                     npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                 } else {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
@@ -1663,7 +1663,7 @@ public struct MockSocialService: SocialService, Sendable {
                             // Keep player record constant throughout the thread
                         } else if let n2Val = npc2Value {
                             if topic != "streak" || npc1Value == nil {
-                                if Double.random(in: 0...1) < 0.45 {
+                                if Double.random(in: 0...1) < 0.20 {
                                     npc1Value = Self.lowerValue(for: n2Val, topic: topic)
                                 } else {
                                     npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
@@ -2031,7 +2031,7 @@ public struct MockSocialService: SocialService, Sendable {
                                 // Keep player record constant throughout the thread
                             } else if let n1Val = npc1Value {
                                 if topic != "streak" || npc2Value == nil {
-                                    if Double.random(in: 0...1) < 0.45 {
+                                    if Double.random(in: 0...1) < 0.20 {
                                         npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                     } else {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
@@ -2070,7 +2070,7 @@ public struct MockSocialService: SocialService, Sendable {
                                 // Keep player record constant throughout the thread
                             } else if let n2Val = npc2Value {
                                 if topic != "streak" || npc1Value == nil {
-                                    if Double.random(in: 0...1) < 0.45 {
+                                    if Double.random(in: 0...1) < 0.20 {
                                         npc1Value = Self.lowerValue(for: n2Val, topic: topic)
                                     } else {
                                         npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
@@ -2984,11 +2984,11 @@ public struct MockSocialService: SocialService, Sendable {
                         ("Not worth my time.", 0.6),
                         ("Unimpressive.", 1.0),
                         ("Not impressed.", 1.0),
-                        ("That's cute.", 30.5),
+                        ("That's cute.", 23.5),
                         ("Light work.", 2.0),
                         ("What a joke.", 8.6),
                         ("Not even trying.", 0.4),
-                        ("Imagine celebrating that.", 2.0),
+                        ("Imagine celebrating that.", 9.0),
                         ("Is that all?", 1.0),
                         ("I did this by accident.", 19.5),
                         ("That's nothing.", 7.2),
@@ -3940,11 +3940,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 var reply: String = ""
                 if let m = mentionedMilestone {
                     var list: [(String, Double)] = [
-                        ("I told you I'd catch up! I'm right there at \(m.name) with you.", 8.0),
-                        ("Look who caught up! We're tied at \(m.name) now.", 7.0),
-                        ("Caught up to you! I'm sitting at \(m.name) too.", 9.0),
-                        ("I told you I would catch you. We are both at \(m.name)!", 73.0),
-                        ("Told you to watch your back! I'm right here at \(m.name) with you.", 3.0)
+                        ("I told you I'd catch up! I'm right there at \(m.name) with you.", 20.0),
+                        ("Look who caught up! We're tied at \(m.name) now.", 20.0),
+                        ("Caught up to you! I'm sitting at \(m.name) too.", 20.0),
+                        ("I told you I would catch you. We are both at \(m.name)!", 20.0),
+                        ("Told you to watch your back! I'm right here at \(m.name) with you.", 20.0)
                     ]
                     if let prev = previousSelfComment {
                         let filtered = list.filter { !prev.contains($0.0) && !$0.0.contains(prev) }
@@ -3953,11 +3953,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     reply = Self.pickWeighted(list)
                 } else if mentionedStreak, let numStr = mentionedNumber, let _ = Int(numStr) {
                     var list: [(String, Double)] = [
-                        ("I told you I'd catch up! I'm right there at \(numStr) days with you.", 8.0),
-                        ("Look who caught up! We're tied at \(numStr) days now.", 7.0),
-                        ("Caught up to you! I'm sitting at \(numStr) days too.", 9.0),
-                        ("I told you I would catch you. We are both at \(numStr) days!", 73.0),
-                        ("Told you to watch your back! I'm right here at \(numStr) days with you.", 3.0)
+                        ("I told you I'd catch up! I'm right there at \(numStr) days with you.", 20.0),
+                        ("Look who caught up! We're tied at \(numStr) days now.", 20.0),
+                        ("Caught up to you! I'm sitting at \(numStr) days too.", 20.0),
+                        ("I told you I would catch you. We are both at \(numStr) days!", 20.0),
+                        ("Told you to watch your back! I'm right here at \(numStr) days with you.", 20.0)
                     ]
                     if let prev = previousSelfComment {
                         let filtered = list.filter { !prev.contains($0.0) && !$0.0.contains(prev) }
@@ -3967,11 +3967,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
                     var list: [(String, Double)] = [
-                        ("I told you I'd catch up! I clocked exactly \(posterTime) to tie you.", 8.0),
-                        ("Look who caught up! We're tied at \(posterTime).", 7.0),
-                        ("Caught up to you! I clocked \(posterTime) too.", 9.0),
-                        ("I told you I would catch you. We both clocked \(posterTime)!", 73.0),
-                        ("Told you to watch your back! I clocked exactly \(posterTime) to tie you.", 3.0)
+                        ("I told you I'd catch up! I clocked exactly \(posterTime) to tie you.", 20.0),
+                        ("Look who caught up! We're tied at \(posterTime).", 20.0),
+                        ("Caught up to you! I clocked \(posterTime) too.", 20.0),
+                        ("I told you I would catch you. We both clocked \(posterTime)!", 20.0),
+                        ("Told you to watch your back! I clocked exactly \(posterTime) to tie you.", 20.0)
                     ]
                     if let prev = previousSelfComment {
                         let filtered = list.filter { !prev.contains($0.0) && !$0.0.contains(prev) }
@@ -3980,11 +3980,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     reply = Self.pickWeighted(list)
                 } else if mentionedHoF, let numStr = mentionedNumber, let _ = Int(numStr) {
                     var list: [(String, Double)] = [
-                        ("I told you I'd catch up! I'm right there at \(numStr) infinities with you.", 8.0),
-                        ("Look who caught up! We're tied at \(numStr) HoF entries now.", 7.0),
-                        ("Caught up to you! I'm sitting at \(numStr) infinities too.", 9.0),
-                        ("I told you I would catch you. We are both at \(numStr) infinities!", 73.0),
-                        ("Told you to watch your back! I'm right here at \(numStr) infinities with you.", 3.0)
+                        ("I told you I'd catch up! I'm right there at \(numStr) infinities with you.", 20.0),
+                        ("Look who caught up! We're tied at \(numStr) HoF entries now.", 20.0),
+                        ("Caught up to you! I'm sitting at \(numStr) infinities too.", 20.0),
+                        ("I told you I would catch you. We are both at \(numStr) infinities!", 20.0),
+                        ("Told you to watch your back! I'm right here at \(numStr) infinities with you.", 20.0)
                     ]
                     if let prev = previousSelfComment {
                         let filtered = list.filter { !prev.contains($0.0) && !$0.0.contains(prev) }
