@@ -3021,15 +3021,15 @@ public struct MockSocialService: SocialService, Sendable {
                         ("I'm comfortably ahead.", 7.0),
                         ("I reign supreme.", 0.2),
                         ("No one comes close.", 0.3),
-                        ("Keep dreaming.", 27.5),
+                        ("Keep dreaming.", 28.5),
                         ("You're not even a threat.", 3.5),
                         ("Your stats are completely irrelevant.", 8.1),
                         ("You're not on my level.", 1.4),
                         ("I'm out of your league.", 0.1),
-                        ("Stay down there.", 24.2),
+                        ("Stay down there.", 22.2),
                         ("This record belongs to me.", 1.8),
                         ("Don't bother looking up.", 0.9),
-                        ("You couldn't catch me if you tried.", 22),
+                        ("You couldn't catch me if you tried.", 23),
                         ("I am safely out of your reach.", 2.4)
                     ]
                     let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
