@@ -2988,7 +2988,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("Light work.", 2.0),
                         ("What a joke.", 8.6),
                         ("Not even trying.", 0.4),
-                        ("Even a child does that.", 2.0),
+                        ("Imagine celebrating that.", 2.0),
                         ("Is that all?", 1.0),
                         ("I did this by accident.", 19.5),
                         ("That's nothing.", 7.2),
