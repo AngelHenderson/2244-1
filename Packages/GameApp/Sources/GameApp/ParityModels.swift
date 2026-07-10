@@ -1180,7 +1180,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v53.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v54.json")
     }
     
     private static var userPostsURL: URL {
@@ -3940,38 +3940,100 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     activeTone = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                 }
                 
+                let valStr: String = {
+                    let rawVal = (activeTone == "one_up") ? speakerValue : opponentValue
+                    if let rawVal = rawVal {
+                        if msgTopic == "streak" {
+                            return rawVal.contains("day") ? rawVal : "\(rawVal) days"
+                        } else if msgTopic == "hof" {
+                            if rawVal.lowercased().contains("infinit") {
+                                return rawVal
+                            }
+                            return "\(rawVal) infinities"
+                        }
+                        return rawVal
+                    }
+                    if let m = mentionedMilestone {
+                        return m.name
+                    } else if mentionedStreak, let numStr = mentionedNumber {
+                        return "\(numStr) days"
+                    } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
+                        return "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
+                    } else if mentionedHoF, let numStr = mentionedNumber {
+                        return "\(numStr) infinities"
+                    }
+                    return ""
+                }()
+
                 var valFreeReply = ""
                 if activeTone == "behind" {
-                    valFreeReply = [
-                        "You won't stay ahead for long. I'm right on your heels.",
-                        "Enjoy the lead while you can. It won't last.",
-                        "Your lead is temporary. Watch your back.",
-                        "I'm closing the gap. You won't stay ahead for long.",
-                        "Keep looking over your shoulder. I'm right behind you.",
-                        "I'm warming up. You won't be holding that lead much longer.",
-                        "You're not as safe up there as you think.",
-                        "Enjoy the view from the top while it lasts."
-                    ].randomElement()!
+                    if !valStr.isEmpty {
+                        valFreeReply = [
+                            "You won't stay ahead for long at \(valStr). I'm right on your heels.",
+                            "Enjoy the lead at \(valStr) while you can. It won't last.",
+                            "Your lead at \(valStr) is temporary. Watch your back.",
+                            "I'm closing the gap to \(valStr). You won't stay ahead for long.",
+                            "Keep looking over your shoulder. I'm right behind your \(valStr).",
+                            "I'm warming up. You won't be holding that \(valStr) lead much longer.",
+                            "You're not as safe up there at \(valStr) as you think.",
+                            "Enjoy the view from \(valStr) while it lasts."
+                        ].randomElement()!
+                    } else {
+                        valFreeReply = [
+                            "You won't stay ahead for long. I'm right on your heels.",
+                            "Enjoy the lead while you can. It won't last.",
+                            "Your lead is temporary. Watch your back.",
+                            "I'm closing the gap. You won't stay ahead for long.",
+                            "Keep looking over your shoulder. I'm right behind you.",
+                            "I'm warming up. You won't be holding that lead much longer.",
+                            "You're not as safe up there as you think.",
+                            "Enjoy the view from the top while it lasts."
+                        ].randomElement()!
+                    }
                 } else if activeTone == "one_up" {
-                    valFreeReply = [
-                        "You're not even in the same league. Just stop.",
-                        "You'll never catch me. Just stop trying.",
-                        "Still lagging behind? Pathetic.",
-                        "You're far too outmatched to ever be a threat.",
-                        "I comfortably stay ahead. You stand no chance.",
-                        "You're celebrating old progress while I'm leagues ahead.",
-                        "We both know you can't reach me.",
-                        "You're not built for this high-tier play."
-                    ].randomElement()!
+                    if !valStr.isEmpty {
+                        valFreeReply = [
+                            "You're not even in the same league as my \(valStr). Just stop.",
+                            "You'll never catch my \(valStr). Just stop trying.",
+                            "Still lagging behind my \(valStr)? Pathetic.",
+                            "You're far too outmatched to ever be a threat to my \(valStr).",
+                            "I comfortably stay ahead at \(valStr). You stand no chance.",
+                            "You're celebrating old progress while I'm leagues ahead at \(valStr).",
+                            "We both know you can't reach my \(valStr).",
+                            "You're not built for my \(valStr) high-tier play."
+                        ].randomElement()!
+                    } else {
+                        valFreeReply = [
+                            "You're not even in the same league. Just stop.",
+                            "You'll never catch me. Just stop trying.",
+                            "Still lagging behind? Pathetic.",
+                            "You're far too outmatched to ever be a threat.",
+                            "I comfortably stay ahead. You stand no chance.",
+                            "You're celebrating old progress while I'm leagues ahead.",
+                            "We both know you can't reach me.",
+                            "You're not built for this high-tier play."
+                        ].randomElement()!
+                    }
                 } else {
-                    valFreeReply = [
-                        "We won't be tied for long. The real race starts now.",
-                        "Enjoy the tie while it lasts. I'm pulling ahead next.",
-                        "We're even for now, but I'm breaking this tie soon.",
-                        "Looks like we're neck and neck. Let's see who slips first.",
-                        "A tie is just temporary. I'm already aiming higher.",
-                        "We are even, but my next run will bury you."
-                    ].randomElement()!
+                    if !valStr.isEmpty {
+                        valFreeReply = [
+                            "We won't be tied for long at \(valStr). The real race starts now.",
+                            "Enjoy the tie at \(valStr) while it lasts. I'm pulling ahead next.",
+                            "We're even at \(valStr) for now, but I'm breaking this tie soon.",
+                            "Looks like we're neck and neck at \(valStr). Let's see who slips first.",
+                            "A tie at \(valStr) is just temporary. I'm already aiming higher.",
+                            "We are even at \(valStr), but my next run will bury you."
+                        ].randomElement()!
+                    } else {
+                        valFreeReply = [
+                            "We won't be tied for long. The real race starts now.",
+                            "Enjoy the tie while it lasts. I'm pulling ahead next.",
+                            "We're even for now, but I'm breaking this tie soon.",
+                            "Looks like we're neck and neck. Let's see who slips first.",
+                            "A tie is just temporary. I'm already aiming higher.",
+                            "We are even, but my next run will bury you."
+                        ].randomElement()!
+                    }
                 }
                 
                 if Double.random(in: 0...1) < 0.75 {
