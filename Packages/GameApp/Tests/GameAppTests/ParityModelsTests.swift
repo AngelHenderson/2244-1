@@ -1284,6 +1284,98 @@ struct ParityModelsTests {
             }
         }
     }
+
+    @Test("Debug speedrun thread reply")
+    func testDebugSpeedrunThread() {
+        let service = MockSocialService()
+        let commentText = "@GilbertGladiator Your 0:29 was my practice run. I'm down to 0:22 XDDD."
+        let message = "timed challenge in 0:22"
+        let forceTone = "behind"
+        let speakerValue = "0:29"
+        let opponentValue = "0:22"
+        let previousSelfComment = "@SeaSerpent580469 I cleared 0:29. Your lead is temporary at 0:22."
+
+        let reply = service.generateContextualReply(
+            to: commentText,
+            message: message,
+            forceTone: forceTone,
+            speakerValue: speakerValue,
+            opponentValue: opponentValue,
+            previousSelfComment: previousSelfComment
+        )
+        print("DEBUG REPLY GENERATED: \(reply)")
+        #expect(reply.contains("won't stay ahead") || reply.contains("won't last") || reply.contains("temporary") || reply.contains("closing the gap") || reply.contains("shoulder") || reply.contains("warming up") || reply.contains("safe up there") || reply.contains("view from the top"))
+    }
+
+    @Test("Debug simulated thread")
+    func testDebugSimulatedThread() {
+        let service = MockSocialService()
+        let now = Date()
+        let message = "Just finished timed challenge in 0:22"
+        let topic = "time"
+        
+        let baseCommentText = "@SeaSerpent580469 I cleared 0:29. Your lead is temporary at 0:22."
+        let baseComment = SocialFeedComment(
+            authorName: "GilbertGladiator",
+            avatarID: "avatar_buddy_bot",
+            text: baseCommentText,
+            createdAt: now
+        )
+        
+        var lastComment = baseComment
+        let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
+        var npc2 = (name: "SeaSerpent580469", avatar: "avatar_alien")
+        
+        let rootValue = "0:22"
+        var npc1Value = "0:29"
+        var npc2Value: String? = nil
+        
+        var isNpc2Turn = true
+        var npc1PreviousComment: String? = baseComment.text
+        var npc2PreviousComment: String? = nil
+        
+        var comments: [SocialFeedComment] = [baseComment]
+        
+        for depth in 0..<4 {
+            if isNpc2Turn {
+                npc2Value = "0:22"
+                let isBehind = false
+                let isEqual = false
+                let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
+                let replyText = "@\(lastComment.authorName) " + service.generateContextualReply(
+                    to: lastComment.text,
+                    message: message,
+                    forceTone: toneStr,
+                    speakerValue: npc2Value,
+                    opponentValue: npc1Value,
+                    previousSelfComment: npc2PreviousComment
+                )
+                print("DEPTH \(depth) (npc2 turn): replyText = \(replyText)")
+                npc2PreviousComment = replyText
+                let replyComment = SocialFeedComment(authorName: npc2.name, avatarID: npc2.avatar, text: replyText, createdAt: now)
+                comments.append(replyComment)
+                lastComment = replyComment
+            } else {
+                let isBehind = true
+                let isEqual = false
+                let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
+                let replyText = "@\(lastComment.authorName) " + service.generateContextualReply(
+                    to: lastComment.text,
+                    message: message,
+                    forceTone: toneStr,
+                    speakerValue: npc1Value,
+                    opponentValue: npc2Value,
+                    previousSelfComment: npc1PreviousComment
+                )
+                print("DEPTH \(depth) (npc1 turn): replyText = \(replyText)")
+                npc1PreviousComment = replyText
+                let replyComment = SocialFeedComment(authorName: npc1.name, avatarID: npc1.avatar, text: replyText, createdAt: now)
+                comments.append(replyComment)
+                lastComment = replyComment
+            }
+            isNpc2Turn.toggle()
+        }
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {

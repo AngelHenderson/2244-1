@@ -1180,7 +1180,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v52.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v53.json")
     }
     
     private static var userPostsURL: URL {
