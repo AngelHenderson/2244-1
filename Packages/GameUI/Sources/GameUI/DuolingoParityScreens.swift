@@ -570,10 +570,9 @@ public struct SocialFeedView: View {
             .task { await load() }
             .refreshable { await load() }
             .sheet(item: $selectedItem) { item in
-                FeedCommentsView(item: item)
-                    .onDisappear {
-                        Task { await load() }
-                    }
+                FeedCommentsView(item: item, onDismiss: {
+                    await load()
+                })
             }
             .sheet(isPresented: $showAddEvent) {
                 AddEventSheet(socialService: socialService) {
@@ -1580,9 +1579,13 @@ private struct FeedCommentsView: View {
     /// Ticks forward so future-dated comments appear over time
     @State private var refreshTick = Date()
     private let commentTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    
+    @State private var activeCommentTasks: [Task<Void, Never>] = []
+    let onDismiss: () async -> Void
 
-    init(item: SocialFeedItem) {
+    init(item: SocialFeedItem, onDismiss: @escaping () async -> Void) {
         self._item = State(initialValue: item)
+        self.onDismiss = onDismiss
     }
 
     /// Only show comments whose timestamp has already passed
@@ -1686,6 +1689,14 @@ private struct FeedCommentsView: View {
         .onReceive(commentTimer) { _ in
             refreshTick = Date()
         }
+        .onDisappear {
+            Task {
+                for task in activeCommentTasks {
+                    _ = await task.result
+                }
+                await onDismiss()
+            }
+        }
     }
     
     private func submitComment() {
@@ -1709,9 +1720,10 @@ private struct FeedCommentsView: View {
         item.comments.sort { $0.createdAt < $1.createdAt }
         item.commentCount = item.comments.count
         
-        Task {
+        let task = Task {
             try? await socialService.addComment(to: item.id, text: text)
         }
+        activeCommentTasks.append(task)
     }
 
     private func formatDate(_ date: Date) -> String {
