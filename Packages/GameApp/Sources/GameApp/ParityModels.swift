@@ -4030,6 +4030,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 var reply: String = ""
                 if let m = mentionedMilestone {
                     var list: [(String, Double)] = [
+                        ("I told you I'd catch up! We are tied now.", 20.0),
+                        ("Look who caught up! We're tied.", 20.0),
+                        ("Caught up to you! Finally tied.", 20.0),
+                        ("I told you I would catch you!", 20.0),
                         ("I told you I'd catch up! I'm right there at \(m.name) with you.", 20.0),
                         ("Look who caught up! We're tied at \(m.name) now.", 20.0),
                         ("Caught up to you! I'm sitting at \(m.name) too.", 20.0),
@@ -4043,6 +4047,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     reply = Self.pickWeighted(list)
                 } else if mentionedStreak, let numStr = mentionedNumber, let _ = Int(numStr) {
                     var list: [(String, Double)] = [
+                        ("I told you I'd catch up! We are tied now.", 20.0),
+                        ("Look who caught up! We're tied.", 20.0),
+                        ("Caught up to you! Finally tied.", 20.0),
+                        ("I told you I would catch you!", 20.0),
                         ("I told you I'd catch up! I'm right there at \(numStr) days with you.", 20.0),
                         ("Look who caught up! We're tied at \(numStr) days now.", 20.0),
                         ("Caught up to you! I'm sitting at \(numStr) days too.", 20.0),
@@ -4057,6 +4065,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
                     let posterTime = "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
                     var list: [(String, Double)] = [
+                        ("I told you I'd catch up! We are tied now.", 20.0),
+                        ("Look who caught up! We're tied.", 20.0),
+                        ("Caught up to you! Finally tied.", 20.0),
+                        ("I told you I would catch you!", 20.0),
                         ("I told you I'd catch up! I clocked exactly \(posterTime) to tie you.", 20.0),
                         ("Look who caught up! We're tied at \(posterTime).", 20.0),
                         ("Caught up to you! I clocked \(posterTime) too.", 20.0),
@@ -4070,6 +4082,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     reply = Self.pickWeighted(list)
                 } else if mentionedHoF, let numStr = mentionedNumber, let _ = Int(numStr) {
                     var list: [(String, Double)] = [
+                        ("I told you I'd catch up! We are tied now.", 20.0),
+                        ("Look who caught up! We're tied.", 20.0),
+                        ("Caught up to you! Finally tied.", 20.0),
+                        ("I told you I would catch you!", 20.0),
                         ("I told you I'd catch up! I'm right there at \(numStr) infinities with you.", 20.0),
                         ("Look who caught up! We're tied at \(numStr) HoF entries now.", 20.0),
                         ("Caught up to you! I'm sitting at \(numStr) infinities too.", 20.0),
