@@ -3943,7 +3943,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 var valFreeReply = ""
                 if activeTone == "behind" {
                     valFreeReply = [
-                        "Don't get too comfortable. I'm right on your heels.",
+                        "You won't stay ahead for long. I'm right on your heels.",
                         "Enjoy the lead while you can. It won't last.",
                         "Your lead is temporary. Watch your back.",
                         "I'm closing the gap. You won't stay ahead for long.",
@@ -3954,14 +3954,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     ].randomElement()!
                 } else if activeTone == "one_up" {
                     valFreeReply = [
-                        "You're not even in the same league. Give up.",
+                        "You're not even in the same league. Just stop.",
                         "You'll never catch me. Just stop trying.",
                         "Still lagging behind? Pathetic.",
                         "You're far too outmatched to ever be a threat.",
-                        "I comfortably stay ahead. Don't waste your energy.",
+                        "I comfortably stay ahead. You stand no chance.",
                         "You're celebrating old progress while I'm leagues ahead.",
                         "Keep trying, but we both know you can't reach me.",
-                        "You're not built for this level of competition."
+                        "You're not built for this high-tier play."
                     ].randomElement()!
                 } else {
                     valFreeReply = [
