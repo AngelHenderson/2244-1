@@ -3923,6 +3923,63 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         if isCompetitive {
+            if previousSelfComment != nil {
+                let activeTone: String
+                if let fTone = forceTone {
+                    activeTone = fTone
+                } else {
+                    let isBehind: Bool
+                    let isEqual: Bool
+                    if let sVal = speakerValue, let oVal = opponentValue {
+                        isBehind = Self.isRecord(sVal, worseThan: oVal, topic: msgTopic)
+                        isEqual = sVal == oVal
+                    } else {
+                        isBehind = false
+                        isEqual = false
+                    }
+                    activeTone = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
+                }
+                
+                var valFreeReply = ""
+                if activeTone == "behind" {
+                    valFreeReply = [
+                        "Don't get too comfortable. I'm right on your heels.",
+                        "Enjoy the lead while you can. It won't last.",
+                        "Your lead is temporary. Watch your back.",
+                        "I'm closing the gap. You won't stay ahead for long.",
+                        "Keep looking over your shoulder. I'm right behind you.",
+                        "I'm warming up. You won't be holding that lead much longer.",
+                        "You're not as safe up there as you think.",
+                        "Enjoy the view from the top while it lasts."
+                    ].randomElement()!
+                } else if activeTone == "one_up" {
+                    valFreeReply = [
+                        "You're not even in the same league. Give up.",
+                        "You'll never catch me. Just stop trying.",
+                        "Still lagging behind? Pathetic.",
+                        "You're far too outmatched to ever be a threat.",
+                        "I comfortably stay ahead. Don't waste your energy.",
+                        "You're celebrating old progress while I'm leagues ahead.",
+                        "Keep trying, but we both know you can't reach me.",
+                        "You're not built for this level of competition."
+                    ].randomElement()!
+                } else {
+                    valFreeReply = [
+                        "We won't be tied for long. The real race starts now.",
+                        "Enjoy the tie while it lasts. I'm pulling ahead next.",
+                        "We're even for now, but I'm breaking this tie soon.",
+                        "Looks like we're neck and neck. Let's see who slips first.",
+                        "A tie is just temporary. I'm already aiming higher.",
+                        "We are even, but my next run will bury you."
+                    ].randomElement()!
+                }
+                
+                if Double.random(in: 0...1) < 0.75 {
+                    valFreeReply = Self.injectSymbol(valFreeReply, symbol: [" >:)", " !!", " !!!", " >", " XD", " XDD", " XDDD", " XDDDD", " XDDDDD", " XDDDDDD", " XDDDDDDD"].randomElement()!)
+                }
+                return valFreeReply
+            }
+
             if forceTone == "caught_up" {
                 if previousSelfComment != nil {
                     if let m = mentionedMilestone {
