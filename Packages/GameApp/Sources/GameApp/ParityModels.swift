@@ -3960,7 +3960,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "You're far too outmatched to ever be a threat.",
                         "I comfortably stay ahead. You stand no chance.",
                         "You're celebrating old progress while I'm leagues ahead.",
-                        "Keep trying, but we both know you can't reach me.",
+                        "We both know you can't reach me.",
                         "You're not built for this high-tier play."
                     ].randomElement()!
                 } else {
@@ -4253,7 +4253,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I am already far ahead.")
                     replies.append("Looking at my stats is as close to the top as you'll ever get.")
                     replies.append("You're not even in the same league as me.")
-                    replies.append("Keep trying, maybe in another lifetime you'll catch up.")
+                    replies.append("You will stay behind forever.")
                     replies.append("I'm playing a completely different game than you.")
                     replies.append("Your performance is none of my concern. I'm at the top.")
                     replies.append("Imagine being left behind while I dominate.")
@@ -5107,7 +5107,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ]
                         } else if forceTone == "one_up" {
                             filtered = [
-                                "Keep trying with your \(oVal). You'll never catch me.",
+                                "You're completely stuck at your \(oVal). You'll never catch me.",
                                 "You're stuck at \(oVal) while I'm tiers ahead.",
                                 "\(oVal) is nothing. Know your place.",
                                 "You're delusional. Your \(oVal) is no threat."
