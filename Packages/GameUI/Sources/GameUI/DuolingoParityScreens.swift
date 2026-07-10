@@ -1721,7 +1721,7 @@ private struct FeedCommentsView: View {
         item.commentCount = item.comments.count
         
         let task = Task {
-            try? await socialService.addComment(to: item.id, text: text)
+            _ = try? await socialService.addComment(to: item.id, text: text)
         }
         activeCommentTasks.append(task)
     }
