@@ -1478,6 +1478,8 @@ private struct MoveReviewDetailView: View {
 private struct FeedItemRow: View {
     @Environment(\.socialService) private var socialService
     @Binding var item: SocialFeedItem
+    @State private var tickDate = Date()
+    private let rowTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -1539,6 +1541,7 @@ private struct FeedItemRow: View {
             .font(.caption)
         }
         .padding(.vertical, 6)
+        .onReceive(rowTimer) { tickDate = $0 }
     }
 
     private var eventColor: Color {
@@ -1560,7 +1563,7 @@ private struct FeedItemRow: View {
     }
 
     private func relativeTime(from date: Date) -> String {
-        PreciseRelativeTimeFormatter.format(secondsTotal: abs(Int(date.timeIntervalSinceNow)))
+        PreciseRelativeTimeFormatter.format(secondsTotal: abs(Int(date.timeIntervalSince(tickDate))))
     }
 }
 
@@ -1595,7 +1598,7 @@ private struct FeedCommentsView: View {
     @State private var comment = ""
     /// Ticks forward so future-dated comments appear over time
     @State private var refreshTick = Date()
-    private let commentTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    private let commentTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     @State private var activeCommentTasks: [Task<Void, Never>] = []
     let onDismiss: () async -> Void
@@ -1736,7 +1739,7 @@ private struct FeedCommentsView: View {
     }
 
     private func formatDate(_ date: Date) -> String {
-        PreciseRelativeTimeFormatter.format(secondsTotal: abs(Int(date.timeIntervalSinceNow)))
+        PreciseRelativeTimeFormatter.format(secondsTotal: abs(Int(date.timeIntervalSince(refreshTick))))
     }
 }
 
