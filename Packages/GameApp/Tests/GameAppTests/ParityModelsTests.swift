@@ -1193,6 +1193,32 @@ struct ParityModelsTests {
         #expect(matched, "Expected reply to indicate a catch up state, but got: \(reply)")
     }
 
+    @Test("Verify that predicted streak loss helper matches templates correctly")
+    func testPredictedStreakLossPatternMatching() throws {
+        let positiveCases = [
+            "Just wait until you lose your 10 day streak.",
+            "You'll lose it and my 5 days will pass you.",
+            "You're bound to lose your 30 day streak.",
+            "but you'll break your 5 day streak before I break mine.",
+            "Just wait until you lose your streak.",
+            "Dropped to 2 days because I lost my streak. You're bound to lose yours too."
+        ]
+        
+        let negativeCases = [
+            "I'm right there at 10 days too. Let's see who breaks it first.",
+            "We're tied at 10 days. The real race starts now.",
+            "I hit 5 days without sweating. I'm pulling ahead soon.",
+            "I've been consistent longer. I'm comfortably sitting at 8 days."
+        ]
+        
+        for text in positiveCases {
+            #expect(MockSocialService.commentPredictsStreakLoss(text), "Expected match for: \(text)")
+        }
+        for text in negativeCases {
+            #expect(!MockSocialService.commentPredictsStreakLoss(text), "Expected no match for: \(text)")
+        }
+    }
+
     @Test("Verify that when player beats an NPC and the NPC responds with behind, a second reply in a row is added")
     func testSecondReplyInARowWhenNPCBehind() async throws {
         MockSocialService.bypassFeedCache = false

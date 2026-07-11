@@ -1127,6 +1127,15 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
 
+    static func commentPredictsStreakLoss(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return lower.contains("lose your") ||
+               lower.contains("lose it") ||
+               lower.contains("break your") ||
+               lower.contains("slip up") ||
+               lower.contains("bound to lose")
+    }
+
 
     private static func seededRandom(seed: Int, index: Int) -> Double {
         var hasher = Hasher()
@@ -1180,7 +1189,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v56.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v57.json")
     }
     
     private static var userPostsURL: URL {
@@ -1329,18 +1338,14 @@ public struct MockSocialService: SocialService, Sendable {
         let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
         let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot"
         func processItem(_ item: inout SocialFeedItem) {
-            var replyDate = now
+            let replyDate = now
             var targetComment: SocialFeedComment? = nil
             if text.hasPrefix("@") {
                 let mentionContent = String(text.dropFirst())
                 targetComment = item.comments.last(where: { comment in
                     mentionContent.hasPrefix(comment.authorName)
                 })
-                if let tC = targetComment {
-                    replyDate = tC.createdAt.addingTimeInterval(1)
-                }
             }
-            
             let newComment = SocialFeedComment(authorName: playerName, avatarID: playerAvatar, text: text, createdAt: replyDate)
             item.comments.append(newComment)
             
@@ -1620,6 +1625,14 @@ public struct MockSocialService: SocialService, Sendable {
                         npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
                     }
                     
+                    var npc2JustLostStreak = false
+                    if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
+                        if Double.random(in: 0...1) < 0.60 {
+                            npc2Value = "0"
+                            npc2JustLostStreak = true
+                        }
+                    }
+                    
                     if isNpc2Turn {
                         if npc2Value == nil {
                             if let n1Val = npc1Value {
@@ -1631,7 +1644,7 @@ public struct MockSocialService: SocialService, Sendable {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             }
-                        } else if let n1Val = npc1Value {
+                        } else if let n1Val = npc1Value, !npc2JustLostStreak {
                             let isBehind = Self.isRecord(npc2Value!, worseThan: n1Val, topic: topic)
                             let isEqual = npc2Value == n1Val
                             if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
@@ -1666,7 +1679,15 @@ public struct MockSocialService: SocialService, Sendable {
                         lastComment = replyComment
                         currentDepth += 1
                     } else {
-                        if let n2Val = npc2Value, let n1Val = npc1Value {
+                        var npc1JustLostStreak = false
+                        if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
+                            if Double.random(in: 0...1) < 0.60 {
+                                npc1Value = "0"
+                                npc1JustLostStreak = true
+                            }
+                        }
+                        
+                        if let n2Val = npc2Value, let n1Val = npc1Value, !npc1JustLostStreak {
                             let isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
                             let isEqual = n1Val == n2Val
                             if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
@@ -2029,6 +2050,14 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
+                        var npc2JustLostStreak = false
+                        if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
+                            if Double.random(in: 0...1) < 0.60 {
+                                npc2Value = "0"
+                                npc2JustLostStreak = true
+                            }
+                        }
+                        
                         if isNpc2Turn {
                             if npc2Value == nil {
                                 if let n1Val = npc1Value {
@@ -2040,7 +2069,7 @@ public struct MockSocialService: SocialService, Sendable {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
                                 }
-                            } else if let n1Val = npc1Value {
+                            } else if let n1Val = npc1Value, !npc2JustLostStreak {
                                 let isBehind = Self.isRecord(npc2Value!, worseThan: n1Val, topic: topic)
                                 let isEqual = npc2Value == n1Val
                                 if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
@@ -2075,7 +2104,15 @@ public struct MockSocialService: SocialService, Sendable {
                             lastComment = replyComment
                             currentDepth += 1
                         } else {
-                            if let n2Val = npc2Value, let n1Val = npc1Value {
+                            var npc1JustLostStreak = false
+                            if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
+                                if Double.random(in: 0...1) < 0.60 {
+                                    npc1Value = "0"
+                                    npc1JustLostStreak = true
+                                }
+                            }
+                            
+                            if let n2Val = npc2Value, let n1Val = npc1Value, !npc1JustLostStreak {
                                 let isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
                                 let isEqual = n1Val == n2Val
                                 if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {

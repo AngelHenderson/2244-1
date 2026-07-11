@@ -1704,17 +1704,7 @@ private struct FeedCommentsView: View {
         let text = comment
         comment = ""
         
-        var replyDate = Date()
-        if text.hasPrefix("@") {
-            let parts = text.split(separator: " ")
-            if let first = parts.first {
-                let targetName = String(first.dropFirst())
-                if let targetComment = item.comments.last(where: { $0.authorName == targetName }) {
-                    replyDate = targetComment.createdAt.addingTimeInterval(1)
-                }
-            }
-        }
-        
+        let replyDate = Date()
         let newComment = SocialFeedComment(authorName: "Player", text: text, createdAt: replyDate)
         item.comments.append(newComment)
         item.comments.sort { $0.createdAt < $1.createdAt }
