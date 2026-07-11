@@ -1,4 +1,5 @@
 import Testing
+import GameCore
 @testable import GameUI
 
 struct TileLabelFormatterTests {
@@ -46,6 +47,20 @@ struct CompactNumberFormatterTests {
 
         // B suffix for trillions
         #expect(CompactNumberFormatter.format(1_000_000_000_000) == "1000B")
+    }
+}
+
+struct PreciseRelativeTimeFormatterTests {
+    @Test
+    func testPreciseFormat() {
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 0) == "0 seconds ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 1) == "1 second ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 5) == "5 seconds ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 60) == "1 minute and 0 seconds ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 3600) == "1 hour, 0 minutes, and 0 seconds ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 86400) == "1 day, 0 hours, 0 minutes, and 0 seconds ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 90061) == "1 day, 1 hour, 1 minute, and 1 second ago")
+        #expect(PreciseRelativeTimeFormatter.format(secondsTotal: 432305) == "5 days, 0 hours, 5 minutes, and 5 seconds ago")
     }
 }
 

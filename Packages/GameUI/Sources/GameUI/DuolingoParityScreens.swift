@@ -1560,14 +1560,31 @@ private struct FeedItemRow: View {
     }
 
     private func relativeTime(from date: Date) -> String {
-        let seconds = Int(-date.timeIntervalSinceNow)
-        if seconds < 60 { return "just now" }
-        let minutes = seconds / 60
-        if minutes < 60 { return "\(minutes)m ago" }
-        let hours = minutes / 60
-        if hours < 24 { return "\(hours)h ago" }
-        let days = hours / 24
-        return "\(days)d ago"
+        PreciseRelativeTimeFormatter.format(secondsTotal: abs(Int(date.timeIntervalSinceNow)))
+    }
+}
+
+internal struct PreciseRelativeTimeFormatter {
+    static func format(secondsTotal: Int) -> String {
+        let days = secondsTotal / 86400
+        let hours = (secondsTotal % 86400) / 3600
+        let minutes = (secondsTotal % 3600) / 60
+        let seconds = secondsTotal % 60
+        
+        let daysStr = "\(days) \(days == 1 ? "day" : "days")"
+        let hoursStr = "\(hours) \(hours == 1 ? "hour" : "hours")"
+        let minutesStr = "\(minutes) \(minutes == 1 ? "minute" : "minutes")"
+        let secondsStr = "\(seconds) \(seconds == 1 ? "second" : "seconds")"
+        
+        if days > 0 {
+            return "\(daysStr), \(hoursStr), \(minutesStr), and \(secondsStr) ago"
+        } else if hours > 0 {
+            return "\(hoursStr), \(minutesStr), and \(secondsStr) ago"
+        } else if minutes > 0 {
+            return "\(minutesStr) and \(secondsStr) ago"
+        } else {
+            return "\(secondsStr) ago"
+        }
     }
 }
 
@@ -1719,9 +1736,7 @@ private struct FeedCommentsView: View {
     }
 
     private func formatDate(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(for: date, relativeTo: Date())
+        PreciseRelativeTimeFormatter.format(secondsTotal: abs(Int(date.timeIntervalSinceNow)))
     }
 }
 
