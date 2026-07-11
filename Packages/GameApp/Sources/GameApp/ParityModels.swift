@@ -1189,7 +1189,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v57.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v58.json")
     }
     
     private static var userPostsURL: URL {
@@ -3237,7 +3237,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "My streak died, so I'm down to \(lowerDays) days. But your \(streakDays) days will break before long.",
                             "My streak died, so I'm down to \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
                             "Dropped to \(lowerDays) days because I lost my streak. You're bound to lose your \(streakDays) days too.",
-                            "I just lost my streak. Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days."
+                            "I just lost my streak. Only at \(lowerDays) days right now, but you'll slip up and I'll pass your \(streakDays) days.",
+                            "It's past 12:00 AM and I didn't play yesterday, so my streak reset to \(lowerDays) days. But your \(streakDays) days will break before long.",
+                            "Midnight hit and my streak broke since I forgot to log in. Back to \(lowerDays) days. Just wait until you lose your \(streakDays) day streak.",
+                            "Once it hit 12 AM, my streak officially died. Back to \(lowerDays) days, but you'll lose yours soon!",
+                            "My streak reset to \(lowerDays) days at 12:00 AM because I missed yesterday. You're bound to lose your \(streakDays) days too.",
+                            "It's 12 AM, which means my streak is gone. Down to \(lowerDays) days, but you'll slip up and I'll pass your \(streakDays) days."
                         ]
                     } else {
                         templates = [
@@ -4578,7 +4583,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "My streak died, so I'm down to \(higherNum) days. But your \(cN) days will break before long.",
                                     "My streak died, so I'm down to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
                                     "Dropped to \(higherNum) days because I lost my streak. You're bound to lose your \(cN) days too.",
-                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days."
+                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
+                                    "It's past 12:00 AM and I didn't play yesterday, so my streak reset to \(higherNum) days. But your \(cN) days will break before long.",
+                                    "Midnight hit and my streak broke since I forgot to log in. Back to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "Once it hit 12 AM, my streak officially died. Back to \(higherNum) days, but you'll lose your \(cN) day streak soon!",
+                                    "My streak reset to \(higherNum) days at 12:00 AM because I missed yesterday. You're bound to lose your \(cN) days too.",
+                                    "It's 12 AM, which means my streak is gone. Down to \(higherNum) days, but you'll slip up and I'll pass your \(cN) days."
                                 ]
                             } else {
                                 templates = [
@@ -4654,7 +4664,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "My streak died, so I'm down to \(higherNum) days. But your \(cN) days will break before long.",
                                     "My streak died, so I'm down to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
                                     "Dropped to \(higherNum) days because I lost my streak. You're bound to lose your \(cN) days too.",
-                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days."
+                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
+                                    "It's past 12:00 AM and I didn't play yesterday, so my streak reset to \(higherNum) days. But your \(cN) days will break before long.",
+                                    "Midnight hit and my streak broke since I forgot to log in. Back to \(higherNum) days. Just wait until you lose your \(cN) day streak.",
+                                    "Once it hit 12 AM, my streak officially died. Back to \(higherNum) days, but you'll lose your \(cN) day streak soon!",
+                                    "My streak reset to \(higherNum) days at 12:00 AM because I missed yesterday. You're bound to lose your \(cN) days too.",
+                                    "It's 12 AM, which means my streak is gone. Down to \(higherNum) days, but you'll slip up and I'll pass your \(cN) days."
                                 ])
                             } else {
                                 replies.append(contentsOf: [
@@ -4771,7 +4786,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "My streak died, so I'm down to \(higherNum) days. But your streak will break before long.",
                                     "My streak died, so I'm down to \(higherNum) days. Just wait until you lose your streak.",
                                     "Dropped to \(higherNum) days because I lost my streak. You're bound to lose yours too.",
-                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass yours."
+                                    "I just lost my streak. Only at \(higherNum) days right now, but you'll slip up and I'll pass yours.",
+                                    "It's past 12:00 AM and I didn't play yesterday, so my streak reset to \(higherNum) days. But your streak will break before long.",
+                                    "Midnight hit and my streak broke since I forgot to log in. Back to \(higherNum) days. Just wait until you lose your streak.",
+                                    "Once it hit 12 AM, my streak officially died. Back to \(higherNum) days, but you'll lose yours soon!",
+                                    "My streak reset to \(higherNum) days at 12:00 AM because I missed yesterday. You're bound to lose yours too.",
+                                    "It's 12 AM, which means my streak is gone. Down to \(higherNum) days, but you'll slip up and I'll pass yours."
                                 ]
                             } else {
                                 templates = [
