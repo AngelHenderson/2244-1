@@ -1180,7 +1180,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v55.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v56.json")
     }
     
     private static var userPostsURL: URL {
@@ -1257,6 +1257,7 @@ public struct MockSocialService: SocialService, Sendable {
 
         // Return cached feed if it was generated today
         let defaults = UserDefaults.standard
+        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
         #if DEBUG
         let shouldBypass = Self.bypassFeedCache
         #else
@@ -1270,9 +1271,9 @@ public struct MockSocialService: SocialService, Sendable {
             // Filter out future posts so they arrive naturally throughout the day
             cached = cached.filter { $0.createdAt <= now }
             
-            // Filter out future comments so simulated responses arrive naturally
+            // Filter out future comments so simulated responses arrive naturally, but always show player comments
             for i in 0..<cached.count {
-                cached[i].comments = cached[i].comments.filter { $0.createdAt <= now }
+                cached[i].comments = cached[i].comments.filter { $0.createdAt <= now || $0.authorName == playerName || $0.authorName == "Player" }
                 cached[i].commentCount = cached[i].comments.count
                 if let rts = cached[i].reactionTimestamps {
                     var count = rts.filter { $0 <= now }.count
@@ -1306,7 +1307,7 @@ public struct MockSocialService: SocialService, Sendable {
         // Apply time-filtering to the returned array so simulated future events don't show up yet
         items = items.filter { $0.createdAt <= now }
         for i in 0..<items.count {
-            items[i].comments = items[i].comments.filter { $0.createdAt <= now }
+            items[i].comments = items[i].comments.filter { $0.createdAt <= now || $0.authorName == playerName || $0.authorName == "Player" }
             items[i].commentCount = items[i].comments.count
             if let rts = items[i].reactionTimestamps {
                 var count = rts.filter { $0 <= now }.count
@@ -1620,15 +1621,21 @@ public struct MockSocialService: SocialService, Sendable {
                     }
                     
                     if isNpc2Turn {
-                        if let oldVal = npc2Value {
-                            // Keep player record constant throughout the thread
-                        } else if let n1Val = npc1Value {
-                            if topic != "streak" || npc2Value == nil {
+                        if npc2Value == nil {
+                            if let n1Val = npc1Value {
                                 if Double.random(in: 0...1) < 0.20 {
+                                    npc2Value = n1Val // Force a tie
+                                } else if Double.random(in: 0...1) < 0.20 {
                                     npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                 } else {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
+                            }
+                        } else if let n1Val = npc1Value {
+                            let isBehind = Self.isRecord(npc2Value!, worseThan: n1Val, topic: topic)
+                            let isEqual = npc2Value == n1Val
+                            if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
+                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                             }
                         }
                         
@@ -1659,15 +1666,11 @@ public struct MockSocialService: SocialService, Sendable {
                         lastComment = replyComment
                         currentDepth += 1
                     } else {
-                        if let oldVal = npc1Value {
-                            // Keep player record constant throughout the thread
-                        } else if let n2Val = npc2Value {
-                            if topic != "streak" || npc1Value == nil {
-                                if Double.random(in: 0...1) < 0.20 {
-                                    npc1Value = Self.lowerValue(for: n2Val, topic: topic)
-                                } else {
-                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
-                                }
+                        if let n2Val = npc2Value, let n1Val = npc1Value {
+                            let isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
+                            let isEqual = n1Val == n2Val
+                            if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
+                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                             }
                         }
                         
@@ -2027,15 +2030,21 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         if isNpc2Turn {
-                            if let oldVal = npc2Value {
-                                // Keep player record constant throughout the thread
-                            } else if let n1Val = npc1Value {
-                                if topic != "streak" || npc2Value == nil {
+                            if npc2Value == nil {
+                                if let n1Val = npc1Value {
                                     if Double.random(in: 0...1) < 0.20 {
+                                        npc2Value = n1Val // Force a tie
+                                    } else if Double.random(in: 0...1) < 0.20 {
                                         npc2Value = Self.lowerValue(for: n1Val, topic: topic)
                                     } else {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
+                                }
+                            } else if let n1Val = npc1Value {
+                                let isBehind = Self.isRecord(npc2Value!, worseThan: n1Val, topic: topic)
+                                let isEqual = npc2Value == n1Val
+                                if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             }
                             
@@ -2066,15 +2075,11 @@ public struct MockSocialService: SocialService, Sendable {
                             lastComment = replyComment
                             currentDepth += 1
                         } else {
-                            if let oldVal = npc1Value {
-                                // Keep player record constant throughout the thread
-                            } else if let n2Val = npc2Value {
-                                if topic != "streak" || npc1Value == nil {
-                                    if Double.random(in: 0...1) < 0.20 {
-                                        npc1Value = Self.lowerValue(for: n2Val, topic: topic)
-                                    } else {
-                                        npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
-                                    }
+                            if let n2Val = npc2Value, let n1Val = npc1Value {
+                                let isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
+                                let isEqual = n1Val == n2Val
+                                if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
                             }
                             

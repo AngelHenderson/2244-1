@@ -1588,9 +1588,9 @@ private struct FeedCommentsView: View {
         self.onDismiss = onDismiss
     }
 
-    /// Only show comments whose timestamp has already passed
+    /// Only show comments whose timestamp has already passed, but always show player comments immediately
     private var visibleCommentIndices: [Int] {
-        item.comments.indices.filter { item.comments[$0].createdAt <= refreshTick }
+        item.comments.indices.filter { item.comments[$0].createdAt <= refreshTick || item.comments[$0].authorName == "Player" }
     }
 
     var body: some View {
@@ -1719,6 +1719,8 @@ private struct FeedCommentsView: View {
         item.comments.append(newComment)
         item.comments.sort { $0.createdAt < $1.createdAt }
         item.commentCount = item.comments.count
+        
+        refreshTick = Date()
         
         let task = Task {
             _ = try? await socialService.addComment(to: item.id, text: text)
