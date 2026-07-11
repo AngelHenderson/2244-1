@@ -1180,7 +1180,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v54.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v55.json")
     }
     
     private static var userPostsURL: URL {
@@ -3965,6 +3965,35 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     return ""
                 }()
 
+                let isMassiveGap: Bool = {
+                    guard let sVal = speakerValue, let oVal = opponentValue else { return false }
+                    switch msgTopic {
+                    case "milestone":
+                        if let sIdx = Self.allMilestones.firstIndex(of: sVal),
+                           let oIdx = Self.allMilestones.firstIndex(of: oVal) {
+                            return abs(sIdx - oIdx) >= 3
+                        }
+                    case "streak":
+                        if let sInt = Int(sVal), let oInt = Int(oVal) {
+                            return abs(sInt - oInt) >= 10
+                        }
+                    case "time":
+                        if let (sMins, sSecs) = Self.extractTime(from: sVal.lowercased()),
+                           let (oMins, oSecs) = Self.extractTime(from: oVal.lowercased()) {
+                            let sTotal = sMins * 60 + sSecs
+                            let oTotal = oMins * 60 + oSecs
+                            return abs(sTotal - oTotal) >= 15
+                        }
+                    case "hof":
+                        if let sInt = Int(sVal), let oInt = Int(oVal) {
+                            return abs(sInt - oInt) >= 3
+                        }
+                    default:
+                        break
+                    }
+                    return false
+                }()
+
                 var valFreeReply = ""
                 if activeTone == "behind" {
                     if !valStr.isEmpty {
@@ -3992,16 +4021,27 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
                 } else if activeTone == "one_up" {
                     if !valStr.isEmpty {
-                        valFreeReply = [
-                            "You're not even in the same league as my \(valStr). Just stop.",
-                            "You'll never catch my \(valStr). Just stop trying.",
-                            "Still lagging behind my \(valStr)? Pathetic.",
-                            "You're far too outmatched to ever be a threat to my \(valStr).",
-                            "I comfortably stay ahead at \(valStr). You stand no chance.",
-                            "You're celebrating old progress while I'm leagues ahead at \(valStr).",
-                            "We both know you can't reach my \(valStr).",
-                            "You're not built for my \(valStr) high-tier play."
-                        ].randomElement()!
+                        if isMassiveGap {
+                            valFreeReply = [
+                                "You're not even in the same league as my \(valStr). Just stop.",
+                                "You'll never catch my \(valStr). Just stop trying.",
+                                "Still lagging far behind my \(valStr)? Pathetic.",
+                                "You're far too outmatched to ever be a threat to my \(valStr).",
+                                "I comfortably stay ahead at \(valStr). You stand no chance.",
+                                "You're celebrating old progress while I'm leagues ahead at \(valStr).",
+                                "We both know you can't reach my \(valStr).",
+                                "You're not built for my \(valStr) high-tier play."
+                            ].randomElement()!
+                        } else {
+                            valFreeReply = [
+                                "You'll have to play better to catch my \(valStr).",
+                                "Still lagging behind my \(valStr).",
+                                "I comfortably stay ahead at \(valStr).",
+                                "We both know you can't reach my \(valStr) right now.",
+                                "You're celebrating old progress while I'm ahead at \(valStr).",
+                                "You're not built for my \(valStr) pace."
+                            ].randomElement()!
+                        }
                     } else {
                         valFreeReply = [
                             "You're not even in the same league. Just stop.",
