@@ -1423,7 +1423,7 @@ struct ParityModelsTests {
         
         // 3. Generate standard reply by Evelyn Scott to another comment (e.g. text with no numbers / 125)
         let replyToText = "Enjoy the lead while it lasts. My next run is going to crush that."
-        let replyText = service.generateContextualReply(to: replyToText, message: message, speakerValue: speakerVal)
+        let replyText = service.generateContextualReply(to: replyToText, message: message, forceTone: "competitive", speakerValue: speakerVal)
         
         // 4. Verify that the generated reply does not lower the value
         let extractedVal = MockSocialService.extractValue(from: replyText, topic: topic)

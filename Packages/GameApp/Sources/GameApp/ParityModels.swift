@@ -1655,12 +1655,6 @@ public struct MockSocialService: SocialService, Sendable {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             }
-                        } else if let n1Val = npc1Value, !npc2JustLostStreak {
-                            let isBehind = Self.isRecord(npc2Value!, worseThan: n1Val, topic: topic)
-                            let isEqual = npc2Value == n1Val
-                            if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
-                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
-                            }
                         }
                         
                         let isBehind: Bool
@@ -1698,13 +1692,6 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
-                        if let n2Val = npc2Value, let n1Val = npc1Value, !npc1JustLostStreak {
-                            let isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
-                            let isEqual = n1Val == n2Val
-                            if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
-                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
-                            }
-                        }
                         
                         let isBehind: Bool
                         let isEqual: Bool
@@ -2087,12 +2074,6 @@ public struct MockSocialService: SocialService, Sendable {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
                                 }
-                            } else if let n1Val = npc1Value, !npc2JustLostStreak {
-                                let isBehind = Self.isRecord(npc2Value!, worseThan: n1Val, topic: topic)
-                                let isEqual = npc2Value == n1Val
-                                if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
-                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
-                                }
                             }
                             
                             let isBehind: Bool
@@ -2130,13 +2111,6 @@ public struct MockSocialService: SocialService, Sendable {
                                 }
                             }
                             
-                            if let n2Val = npc2Value, let n1Val = npc1Value, !npc1JustLostStreak {
-                                let isBehind = Self.isRecord(n1Val, worseThan: n2Val, topic: topic)
-                                let isEqual = n1Val == n2Val
-                                if (isBehind || isEqual) && Double.random(in: 0...1) < 0.70 {
-                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
-                                }
-                            }
                             
                             let isBehind: Bool
                             let isEqual: Bool
