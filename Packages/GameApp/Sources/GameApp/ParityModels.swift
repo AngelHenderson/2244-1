@@ -1176,7 +1176,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v58"
+    public static let feedDateKey = "socialFeed.cacheDate.v59"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1189,7 +1189,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v58.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v59.json")
     }
     
     private static var userPostsURL: URL {
@@ -1793,12 +1793,19 @@ public struct MockSocialService: SocialService, Sendable {
         )
 
         // Insert at the top of the cached feed
-        var cached = Self.loadFeedCache() ?? generateFeedItems(now: now)
-        cached.insert(newItem, at: 0)
-        Self.saveFeedCache(cached)
-        
         let cal = Calendar.current
         let todayString = cal.dateComponents([.year, .month, .day], from: now).description
+        let isCacheValid = defaults.string(forKey: Self.feedDateKey) == todayString
+        
+        var cached: [SocialFeedItem]
+        if isCacheValid, let existing = Self.loadFeedCache() {
+            cached = existing
+        } else {
+            cached = generateFeedItems(now: now)
+        }
+        
+        cached.insert(newItem, at: 0)
+        Self.saveFeedCache(cached)
         defaults.set(todayString, forKey: Self.feedDateKey)
 
         // Also save to the version-independent user posts store
