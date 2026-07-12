@@ -1187,7 +1187,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v59"
+    public static let feedDateKey = "socialFeed.cacheDate.v60"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1200,7 +1200,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v59.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v60.json")
     }
     
     private static var userPostsURL: URL {
