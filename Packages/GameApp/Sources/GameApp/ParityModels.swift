@@ -4105,8 +4105,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "We won't be tied for long at \(valStr). The real race starts now.",
                             "Enjoy the tie at \(valStr) while it lasts. I'm pulling ahead next.",
                             "We're even at \(valStr) for now, but I'm breaking this tie soon.",
-                            "Looks like we're neck and neck at \(valStr). Let's see who slips first.",
-                            "A tie at \(valStr) is just temporary. I'm already aiming higher.",
+                            "Looks like we're neck and neck at \(valStr). Let's see who gets ahead first.",
+                            "Our tie at \(valStr) is just temporary. I'm already aiming higher.",
                             "We are even at \(valStr), but my next run will bury you."
                         ].randomElement()!
                     } else {
