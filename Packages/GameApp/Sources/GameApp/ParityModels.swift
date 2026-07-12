@@ -2922,14 +2922,14 @@ public struct MockSocialService: SocialService, Sendable {
                     "\(m) is my wall right now", "Maybe someday I'll reach \(m)",
                 ])
                 competitiveReactions.append(contentsOf: [
-                    "Your \(m) is entirely irrelevant to my infinity.",
-                    "I'm way past \(m).",
+                    "Your progress is entirely irrelevant to my infinity.",
+                    "I'm way past that.",
                     "The gap between us just gets larger.",
                     "It's over.",
-                    "\(m) feels like ages ago.",
-                    "My lead beyond \(m) is secure.",
-                    "I dominate \(m) without even looking.",
-                    "My lead beyond \(m) is strong.",
+                    "That feels like ages ago.",
+                    "My lead is secure.",
+                    "I dominate without even looking.",
+                    "My lead is strong.",
                 ])
 
                 questions.append(contentsOf: [
