@@ -3063,7 +3063,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("I'm out of your league.", 0.1),
                         ("Stay down there.", 22.2),
                         ("This record belongs to me.", 1.8),
-                        ("Don't bother looking up.", 0.9),
+                        ("Don't bother comparing.", 0.9),
                         ("You couldn't catch me if you tried.", 23),
                         ("I am safely out of your reach.", 2.4)
                     ]
@@ -5194,7 +5194,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Your efforts are pointless. \(genericHigherM) completely buries you.",
                         "I am already ahead of you. I'm pushing \(genericHigherM).",
                         "My record is flawless. \(genericHigherM) is completely out of your reach.",
-                        "Don't bother looking up. I'm way up at \(genericHigherM).",
+                        "You won't catch me. I'm at \(genericHigherM).",
                         "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
                         "You'll never get there at this rate.",
                         "Don't bother trying. You're completely outclassed.",
