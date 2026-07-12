@@ -25,14 +25,14 @@ extension MockSocialService {
                     "I'm right there at \(lower) days too. Let's see who breaks it first.",
                     "We're tied at \(lower) days. The real race starts now.",
                     "Looks like we're both at \(lower) days. Enjoy it while it lasts.",
-                    "I also clocked \(higher) days. Cute, but irrelevant."
+                    "I also hit \(higher) days. Cute, but irrelevant."
                 ].randomElement()!
             case "hof":
                 return [
                     "I'm right there at \(lower) infinities too. Let's see who breaks it first.",
                     "We're tied at \(lower) infinities. The real race starts now.",
                     "Looks like we're both at \(lower) infinities. Enjoy it while it lasts.",
-                    "I also clocked \(higher) infinities. Cute, but irrelevant."
+                    "I also hit \(higher) infinities. Cute, but irrelevant."
                 ].randomElement()!
             default:
                 break
