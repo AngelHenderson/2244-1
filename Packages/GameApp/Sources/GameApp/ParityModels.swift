@@ -3065,7 +3065,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("This record belongs to me.", 1.8),
                         ("Don't bother comparing.", 0.9),
                         ("You couldn't catch me if you tried.", 23),
-                        ("I am safely out of your reach.", 2.4)
+                        ("I am out of your reach.", 2.4)
                     ]
                     let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
                     if isTimeTopic {
