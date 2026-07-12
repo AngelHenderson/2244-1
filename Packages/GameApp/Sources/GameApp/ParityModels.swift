@@ -2697,7 +2697,7 @@ public struct MockSocialService: SocialService, Sendable {
         return shuffleBags[key]![idx]
     }
 
-    private func generateDynamicComment(message: String, usedStats: inout Set<String>, forcedTone: String? = nil) -> (commentText: String, nameOverride: String?, tone: String, generatedVal: String?) {
+    func generateDynamicComment(message: String, usedStats: inout Set<String>, forcedTone: String? = nil) -> (commentText: String, nameOverride: String?, tone: String, generatedVal: String?) {
         var nameOverride: String? = nil
         var generatedVal: String? = nil
         let openers = [
@@ -3366,16 +3366,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         attempts += 1
                     }
                     usedStats.insert("hof_\(myCount)")
-                    var templates = [
+                    let templates = [
                         "Your \(infCount) is nothing compared to my \(myCount).",
                         "I easily dominate with \(myCount).",
-                        "I am safely ahead with \(myCount).",
+                        "I am safely ahead with \(myCount)."
                     ]
-                    if myCount >= infCount * 2 {
-                        templates.append("Your \(infCount) is entirely irrelevant against my \(myCount).")
-                        templates.append("You're left in the dust at \(infCount) while I sit at \(myCount).")
+                    let roll = Double.random(in: 0..<100.0)
+                    let idx: Int
+                    if roll < 29.0 {
+                        idx = 0
+                    } else if roll < 86.0 {
+                        idx = 1
+                    } else {
+                        idx = 2
                     }
-                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
                     return (templates[idx], higherName, String(myCount))
                 }
             }

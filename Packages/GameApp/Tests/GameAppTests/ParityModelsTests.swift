@@ -1431,6 +1431,44 @@ struct ParityModelsTests {
             #expect(intVal >= 127, "Established streak of 127 should not be lowered to \(intVal) in reply: \(replyText)")
         }
     }
+
+    @Test("Verify post weighting at HOF comments (29% compared to, 57% dominate, 14% safely ahead)")
+    func testHOFCommentWeights() async throws {
+        let service = MockSocialService()
+        
+        var countNothingCompared = 0
+        var countDominate = 0
+        var countSafelyAhead = 0
+        
+        let iterations = 2000
+        for _ in 0..<iterations {
+            var usedStats: Set<String> = []
+            let result = service.generateDynamicComment(message: "10 infinities count", usedStats: &usedStats, forcedTone: "competitive")
+            let text = result.commentText.lowercased()
+            
+            if text.contains("nothing compared") {
+                countNothingCompared += 1
+            } else if text.contains("dominate") {
+                countDominate += 1
+            } else if text.contains("safely ahead") {
+                countSafelyAhead += 1
+            }
+        }
+        
+        let total = Double(countNothingCompared + countDominate + countSafelyAhead)
+        #expect(total > 0)
+        
+        let pctNothingCompared = Double(countNothingCompared) / total * 100.0
+        let pctDominate = Double(countDominate) / total * 100.0
+        let pctSafelyAhead = Double(countSafelyAhead) / total * 100.0
+        
+        print("HOF COMMENT WEIGHTS: nothing compared = \(pctNothingCompared)%, dominate = \(pctDominate)%, safely ahead = \(pctSafelyAhead)%")
+        
+        // Assert within a reasonable margin of error (e.g. +/- 5.5%)
+        #expect(abs(pctNothingCompared - 29.0) <= 5.5, "Expected ~29% nothing compared, got \(pctNothingCompared)%")
+        #expect(abs(pctDominate - 57.0) <= 5.5, "Expected ~57% dominate, got \(pctDominate)%")
+        #expect(abs(pctSafelyAhead - 14.0) <= 5.5, "Expected ~14% safely ahead, got \(pctSafelyAhead)%")
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
