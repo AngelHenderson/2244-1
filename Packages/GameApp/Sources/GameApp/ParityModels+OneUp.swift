@@ -142,16 +142,16 @@ extension MockSocialService {
                 return pickWeighted(weightedReplies)
             case 2:
                 let list = [
-                    "If you can't even get past \(lower), you'll never catch my \(higher).",
-                    "\(lower) is your ceiling? Try aiming lower. I'm at \(higher).",
-                    "You'll never get past \(lower) anyway, let alone my \(higher).",
-                    "If getting past \(lower) is impossible for you, my \(higher) is untouchable.",
-                    "Of course you're lagging at \(lower). That's child's play compared to my \(higher).",
-                    "You're lagging at \(lower)? Figures. My record is \(higher).",
-                    "You're completely stuck at \(lower). I comfortably clocked \(higher).",
-                    "You're stuck at \(lower). My \(higher) is light years away from your skill level.",
-                    "If \(lower) is your ceiling, you're not even in the same conversation as my \(higher).",
-                    "Why even mention \(lower)? My \(higher) is completely out of your league.",
+                    "If you can't even clock faster than \(lower), you'll never catch my \(higher).",
+                    "\(lower) is your fastest? Try aiming lower. I clocked \(higher).",
+                    "You'll never clock faster than \(lower) anyway, let alone my \(higher).",
+                    "If clocking faster than \(lower) is impossible for you, my \(higher) is untouchable.",
+                    "Of course you can't clock faster than \(lower). That's child's play compared to my \(higher).",
+                    "You can't clock faster than \(lower)? Figures. I clocked \(higher).",
+                    "You can't clock faster than \(lower). I comfortably clocked \(higher).",
+                    "You can't clock faster than \(lower). My \(higher) is light years away from your skill level.",
+                    "If \(lower) is your fastest, you're not even in the same conversation as my \(higher).",
+                    "Why even mention \(lower)? My \(higher) is completely out of your reach.",
                     "You're embarrassing yourself with \(lower). You were never going to threaten my \(higher) anyway.",
                     "You're not built for \(lower). Meanwhile, my \(higher) was completed with ease."
                 ]
