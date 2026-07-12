@@ -1402,6 +1402,35 @@ struct ParityModelsTests {
             isNpc2Turn.toggle()
         }
     }
+
+    @Test("Verify that an NPC with an established streak does not have their streak lowered in subsequent standard replies")
+    func testNPCEstablishedStreakValueNotLowered() async throws {
+        let service = MockSocialService()
+        
+        let message = "Saved a 125-day streak."
+        let baseComment = SocialFeedComment(authorName: "BayBoss", text: "Enjoy the lead while it lasts. Just give me a little more time.")
+        
+        // 1. NPC Evelyn Scott established their streak as 127 in Comment 2
+        let comments = [
+            baseComment,
+            SocialFeedComment(authorName: "Evelyn Scott", text: "@BayBoss My infinite consistency is at 127 days. 125 is a joke XDDDDD.")
+        ]
+        
+        // 2. Scan comments for Evelyn Scott's established value
+        let topic = MockSocialService.determineTopic(message: message)
+        let speakerVal = MockSocialService.findEstablishedValue(for: "Evelyn Scott", in: comments, topic: topic)
+        #expect(speakerVal == "127")
+        
+        // 3. Generate standard reply by Evelyn Scott to another comment (e.g. text with no numbers / 125)
+        let replyToText = "Enjoy the lead while it lasts. My next run is going to crush that."
+        let replyText = service.generateContextualReply(to: replyToText, message: message, speakerValue: speakerVal)
+        
+        // 4. Verify that the generated reply does not lower the value
+        let extractedVal = MockSocialService.extractValue(from: replyText, topic: topic)
+        if let val = extractedVal, let intVal = Int(val) {
+            #expect(intVal >= 127, "Established streak of 127 should not be lowered to \(intVal) in reply: \(replyText)")
+        }
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {

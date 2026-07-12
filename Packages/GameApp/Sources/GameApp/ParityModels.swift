@@ -887,6 +887,17 @@ public struct MockSocialService: SocialService, Sendable {
         }
     }
 
+    static func findEstablishedValue(for author: String, in comments: [SocialFeedComment], topic: String) -> String? {
+        for comment in comments.reversed() {
+            if comment.authorName == author {
+                if let val = extractValue(from: comment.text, topic: topic) {
+                    return val
+                }
+            }
+        }
+        return nil
+    }
+
     static func extractValue(from text: String, topic: String) -> String? {
         var matches: [(val: String, range: NSRange)] = []
         let nsText = text as NSString
@@ -1735,10 +1746,12 @@ public struct MockSocialService: SocialService, Sendable {
                         replyText = "@\(baseComment.authorName) " + answer
                     } else {
                         // Sometimes reply to the poster, sometimes reply to the commenter
+                        let topic = Self.determineTopic(message: message)
+                        let speakerVal = Self.findEstablishedValue(for: replyAuthor, in: comments, topic: topic)
                         if Double.random(in: 0...1) < 0.7 {
-                            replyText = "@\(playerName) " + generateContextualReply(to: message, message: message)
+                            replyText = "@\(playerName) " + generateContextualReply(to: message, message: message, speakerValue: speakerVal)
                         } else {
-                            replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message)
+                            replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message, speakerValue: speakerVal)
                         }
                     }
                     
@@ -2166,7 +2179,9 @@ public struct MockSocialService: SocialService, Sendable {
                         if let answer = milestoneAnswer(for: baseComment.text) {
                             replyText = "@\(baseComment.authorName) " + answer
                         } else {
-                            replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message)
+                            let topic = Self.determineTopic(message: message)
+                            let speakerVal = Self.findEstablishedValue(for: replyAuthor, in: comments, topic: topic)
+                            replyText = "@\(baseComment.authorName) " + generateContextualReply(to: baseComment.text, message: message, speakerValue: speakerVal)
                         }
                         
                         // Threaded competitive replies happen fast (within 5 minutes)
