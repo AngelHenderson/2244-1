@@ -3598,11 +3598,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let milestone = best.name
             let next = Self.allMilestones[best.index + 1]
             let templates = [
-                "\(next) comes after \(milestone).",
+                "\(next) comes after \(milestone)!",
                 "After \(milestone) it's \(next)!",
-                "The next tile after \(milestone) is \(next).",
+                "The next tile after \(milestone) is \(next)!",
                 "\(milestone) → \(next). Keep pushing!",
-                "\(next)! That's what's after \(milestone).",
+                "\(next)! That's what's after \(milestone)!",
             ]
             return templates.randomElement()!
         }
