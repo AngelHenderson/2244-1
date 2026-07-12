@@ -4094,7 +4094,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "Still lagging behind? Pathetic.",
                             "You're far too outmatched to ever be a threat.",
                             "I comfortably stay ahead. You stand no chance.",
-                            "You're celebrating old progress while I'm leagues ahead.",
+                            "You're celebrating old progress while I'm comfortably ahead.",
                             "We both know you can't reach me.",
                             "You're not built for this high-tier play."
                         ].randomElement()!
