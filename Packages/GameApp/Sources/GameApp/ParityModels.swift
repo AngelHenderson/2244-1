@@ -4071,12 +4071,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I comfortably stay ahead at \(valStr). You stand no chance.",
                                 "You're celebrating old progress while I'm leagues ahead at \(valStr).",
                                 "We both know you can't reach my \(valStr).",
-                                "You're not built for my \(valStr) high-tier play."
+                                "You're not built for my \(valStr) tier play."
                             ].randomElement()!
                         } else {
                             valFreeReply = [
                                 "You'll have to play better to catch my \(valStr).",
-                                "Still lagging behind my \(valStr).",
+                                "Still lagging behind my \(valStr)? Pathetic.",
                                 "I comfortably stay ahead at \(valStr).",
                                 "We both know you can't reach my \(valStr) right now.",
                                 "You're celebrating old progress while I'm ahead at \(valStr).",
