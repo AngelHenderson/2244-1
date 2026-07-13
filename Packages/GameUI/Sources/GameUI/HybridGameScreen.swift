@@ -123,14 +123,17 @@ public struct HybridGameScreen: View {
                         .accessibilityAddTraits(.isStaticText)
                         .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
                         .id(reason)
-                } else if let preview = gameStore.mergePreviewLabel {
-                    MergePreviewBanner(
-                        tileCount: gameStore.currentPath.count,
-                        resultLabel: preview
+                } else if let previewTile = gameStore.mergePreviewTile {
+                    TileView(
+                        tile: previewTile,
+                        isSelected: false,
+                        isValid: true,
+                        size: 48,
+                        theme: currentTheme
                     )
-                    .padding(.horizontal, 16)
-                    .padding(.top, 4)
-                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                    .shadow(color: .black.opacity(0.6), radius: 6, x: 0, y: 2)
+                    .padding(.top, 6)
+                    .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
                 }
             }
         
