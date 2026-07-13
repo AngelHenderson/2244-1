@@ -96,7 +96,7 @@ extension MockSocialService {
             case 3:
                 let weightedReplies: [(String, Double)] = [
                     ("I easily passed your \(lower). I'm at \(higher).", 3.1),
-                    ("I let you think you had the lead. Your \(lower) is nothing. I'm at \(higher).", 18.0),
+                    ("You thought you had the lead? Your \(lower) is nothing. I'm at \(higher).", 18.0),
                     ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 19.9),
                     ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 24.9),
                     ("I blew past your \(lower) and hit \(higher) without even trying.", 6.1),
@@ -159,7 +159,7 @@ extension MockSocialService {
             case 3:
                 let weightedReplies: [(String, Double)] = [
                     ("I easily passed your \(lower). I clocked \(higher).", 3.1),
-                    ("I let you think you had the lead. Your \(lower) is nothing. I clocked \(higher).", 18.0),
+                    ("You thought you had the lead? Your \(lower) is nothing. I clocked \(higher).", 18.0),
                     ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 19.9),
                     ("I was just warming up. Your \(lower) is a joke compared to my \(higher).", 24.9),
                     ("I blew past your \(lower) and clocked \(higher) without even trying.", 6.1),
@@ -222,7 +222,7 @@ extension MockSocialService {
             case 3:
                 let weightedReplies: [(String, Double)] = [
                     ("I easily passed your \(lower) days. I'm at \(higher) days.", 10.0),
-                    ("I let you think you had the lead. Your \(lower) days is nothing. I'm at \(higher) days.", 18.0),
+                    ("You thought you had the lead? Your \(lower) days is nothing. I'm at \(higher) days.", 18.0),
                     ("You fell for it. I easily beat your \(lower) days. My real record is \(higher) days.", 19.9),
                     ("I was just warming up. Your \(lower) days is a joke compared to my \(higher) days.", 24.9),
                     ("I blew past your \(lower) days and hit \(higher) days without even trying.", 6.1),
@@ -285,7 +285,7 @@ extension MockSocialService {
             case 3:
                 let weightedReplies: [(String, Double)] = [
                     ("I easily passed your \(lower) infinities. I'm at \(higher) infinities.", 10.0),
-                    ("I let you think you had the lead. Your \(lower) infinities is nothing. I'm at \(higher) infinities.", 18.0),
+                    ("You thought you had the lead? Your \(lower) infinities is nothing. I'm at \(higher) infinities.", 18.0),
                     ("You fell for it. I easily beat your \(lower) infinities. My real record is \(higher) infinities.", 19.9),
                     ("I was just warming up. Your \(lower) infinities is a joke compared to my \(higher) infinities.", 24.9),
                     ("I blew past your \(lower) infinities and hit \(higher) infinities without even trying.", 6.1),
