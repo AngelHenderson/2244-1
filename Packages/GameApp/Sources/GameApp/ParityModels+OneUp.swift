@@ -113,11 +113,11 @@ extension MockSocialService {
                     ("Your \(lower) is nothing compared to my \(higher) record.", 2.76),
                     ("I easily passed \(lower). I dominate \(higher).", 8.0),
                     ("Your \(lower) is child's play compared to my \(higher) record.", 6.0),
-                    ("\(lower) is a joke. I'm already sitting at \(higher).", 14.0),
-                    ("You're celebrating \(lower)? I already cleared \(higher).", 37.0),
+                    ("\(lower) is a joke. I'm already sitting at \(higher).", 5.0),
+                    ("You're celebrating \(lower)? I already cleared \(higher).", 44.0),
                     ("I left \(lower) in the dust. \(higher) is the new standard.", 9.0),
                     ("You're bragging about \(lower) while my \(higher) remains completely out of your reach.", 6.0),
-                    ("I already hit \(higher). \(lower) is old news.", 11.0)
+                    ("I already hit \(higher). \(lower) is old news.", 13.0)
                 ]
                 return pickWeighted(weightedReplies)
             default: return ""
@@ -176,11 +176,11 @@ extension MockSocialService {
                     ("Your \(lower) is nothing compared to my \(higher) record.", 2.76),
                     ("I easily passed \(lower). I clocked \(higher).", 8.0),
                     ("Your \(lower) is child's play compared to my \(higher) record.", 6.0),
-                    ("\(lower) is a joke. I already clocked \(higher).", 14.0),
-                    ("You're celebrating \(lower)? I already clocked \(higher).", 37.0),
+                    ("\(lower) is a joke. I already clocked \(higher).", 5.0),
+                    ("You're celebrating \(lower)? I already clocked \(higher).", 44.0),
                     ("I left \(lower) in the dust. \(higher) is the new standard.", 9.0),
                     ("You're bragging about \(lower) while my \(higher) remains completely out of your reach.", 6.0),
-                    ("I already clocked \(higher). \(lower) is old news.", 11.0)
+                    ("I already clocked \(higher). \(lower) is old news.", 13.0)
                 ]
                 return pickWeighted(weightedReplies)
             default: return ""
@@ -239,11 +239,11 @@ extension MockSocialService {
                     ("Your \(lower) days is nothing compared to my \(higher) days record.", 2.76),
                     ("I easily passed \(lower) days. I dominate \(higher) days.", 8.0),
                     ("Your \(lower) days is child's play compared to my \(higher) days record.", 6.0),
-                    ("\(lower) days is a joke. I'm already sitting at \(higher) days.", 14.0),
-                    ("You're celebrating \(lower) days? I already cleared \(higher) days.", 37.0),
+                    ("\(lower) days is a joke. I'm already sitting at \(higher) days.", 5.0),
+                    ("You're celebrating \(lower) days? I already cleared \(higher) days.", 44.0),
                     ("I left \(lower) days in the dust. \(higher) days is the new standard.", 9.0),
                     ("You're bragging about \(lower) days while my \(higher) days remains completely out of your reach.", 6.0),
-                    ("I already hit \(higher) days. \(lower) days is old news.", 11.0)
+                    ("I already hit \(higher) days. \(lower) days is old news.", 13.0)
                 ]
                 return pickWeighted(weightedReplies)
             default: return ""
@@ -302,11 +302,11 @@ extension MockSocialService {
                     ("Your \(lower) infinities is nothing compared to my \(higher) infinities record.", 2.76),
                     ("I easily passed \(lower) infinities. I dominate \(higher) infinities.", 8.0),
                     ("Your \(lower) infinities is child's play compared to my \(higher) infinities record.", 6.0),
-                    ("\(lower) infinities is a joke. I'm already sitting at \(higher) infinities.", 14.0),
-                    ("You're celebrating \(lower) infinities? I already cleared \(higher) infinities.", 37.0),
+                    ("\(lower) infinities is a joke. I'm already sitting at \(higher) infinities.", 5.0),
+                    ("You're celebrating \(lower) infinities? I already cleared \(higher) infinities.", 44.0),
                     ("I left \(lower) infinities in the dust. \(higher) infinities is the new standard.", 9.0),
                     ("You're bragging about \(lower) infinities while my \(higher) infinities remains completely out of your reach.", 6.0),
-                    ("I already hit \(higher) infinities. \(lower) infinities is old news.", 11.0)
+                    ("I already hit \(higher) infinities. \(lower) infinities is old news.", 13.0)
                 ]
                 return pickWeighted(weightedReplies)
             default: return ""
