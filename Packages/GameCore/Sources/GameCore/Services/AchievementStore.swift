@@ -2418,7 +2418,7 @@ public final class AchievementStore {
             }
             
             // Advance to next tier (don't mark as claimed, reset for next tier)
-            if !isTileProgressionMaxed {
+            if tileProgressionTier < Self.tileTiers.count - 1 {
                 tileProgressionTier += 1
                 // Re-evaluate to check if next tier is already met
                 reEvaluateAfterClaim(achievementId: definition.id)
@@ -2443,7 +2443,7 @@ public final class AchievementStore {
             onReward?(rewards)
 
             // Advance to next tier (don't mark as claimed, reset for next tier)
-            if !isMovesProgressionMaxed {
+            if movesProgressionTier < Self.movesTiers.count - 1 {
                 movesProgressionTier += 1
                 // Re-evaluate to check if next tier is already met
                 reEvaluateAfterClaim(achievementId: definition.id)
@@ -2463,7 +2463,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isCombo610Maxed {
+            if combo610Tier < Self.combo610Tiers.count - 1 {
                 combo610Tier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2481,7 +2481,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isCombo1115Maxed {
+            if combo1115Tier < Self.combo1115Tiers.count - 1 {
                 combo1115Tier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2499,7 +2499,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isCombo1620Maxed {
+            if combo1620Tier < Self.combo1620Tiers.count - 1 {
                 combo1620Tier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2517,7 +2517,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isCombo2130Maxed {
+            if combo2130Tier < Self.combo2130Tiers.count - 1 {
                 combo2130Tier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2535,7 +2535,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isMergeProgressionMaxed {
+            if mergeProgressionTier < Self.mergeTiers.count - 1 {
                 mergeProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2553,7 +2553,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isSwapUsesProgressionMaxed {
+            if swapUsesProgressionTier < Self.swapUseTiers.count - 1 {
                 swapUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2571,7 +2571,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isHammerUsesProgressionMaxed {
+            if hammerUsesProgressionTier < Self.hammerUseTiers.count - 1 {
                 hammerUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2589,7 +2589,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isSpinUsesProgressionMaxed {
+            if spinUsesProgressionTier < Self.spinUseTiers.count - 1 {
                 spinUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2607,7 +2607,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isSurviveMovesProgressionMaxed {
+            if surviveMovesProgressionTier < Self.surviveMovesTiers.count - 1 {
                 surviveMovesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2625,7 +2625,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isPlaytimeProgressionMaxed {
+            if playtimeProgressionTier < Self.playtimeTiers.count - 1 {
                 playtimeProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2643,7 +2643,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isInfinityProgressionMaxed {
+            if infinityProgressionTier < Self.infinityTiers.count - 1 {
                 infinityProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2661,7 +2661,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isBoost2xUsesProgressionMaxed {
+            if boost2xUsesProgressionTier < Self.boost2xUseTiers.count - 1 {
                 boost2xUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2679,7 +2679,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isBoost3xUsesProgressionMaxed {
+            if boost3xUsesProgressionTier < Self.boost3xUseTiers.count - 1 {
                 boost3xUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2697,7 +2697,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isBoost4xUsesProgressionMaxed {
+            if boost4xUsesProgressionTier < Self.boost4xUseTiers.count - 1 {
                 boost4xUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2715,7 +2715,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isSpinPurchasesProgressionMaxed {
+            if spinPurchasesProgressionTier < Self.spinPurchaseTiers.count - 1 {
                 spinPurchasesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2733,7 +2733,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isDailyClaimsProgressionMaxed {
+            if dailyClaimsProgressionTier < Self.dailyClaimsTiers.count - 1 {
                 dailyClaimsProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2751,7 +2751,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isBoost5xUsesProgressionMaxed {
+            if boost5xUsesProgressionTier < Self.boost5xUseTiers.count - 1 {
                 boost5xUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2769,7 +2769,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isBoost20xUsesProgressionMaxed {
+            if boost20xUsesProgressionTier < Self.boost20xUseTiers.count - 1 {
                 boost20xUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2787,7 +2787,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isWheelCollectsProgressionMaxed {
+            if wheelCollectsProgressionTier < Self.wheelCollectsTiers.count - 1 {
                 wheelCollectsProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2805,7 +2805,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isChallengeCreationMaxed {
+            if challengeCreationTier < Self.challengeCreationTiers.count - 1 {
                 challengeCreationTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
@@ -2823,7 +2823,7 @@ public final class AchievementStore {
             }
             onReward?(rewards)
 
-            if !isMagnetUsesProgressionMaxed {
+            if magnetUsesProgressionTier < Self.magnetUseTiers.count - 1 {
                 magnetUsesProgressionTier += 1
                 reEvaluateAfterClaim(achievementId: definition.id)
             } else {
