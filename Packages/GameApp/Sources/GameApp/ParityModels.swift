@@ -1187,7 +1187,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v60"
+    public static let feedDateKey = "socialFeed.cacheDate.v61"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1200,7 +1200,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v60.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v61.json")
     }
     
     private static var userPostsURL: URL {
@@ -3986,7 +3986,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
                 
                 let valStr: String = {
-                    let rawVal = (activeTone == "one_up") ? speakerValue : opponentValue
+                    let rawVal = (activeTone == "one_up" || activeTone == "caught_up") ? speakerValue : nil
                     if let rawVal = rawVal {
                         if msgTopic == "streak" {
                             return rawVal.contains("day") ? rawVal : "\(rawVal) days"
@@ -4041,29 +4041,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
                 var valFreeReply = ""
                 if activeTone == "behind" {
-                    if !valStr.isEmpty {
-                        valFreeReply = [
-                            "You won't stay ahead for long at \(valStr). I'm right on your heels.",
-                            "Enjoy the lead at \(valStr) while you can. It won't last.",
-                            "Your lead at \(valStr) is temporary. Watch your back.",
-                            "I'm closing the gap to \(valStr). You won't stay ahead for long.",
-                            "Keep looking over your shoulder. I'm right behind your \(valStr).",
-                            "I'm warming up. You won't be holding that \(valStr) lead much longer.",
-                            "You're not as safe up there at \(valStr) as you think.",
-                            "Enjoy the view from \(valStr) while it lasts."
-                        ].randomElement()!
-                    } else {
-                        valFreeReply = [
-                            "You won't stay ahead for long. I'm right on your heels.",
-                            "Enjoy the lead while you can. It won't last.",
-                            "Your lead is temporary. Watch your back.",
-                            "I'm closing the gap. You won't stay ahead for long.",
-                            "Keep looking over your shoulder. I'm right behind you.",
-                            "I'm warming up. You won't be holding that lead much longer.",
-                            "You're not as safe up there as you think.",
-                            "Enjoy the view from the top while it lasts."
-                        ].randomElement()!
-                    }
+                    valFreeReply = [
+                        "You won't stay ahead for long. I'm right on your heels.",
+                        "Enjoy the lead while you can. It won't last.",
+                        "Your lead is temporary. Watch your back.",
+                        "I'm closing the gap. You won't stay ahead for long.",
+                        "Keep looking over your shoulder. I'm right behind you.",
+                        "I'm warming up. You won't be holding that lead much longer.",
+                        "You're not as safe up there as you think.",
+                        "Enjoy the view from the top while it lasts."
+                    ].randomElement()!
                 } else if activeTone == "one_up" {
                     if !valStr.isEmpty {
                         if isMassiveGap {
@@ -5278,17 +5265,17 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else if let oVal = opponentValue {
                         if forceTone == "behind" {
                             filtered = [
-                                "I'm coming for your \(oVal). Your lead is temporary.",
-                                "I'll overtake your \(oVal) soon. It's inevitable.",
-                                "Your \(oVal) is next. Keep dreaming.",
-                                "You won't stay at \(oVal) for long. I'm catching up."
+                                "I'm coming for you. Your lead is temporary.",
+                                "I'll overtake you soon. It's inevitable.",
+                                "You're next. Keep dreaming.",
+                                "You won't stay ahead for long. I'm catching up."
                             ]
                         } else if forceTone == "one_up" {
                             filtered = [
-                                "You're completely stuck at your \(oVal). You'll never catch me.",
-                                "You're stuck at \(oVal) while I'm tiers ahead.",
-                                "\(oVal) is nothing. Know your place.",
-                                "You're delusional. Your \(oVal) is no threat."
+                                "You're completely stuck. You'll never catch me.",
+                                "You're stuck while I'm tiers ahead.",
+                                "You are nothing. Know your place.",
+                                "You're delusional. You are no threat."
                             ]
                         } else if forceTone == "caught_up" {
                             filtered = [
@@ -5398,7 +5385,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let contextual = [
                 "\(num) is a good number! Keep it going.",
                 "Around \(num) is when things get real.",
-                "\(num)? Solid. I'm right there too.",
+                "\(num)? Solid. Solid work.",
             ]
             return contextual.randomElement()!
         }
