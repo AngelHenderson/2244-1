@@ -5385,7 +5385,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             let contextual = [
                 "\(num) is a good number! Keep it going.",
                 "Around \(num) is when things get real.",
-                "\(num)? Solid. Solid work.",
+                "\(num) is solid work.",
             ]
             return contextual.randomElement()!
         }
