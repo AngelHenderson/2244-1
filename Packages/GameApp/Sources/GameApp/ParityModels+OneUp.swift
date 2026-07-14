@@ -57,7 +57,17 @@ extension MockSocialService {
             let targetList = filtered.isEmpty ? list : filtered
             return targetList.randomElement()!
         }
-        let randBucket = Int.random(in: 1...4)
+        let rand = Double.random(in: 0..<100.0)
+        let randBucket: Int
+        if rand < 21.0 {
+            randBucket = 1
+        } else if rand < 22.0 {
+            randBucket = 2
+        } else if rand < 61.0 {
+            randBucket = 3
+        } else {
+            randBucket = 4
+        }
         
         switch metric {
         case "milestone":
