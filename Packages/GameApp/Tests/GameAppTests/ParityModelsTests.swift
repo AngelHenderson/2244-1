@@ -1469,6 +1469,106 @@ struct ParityModelsTests {
         #expect(abs(pctDominate - 57.0) <= 5.5, "Expected ~57% dominate, got \(pctDominate)%")
         #expect(abs(pctSafelyAhead - 14.0) <= 5.5, "Expected ~14% safely ahead, got \(pctSafelyAhead)%")
     }
+
+    @Test("Verify bucket weights in getOneUpBrag (Bucket 1: 21%, Bucket 2: 1%, Bucket 3: 39%, Bucket 4: 39%)")
+    func testOneUpBucketWeights() async throws {
+        var bucket1Count = 0
+        var bucket2Count = 0
+        var bucket3Count = 0
+        var bucket4Count = 0
+        
+        let bucket1Templates: Set<String> = [
+            "You think 1024 is a big milestone? I'm already coasting at 2048.",
+            "Your 1024 is a joke. You'll never catch my 2048.",
+            "I easily bypassed 1024 and hit 2048.",
+            "I'm laughing from 2048 while you're still at 1024.",
+            "Celebrating 1024? I easily clear 2048.",
+            "You're at 1024? Cute. 1024 is completely irrelevant now that I'm at 2048.",
+            "Imagine being proud of 1024. My 2048 was completed with ease.",
+            "Still at 1024? I already left that behind. 2048 is where the real game is.",
+            "Lagging at 1024? I'm coasting at 2048.",
+            "Imagine being at 1024 while I dominate at 2048."
+        ]
+        
+        let bucket2Templates: Set<String> = [
+            "If you can't even get past 1024, you'll never catch my 2048.",
+            "1024 is your ceiling? Try aiming lower. I'm at 2048.",
+            "You'll never get past 1024 anyway, let alone my 2048.",
+            "If getting past 1024 is impossible for you, my 2048 is untouchable.",
+            "Of course you're lagging at 1024. That's child's play compared to my 2048.",
+            "You're lagging at 1024? Figures. My record is 2048.",
+            "You're completely stuck at 1024. I'm sitting comfortably at 2048.",
+            "You're stuck at 1024. My 2048 is light years away from your skill level.",
+            "If 1024 is your ceiling, you're not even in the same conversation as my 2048.",
+            "Why even mention 1024? My 2048 is completely out of your league.",
+            "You're embarrassing yourself with 1024. You were never going to threaten my 2048 anyway.",
+            "You're not built for 1024. Meanwhile, my 2048 was completed with ease."
+        ]
+        
+        let bucket3Templates: Set<String> = [
+            "I easily passed your 1024. I'm at 2048.",
+            "You thought you had the lead? Your 1024 is nothing. I'm at 2048.",
+            "You fell for it. I easily beat your 1024. My real record is 2048.",
+            "I was just warming up. Your 1024 is a joke compared to my 2048.",
+            "I blew past your 1024 and hit 2048 without even trying.",
+            "Your 1024 is a joke compared to my 2048.",
+            "I cleared 2048 without trying.",
+            "I was just toying with you. I'm actually at 2048."
+        ]
+        
+        let bucket4Templates: Set<String> = [
+            "I am ahead of your 1024. I'm at 2048.",
+            "I'm way past 1024. I am sitting at 2048.",
+            "Your 1024 is nothing compared to my 2048 record.",
+            "I easily passed 1024. I dominate 2048.",
+            "Your 1024 is child's play compared to my 2048 record.",
+            "1024 is a joke. I'm already sitting at 2048.",
+            "You're celebrating 1024? I already cleared 2048.",
+            "I left 1024 in the dust. 2048 is the new standard.",
+            "You're bragging about 1024 while my 2048 remains completely out of your reach.",
+            "I already hit 2048. 1024 is old news."
+        ]
+        
+        let iterations = 10000
+        for _ in 0..<iterations {
+            let reply = MockSocialService.getOneUpBrag(metric: "milestone", lower: "1024", higher: "2048")
+            
+            if reply == "Only at 1024? I easily reached 2048." {
+                if Double.random(in: 0..<60.0) < 21.0 {
+                    bucket1Count += 1
+                } else {
+                    bucket3Count += 1
+                }
+            } else if bucket1Templates.contains(reply) {
+                bucket1Count += 1
+            } else if bucket2Templates.contains(reply) {
+                bucket2Count += 1
+            } else if bucket3Templates.contains(reply) {
+                bucket3Count += 1
+            } else if bucket4Templates.contains(reply) {
+                bucket4Count += 1
+            } else {
+                #imageLiteral // trigger build failure if any template is missed
+                fatalError("Unknown template returned: \(reply)")
+            }
+        }
+        
+        let total = Double(bucket1Count + bucket2Count + bucket3Count + bucket4Count)
+        #expect(total == Double(iterations))
+        
+        let pct1 = Double(bucket1Count) / total * 100.0
+        let pct2 = Double(bucket2Count) / total * 100.0
+        let pct3 = Double(bucket3Count) / total * 100.0
+        let pct4 = Double(bucket4Count) / total * 100.0
+        
+        print("ONE-UP BUCKET WEIGHTS: Bucket 1 = \(pct1)%, Bucket 2 = \(pct2)%, Bucket 3 = \(pct3)%, Bucket 4 = \(pct4)%")
+        
+        // Assert within a reasonable margin of error (e.g. +/- 4%)
+        #expect(abs(pct1 - 21.0) <= 4.0, "Expected ~21% for Bucket 1, got \(pct1)%")
+        #expect(abs(pct2 - 1.0) <= 1.5, "Expected ~1% for Bucket 2, got \(pct2)%")
+        #expect(abs(pct3 - 39.0) <= 4.0, "Expected ~39% for Bucket 3, got \(pct3)%")
+        #expect(abs(pct4 - 39.0) <= 4.0, "Expected ~39% for Bucket 4, got \(pct4)%")
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
