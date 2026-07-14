@@ -1548,7 +1548,6 @@ struct ParityModelsTests {
             } else if bucket4Templates.contains(reply) {
                 bucket4Count += 1
             } else {
-                #imageLiteral // trigger build failure if any template is missed
                 fatalError("Unknown template returned: \(reply)")
             }
         }
