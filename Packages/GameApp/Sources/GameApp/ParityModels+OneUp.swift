@@ -118,7 +118,7 @@ extension MockSocialService {
                 return pickWeighted(weightedReplies)
             case 4:
                 let weightedReplies: [(String, Double)] = [
-                    ("I am ahead of your \(lower). I'm at \(higher).", 6.0),
+                    ("I am comfortably ahead of your \(lower). I'm at \(higher).", 6.0),
                     ("I'm way past \(lower). I am sitting at \(higher).", 0.24),
                     ("Your \(lower) is nothing compared to my \(higher).", 2.76),
                     ("I easily passed \(lower). I dominate \(higher).", 5.01),
@@ -244,7 +244,7 @@ extension MockSocialService {
                 return pickWeighted(weightedReplies)
             case 4:
                 let weightedReplies: [(String, Double)] = [
-                    ("I am ahead of your \(lower) days. I'm at \(higher) days.", 6.0),
+                    ("I am comfortably ahead of your \(lower) days. I'm at \(higher) days.", 6.0),
                     ("I'm way past \(lower) days. I am sitting at \(higher) days.", 0.24),
                     ("Your \(lower) days is nothing compared to my \(higher) days record.", 2.76),
                     ("I easily passed \(lower) days. I dominate \(higher) days.", 8.0),
@@ -307,7 +307,7 @@ extension MockSocialService {
                 return pickWeighted(weightedReplies)
             case 4:
                 let weightedReplies: [(String, Double)] = [
-                    ("I am ahead of your \(lower) infinities. I'm at \(higher) infinities.", 6.0),
+                    ("I am comfortably ahead of your \(lower) infinities. I'm at \(higher) infinities.", 6.0),
                     ("I'm way past \(lower) infinities. I am sitting at \(higher) infinities.", 0.24),
                     ("Your \(lower) infinities is nothing compared to my \(higher) infinities record.", 2.76),
                     ("I easily passed \(lower) infinities. I dominate \(higher) infinities.", 8.0),
