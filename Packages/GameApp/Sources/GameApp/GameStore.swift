@@ -931,6 +931,7 @@ public final class GameStore {
             currentPath.append(position)
             isExtendingToGift = extendingToGift
             pathValidation = validation
+            clearInvalidChainReason()
             return true
         } else {
             // If the tile makes the chain invalid, DO NOT add it.
