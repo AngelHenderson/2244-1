@@ -521,6 +521,7 @@ private struct AchievementRow: View {
             }
         }
         .padding(14)
+        .opacity(isMaxed ? 0.4 : 1.0)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(
@@ -536,8 +537,18 @@ private struct AchievementRow: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(isClaimable ? Color.green : Color(uiColor: .separator), lineWidth: 1)
+                .strokeBorder(isClaimable ? Color.green : (isMaxed ? Color.yellow.opacity(0.5) : Color(uiColor: .separator)), lineWidth: 1)
         )
+        .overlay {
+            if isMaxed {
+                Text("MAXED OUT!")
+                    .font(.avenirNext(size: 28, weight: .black))
+                    .foregroundStyle(.yellow.gradient)
+                    .rotationEffect(.degrees(-5))
+                    .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                    .padding()
+            }
+        }
         .opacity(definition.hidden && !isUnlocked ? 0.8 : 1.0)
     }
     
