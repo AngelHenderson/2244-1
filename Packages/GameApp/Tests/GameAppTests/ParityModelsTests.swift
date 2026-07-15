@@ -1573,13 +1573,13 @@ struct ParityModelsTests {
     func testRequiredTimeDelay() {
         // Milestone diff: 524K to 134M (exponent 19 to exponent 27, which is a diff of 8 milestones)
         let delayMilestones = MockSocialService.requiredTimeDelay(from: "524K", to: "134M", topic: "milestone")
-        // Expected: 8 * 900.0 + random(60...180) -> between 7260 and 7380 seconds
-        #expect(delayMilestones >= 7260.0 && delayMilestones <= 7380.0)
+        // Expected: 8 * (60...120) -> between 480.0 and 960.0 seconds
+        #expect(delayMilestones >= 480.0 && delayMilestones <= 960.0)
 
         // HOF diff: 343 to 350 (diff of 7 infinities)
         let delayHOF = MockSocialService.requiredTimeDelay(from: "343", to: "350", topic: "hof")
-        // Expected: 7 * 1200.0 + random(60...180) -> between 8460 and 8580 seconds
-        #expect(delayHOF >= 8460.0 && delayHOF <= 8580.0)
+        // Expected: 7 * (60...180) -> between 420.0 and 1260.0 seconds
+        #expect(delayHOF >= 420.0 && delayHOF <= 1260.0)
 
         // Equal values: same milestones (diff is 0)
         let delayEqual = MockSocialService.requiredTimeDelay(from: "2048", to: "2048", topic: "milestone")
