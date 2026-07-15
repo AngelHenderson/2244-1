@@ -1482,7 +1482,7 @@ struct ParityModelsTests {
             "Your 1024 is a joke. You'll never catch my 2048.",
             "I easily bypassed 1024 and hit 2048.",
             "I'm laughing from 2048 while you're still at 1024.",
-            "Celebrating 1024? I easily clear 2048.",
+            "Celebrating 1024? I easily cleared 2048.",
             "You're at 1024? Cute. 1024 is completely irrelevant now that I'm at 2048.",
             "Imagine being proud of 1024. My 2048 was completed with ease.",
             "Still at 1024? I already left that behind. 2048 is where the real game is.",
@@ -1567,6 +1567,24 @@ struct ParityModelsTests {
         #expect(abs(pct2 - 1.0) <= 1.5, "Expected ~1% for Bucket 2, got \(pct2)%")
         #expect(abs(pct3 - 39.0) <= 4.0, "Expected ~39% for Bucket 3, got \(pct3)%")
         #expect(abs(pct4 - 39.0) <= 4.0, "Expected ~39% for Bucket 4, got \(pct4)%")
+    }
+
+    @Test("Verify requiredTimeDelay returns scaled time offsets based on gap size")
+    func testRequiredTimeDelay() {
+        // Milestone diff: 524K to 134M (exponent 19 to exponent 27, which is a diff of 8 milestones)
+        let delayMilestones = MockSocialService.requiredTimeDelay(from: "524K", to: "134M", topic: "milestone")
+        // Expected: 8 * 900.0 + random(60...180) -> between 7260 and 7380 seconds
+        #expect(delayMilestones >= 7260.0 && delayMilestones <= 7380.0)
+
+        // HOF diff: 343 to 350 (diff of 7 infinities)
+        let delayHOF = MockSocialService.requiredTimeDelay(from: "343", to: "350", topic: "hof")
+        // Expected: 7 * 1200.0 + random(60...180) -> between 8460 and 8580 seconds
+        #expect(delayHOF >= 8460.0 && delayHOF <= 8580.0)
+
+        // Equal values: same milestones (diff is 0)
+        let delayEqual = MockSocialService.requiredTimeDelay(from: "2048", to: "2048", topic: "milestone")
+        // Expected: fallback to short delay -> between 60 and 120 seconds
+        #expect(delayEqual >= 60.0 && delayEqual <= 120.0)
     }
 }
 

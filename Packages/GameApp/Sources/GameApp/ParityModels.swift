@@ -1042,7 +1042,7 @@ public struct MockSocialService: SocialService, Sendable {
         switch topic {
         case "hof":
             let current = val.flatMap(Int.init) ?? Int.random(in: 1...5)
-            return String(current + Int.random(in: 1...2))
+            return String(current + Int.random(in: 1...10))
             
         case "streak":
             let current = val.flatMap(Int.init) ?? Int.random(in: 5...30)
@@ -1070,13 +1070,50 @@ public struct MockSocialService: SocialService, Sendable {
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(10)
             }
-            let jump = Int.random(in: 1...2)
+            let jump = Int.random(in: 1...10)
             let newIdx = min(idx + jump, Self.allMilestones.count - 1)
             return Self.allMilestones[newIdx]
             
         default:
             return "10"
         }
+    }
+
+    static func requiredTimeDelay(from val1: String?, to val2: String?, topic: String) -> Double {
+        guard let v1 = val1, let v2 = val2 else {
+            return Double.random(in: 60...120)
+        }
+        
+        switch topic {
+        case "milestone":
+            let idx1 = Self.allMilestones.firstIndex(of: v1)
+            let idx2 = Self.allMilestones.firstIndex(of: v2)
+            if let i1 = idx1, let i2 = idx2 {
+                let diff = abs(i2 - i1)
+                if diff > 0 {
+                    return Double(diff) * Double.random(in: 60...120)
+                }
+            }
+        case "hof":
+            let n1 = Int(v1) ?? 0
+            let n2 = Int(v2) ?? 0
+            let diff = abs(n2 - n1)
+            if diff > 0 {
+                return Double(diff) * Double.random(in: 60...180)
+            }
+        case "streak":
+            let n1 = Int(v1) ?? 0
+            let n2 = Int(v2) ?? 0
+            let diff = abs(n2 - n1)
+            if diff > 0 {
+                return Double(diff) * 3600.0 + Double.random(in: 60...180)
+            }
+        case "time":
+            return Double.random(in: 300...600)
+        default:
+            break
+        }
+        return Double.random(in: 60...120)
     }
 
     static func lowerValue(for val: String?, topic: String) -> String {
@@ -1464,13 +1501,13 @@ public struct MockSocialService: SocialService, Sendable {
                                 let idx2 = Self.allMilestones.firstIndex(of: finalNPCValue)
                                 if let i1 = idx1, let i2 = idx2 {
                                     let diff = max(0, i2 - i1)
-                                    catchUpDelay += Double(diff) * 240.0
+                                    catchUpDelay += Double(diff) * Double.random(in: 60...120)
                                 }
                             case "hof":
                                 let n1 = Int(prevVal) ?? 0
                                 let n2 = Int(finalNPCValue) ?? 0
                                 let diff = max(0, n2 - n1)
-                                catchUpDelay += Double(diff) * 120.0
+                                catchUpDelay += Double(diff) * Double.random(in: 60...180)
                             case "time":
                                 func timeToSecs(_ timeStr: String) -> Int {
                                     let parts = timeStr.split(separator: ":")
@@ -1567,6 +1604,10 @@ public struct MockSocialService: SocialService, Sendable {
             let commenterIndex = Int.random(in: 1...100000)
             let commenterAvatar = Self.avatarForPlayer(index: commenterIndex, countrySeed: 0, day: currentDay)
             
+            let topic = Self.determineTopic(message: message)
+            let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
+            let rootValue = isRootStreakLoss ? "0" : Self.extractValue(from: message, topic: topic)
+            
             let (commentBase, nameOverride, tone, rootValRaw) = generateDynamicComment(message: message, usedStats: &usedStats, forcedTone: toneStr)
             var finalCommenter = nameOverride ?? commenter
             while finalCommenter == playerName {
@@ -1580,9 +1621,8 @@ public struct MockSocialService: SocialService, Sendable {
             } else if i == 1 {
                 // Second comment arrives within a couple minutes (60-180 seconds)
                 baseOffset = Double.random(in: 60...180)
-            } else if tone == "competitive" {
-                // Competitive comments arrive within 2 to 25 minutes
-                baseOffset = Double.random(in: 120...1500)
+            } else if tone == "competitive" || tone == "behind_competitive" {
+                baseOffset = Self.requiredTimeDelay(from: rootValue, to: rootValRaw, topic: topic)
             } else {
                 // Non-competitive comments arrive mostly in the first 15 minutes to match the early heart surge
                 if Double.random(in: 0...1) < 0.85 {
@@ -1609,9 +1649,6 @@ public struct MockSocialService: SocialService, Sendable {
                 let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
                 var npc2: (name: String, avatar: String)? = nil
                 
-                let topic = Self.determineTopic(message: message)
-                let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
-                let rootValue = isRootStreakLoss ? "0" : Self.extractValue(from: message, topic: topic)
                 var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                 var npc2Value: String? = nil
                 
@@ -1670,7 +1707,7 @@ public struct MockSocialService: SocialService, Sendable {
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
                         npc2PreviousComment = replyText
-                        let replyOffset = Double.random(in: 60...90)
+                        let replyOffset = Self.requiredTimeDelay(from: npc1Value, to: npc2Value, topic: topic)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
@@ -1706,7 +1743,7 @@ public struct MockSocialService: SocialService, Sendable {
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
                         npc1PreviousComment = replyText
-                        let replyOffset = Double.random(in: 60...90)
+                        let replyOffset = Self.requiredTimeDelay(from: npc2Value, to: npc1Value, topic: topic)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                         
                         let replyComment = SocialFeedComment(
@@ -1978,6 +2015,10 @@ public struct MockSocialService: SocialService, Sendable {
                 }
                 let startingCount = comments.count
                 
+                let topic = Self.determineTopic(message: message)
+                let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
+                let rootValue = isRootStreakLoss ? "0" : Self.extractValue(from: message, topic: topic)
+
                 let commentAuthor = generateDynamicName()
                 let commentIndex = Int.random(in: 1...100000)
                 let commentAvatar = Self.avatarForPlayer(index: commentIndex, countrySeed: 0, day: currentDay)
@@ -1994,8 +2035,8 @@ public struct MockSocialService: SocialService, Sendable {
                 } else if comments.count == 2 {
                     baseOffset = Double.random(in: 150...300)
                 } else {
-                    if tone == "competitive" {
-                        baseOffset = Double.random(in: 600...1800)
+                    if tone == "competitive" || tone == "behind_competitive" {
+                        baseOffset = Self.requiredTimeDelay(from: rootValue, to: generatedVal, topic: topic)
                     } else {
                         if Double.random(in: 0...1) < 0.85 {
                             baseOffset = Double.random(in: 300...1200)
@@ -2023,9 +2064,6 @@ public struct MockSocialService: SocialService, Sendable {
                     let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
                     var npc2: (name: String, avatar: String)? = nil
                     
-                    let topic = Self.determineTopic(message: message)
-                    let isRootStreakLoss = topic == "streak" && (message.lowercased().contains("lost") || message.lowercased().contains("dropped") || message.lowercased().contains("reset") || message.lowercased().contains("forgot") || message.lowercased().contains("dead") || message.lowercased().contains("failed") || message.lowercased().contains("broke"))
-                    let rootValue = isRootStreakLoss ? "0" : Self.extractValue(from: message, topic: topic)
                     var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
                     var npc2Value: String? = nil
                     
@@ -2089,7 +2127,7 @@ public struct MockSocialService: SocialService, Sendable {
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
                             npc2PreviousComment = replyText
-                            let replyOffset = Double.random(in: 60...90)
+                            let replyOffset = Self.requiredTimeDelay(from: npc1Value, to: npc2Value, topic: topic)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                             
                             let replyComment = SocialFeedComment(
@@ -2125,7 +2163,7 @@ public struct MockSocialService: SocialService, Sendable {
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
                             npc1PreviousComment = replyText
-                            let replyOffset = Double.random(in: 60...90)
+                            let replyOffset = Self.requiredTimeDelay(from: npc2Value, to: npc1Value, topic: topic)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
                             
                             let replyComment = SocialFeedComment(
@@ -3177,7 +3215,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil
         }) ?? "11n"
         let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
-        let jump = Int.random(in: 1...5)
+        let jump = Int.random(in: 1...10)
         let higherIdx = min(posterIdx + jump, Self.allMilestones.count - 1)
         let higherM = Self.allMilestones[higherIdx]
         let higherName = Self.leaderboardPlayerAtMilestone(higherM)
