@@ -354,6 +354,7 @@ public struct BoardView: View {
                         // Moved back to the immediately previous tile — undo one step
                         gameStore.backtrackPath()
                         haptics.lightImpact()
+                        Task { await audioService.playSfx(name: "chain") }
                     } else if gameStore.currentPath.contains(position) {
                         // Finger is over a tile already in the path but NOT the predecessor —
                         // just update dragLocation so the pipe visually extends over it.

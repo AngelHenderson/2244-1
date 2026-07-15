@@ -399,6 +399,7 @@ public struct SimplifiedGlassBoardView: View {
                         // Moved back to the immediately previous tile — undo one step
                         gameStore.backtrackPath()
                         haptics.lightImpact()
+                        Task { await audioService.playSfx(name: "chain") }
                         gestureLogger.info("backtrack to index \(existingIndex)")
                     } else if gameStore.currentPath.contains(position) {
                         // Finger is over a tile already in the path but NOT the predecessor —
