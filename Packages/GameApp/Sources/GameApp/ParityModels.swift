@@ -3094,7 +3094,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("I'm tiers ahead.", 5.4),
                         ("I reign supreme.", 0.2),
                         ("Keep dreaming.", 21.5),
-                        ("You're are no threat.", 3.5),
+                        ("You're no threat.", 3.5),
                         ("Your stats are completely irrelevant.", 8.1),
                         ("You're not reaching my stats.", 6.3),
                         ("Stay down there.", 19.7),
