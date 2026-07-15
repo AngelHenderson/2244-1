@@ -1500,7 +1500,7 @@ struct ParityModelsTests {
             "You're completely stuck at 1024. I'm sitting comfortably at 2048.",
             "You're stuck at 1024. My 2048 is light years away from your skill level.",
             "If 1024 is your ceiling, you're not even in the same conversation as my 2048.",
-            "Why even mention 1024? My 2048 is completely out of your league.",
+            "Why even mention 1024? My 2048 is completely out of your reach.",
             "You're embarrassing yourself with 1024. You were never going to threaten my 2048 anyway.",
             "You're not built for 1024. Meanwhile, my 2048 was completed with ease."
         ]
