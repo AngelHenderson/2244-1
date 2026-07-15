@@ -1519,9 +1519,9 @@ struct ParityModelsTests {
         let bucket4Templates: Set<String> = [
             "I am ahead of your 1024. I'm at 2048.",
             "I'm way past 1024. I am sitting at 2048.",
-            "Your 1024 is nothing compared to my 2048 record.",
+            "Your 1024 is nothing compared to my 2048.",
             "I easily passed 1024. I dominate 2048.",
-            "Your 1024 is child's play compared to my 2048 record.",
+            "Your 1024 is child's play compared to my 2048.",
             "1024 is a joke. I'm already sitting at 2048.",
             "You're celebrating 1024? I already cleared 2048.",
             "I left 1024 in the dust. 2048 is the new standard.",

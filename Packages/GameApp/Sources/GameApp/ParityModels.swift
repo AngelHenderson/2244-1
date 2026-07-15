@@ -3014,9 +3014,9 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.95 {
                     let openersWithWeights: [(String, Double)] = [
                         ("That's old news.", 11.2),
-                        ("This takes zero effort.", 6.9),
+                        ("That's zero effort.", 6.9),
                         ("Laughable.", 3.0),
-                        ("This is entirely average.", 4.0),
+                        ("That's entirely average.", 4.0),
                         ("Not worth my time.", 0.6),
                         ("Unimpressive.", 1.0),
                         ("Not impressed.", 1.0),
