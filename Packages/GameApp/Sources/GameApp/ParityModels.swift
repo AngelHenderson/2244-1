@@ -4501,7 +4501,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append("I am comfortably ahead.")
                     replies.append("I am safely ahead.")
                     replies.append("I am already far ahead.")
-                    replies.append("Looking at my stats is as close to the top as you'll ever get.")
+                    replies.append("Your stats are nothing compared to mine.")
                     replies.append("You're not even in the same league as me.")
                     replies.append("You will stay behind forever.")
                     replies.append("I'm playing a completely different game than you.")
@@ -4537,15 +4537,19 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let isLowerBrag = commentText != message && commentMilestone != nil && refMilestone != nil && commentMilestone!.index < refMilestone!.index && (forceTone == "one_up" || Double.random(in: 0...1) < 0.95)
                 
                 if isLowerBrag, let cM = commentMilestone, let rM = refMilestone {
-                    replies.append(contentsOf: [
-                        "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
-                        "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
-                        "Is this a joke? \(cM.name) is nothing compared to my \(rM.name). You're still too low to get ahead.",
-                        "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
-                        "You're acting like \(cM.name) is a big deal? I easily passed \(rM.name).",
-                        "Only at \(cM.name)? I'm laughing from \(rM.name).",
-                        "I left \(cM.name) in the dust. \(rM.name) is my new floor."
-                    ])
+                    if Double.random(in: 0...1) < 0.95 {
+                        replies.append(Self.getOneUpBrag(metric: "milestone", lower: cM.name, higher: rM.name, excluding: previousSelfComment))
+                    } else {
+                        replies.append(contentsOf: [
+                            "You're bragging about \(cM.name)? I'm already at \(rM.name). You're still too low to get ahead.",
+                            "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
+                            "Is this a joke? \(cM.name) is nothing compared to my \(rM.name). You're still too low to get ahead.",
+                            "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
+                            "You're acting like \(cM.name) is a big deal? I easily passed \(rM.name).",
+                            "Only at \(cM.name)? I'm laughing from \(rM.name).",
+                            "I left \(cM.name) in the dust. \(rM.name) is my new floor."
+                        ])
+                    }
                 } else if rootIsJealous, let cM = commentMilestone {
                     let higherM: String
                     if let speakerValue = speakerValue {
@@ -5124,12 +5128,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let refNumber = speakerValue.flatMap(Int.init) ?? rootNumber
                     let isLowerHoFBrag = commentText != message && commentIsCompetitive && commentNumber != nil && refNumber != nil && commentNumber! < refNumber!
                     if isLowerHoFBrag, let cN = commentNumber, let rN = refNumber {
-                        replies.append(contentsOf: [
-                            "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
-                            "You thought \(cN) infinities would impress me? I'm at \(rN). You're still too low to get ahead.",
-                            "Is this a joke? \(cN) infinities is nothing compared to my \(rN). You're still too low to get ahead.",
-                            "I'm at \(rN) infinities and you're bragging about \(cN)? You're still too low to get ahead."
-                        ])
+                        if Double.random(in: 0...1) < 0.95 {
+                            replies.append(Self.getOneUpBrag(metric: "hof", lower: "\(cN)", higher: "\(rN)", excluding: previousSelfComment))
+                        } else {
+                            replies.append(contentsOf: [
+                                "You're bragging about \(cN) infinities? I'm already at \(rN). You're still too low to get ahead.",
+                                "You thought \(cN) infinities would impress me? I'm at \(rN). You're still too low to get ahead.",
+                                "Is this a joke? \(cN) infinities is nothing compared to my \(rN). You're still too low to get ahead.",
+                                "I'm at \(rN) infinities and you're bragging about \(cN)? You're still too low to get ahead."
+                            ])
+                        }
                     } else {
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {

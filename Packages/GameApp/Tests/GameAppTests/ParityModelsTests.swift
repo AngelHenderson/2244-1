@@ -248,7 +248,7 @@ struct ParityModelsTests {
 
     private func isTooLowMilestoneReply(_ reply: String) -> Bool {
         let lowered = reply.lowercased()
-        let matchPhrases = ["too low to get ahead", "acting like", "a long time ago", "child's play", "is a joke", "you're celebrating", "in the dust", "out of your reach", "old news", "never get there", "always be behind", "completely outclassed", "except you", "delusional", "completely irrelevant", "final", "barrier", "infinitely behind", "stuck in the lower tiers", "never catch up", "dominate", "ahead of your", "nothing compared", "way past", "easily passed"]
+        let matchPhrases = ["too low to get ahead", "acting like", "a long time ago", "child's play", "is a joke", "you're celebrating", "in the dust", "out of your reach", "old news", "never get there", "always be behind", "completely outclassed", "except you", "delusional", "completely irrelevant", "final", "barrier", "infinitely behind", "stuck in the lower tiers", "never catch up", "dominate", "ahead of your", "nothing compared", "way past", "easily passed", "toying with", "untouchable", "ceiling", "embarrassing", "not built for", "stuck at", "lagging at", "warming up", "fell for it"]
         if matchPhrases.contains(where: { lowered.contains($0) }) {
             return true
         }
