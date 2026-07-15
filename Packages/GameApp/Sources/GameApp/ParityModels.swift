@@ -3053,18 +3053,17 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.80 {
                     var closersWithWeights: [(String, Double)] = [
                         ("Don't bother trying.", 0.6),
-                        ("I'm comfortably ahead.", 7.0),
+                        ("I'm tiers ahead.", 5.4),
                         ("I reign supreme.", 0.2),
-                        ("Keep dreaming.", 28.8),
-                        ("You're not even a threat.", 3.5),
+                        ("Keep dreaming.", 21.5),
+                        ("You're are no threat.", 3.5),
                         ("Your stats are completely irrelevant.", 8.1),
-                        ("You're not on my level.", 1.4),
-                        ("I'm out of your league.", 0.1),
-                        ("Stay down there.", 22.2),
+                        ("You're not reaching my stats.", 6.3),
+                        ("Stay down there.", 19.7),
                         ("This record belongs to me.", 1.8),
-                        ("Don't bother comparing.", 0.9),
+                        ("Don't bother comparing.", 2.5),
                         ("You couldn't catch me if you tried.", 23),
-                        ("I am out of your reach.", 2.4)
+                        ("You can't reach me.", 7.3)
                     ]
                     let isTimeTopic = message.lowercased().contains("time") || message.lowercased().contains("speed") || message.lowercased().contains("timed challenge")
                     if isTimeTopic {
