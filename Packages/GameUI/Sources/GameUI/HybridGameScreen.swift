@@ -2429,10 +2429,18 @@ private struct MiniTileView: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(tileColor)
                 )
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.black)
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(isCurrent ? Color.yellow : Color.white.opacity(0.2), lineWidth: isCurrent ? 2 : 1)
+                        .strokeBorder(
+                            isCurrent ? Color.yellow : Color.white.opacity(0.5),
+                            lineWidth: isCurrent ? 2 : 1
+                        )
                 )
+                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 1)
 
             // Dim overlay for locked tiles
             if isLocked {
