@@ -1930,16 +1930,16 @@ public struct MockSocialService: SocialService, Sendable {
             let rand = Double.random(in: 0...1)
             let randomMilestone: String
             if rand < 0.35 {
-                // 24% raw numbers-B-tier (Indices 14...61, starting at 32k to avoid trivial early tiles)
+                // 9% raw numbers-B-tier (Indices 14...61, starting at 32k to avoid trivial early tiles)
                 randomMilestone = Self.allMilestones[Int.random(in: 14...61)]
             } else if rand < 0.75 {
-                // 29% a-z-tier
+                // 21% a-z-tier
                 randomMilestone = Self.allMilestones[Int.random(in: 62...297)]
             } else if rand < 0.89 {
-                // 32% aa-az
+                // 49% aa-az
                 randomMilestone = Self.allMilestones[Int.random(in: 298...557)]
             } else {
-                // 15% ba-bz
+                // 21% ba-bz
                 randomMilestone = Self.allMilestones[Int.random(in: 558...816)]
             }
             
