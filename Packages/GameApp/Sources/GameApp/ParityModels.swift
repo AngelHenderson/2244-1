@@ -1038,6 +1038,32 @@ public struct MockSocialService: SocialService, Sendable {
         return nil
     }
 
+    static func randomMilestoneJump() -> Int {
+        let randVal = Double.random(in: 0...100)
+        switch randVal {
+        case 0..<5.6:
+            return 1
+        case 5.6..<13.0:
+            return 2
+        case 13.0..<24.0:
+            return 3
+        case 24.0..<39.0:
+            return 4
+        case 39.0..<58.0:
+            return 5
+        case 58.0..<73.0:
+            return 6
+        case 73.0..<84.0:
+            return 7
+        case 84.0..<91.4:
+            return 8
+        case 91.4..<97.0:
+            return 9
+        default:
+            return 10
+        }
+    }
+
     static func oneUpValue(for val: String?, topic: String) -> String {
         switch topic {
         case "hof":
@@ -1070,7 +1096,7 @@ public struct MockSocialService: SocialService, Sendable {
             guard let currentVal = val, let idx = Self.allMilestones.firstIndex(of: currentVal) else {
                 return JourneyTileGenerator.formatTileAtStep(10)
             }
-            let jump = Int.random(in: 1...10)
+            let jump = Self.randomMilestoneJump()
             let newIdx = min(idx + jump, Self.allMilestones.count - 1)
             return Self.allMilestones[newIdx]
             
@@ -1655,6 +1681,7 @@ public struct MockSocialService: SocialService, Sendable {
                 var isNpc2Turn = true
                 var npc1PreviousComment: String? = baseComment.text
                 var npc2PreviousComment: String? = nil
+                var tieRepliesCount = 0
                 
                 // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                 let targetDepth: Int
@@ -1694,6 +1721,10 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
+                        if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
+                            npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                        }
+                        
                         let isBehind: Bool
                         let isEqual: Bool
                         if let n1Val = npc1Value, let n2Val = npc2Value {
@@ -1702,6 +1733,11 @@ public struct MockSocialService: SocialService, Sendable {
                         } else {
                             isBehind = false
                             isEqual = false
+                        }
+                        if isEqual {
+                            tieRepliesCount += 1
+                        } else {
+                            tieRepliesCount = 0
                         }
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
@@ -1730,6 +1766,10 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         
+                        if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
+                            npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                        }
+                        
                         let isBehind: Bool
                         let isEqual: Bool
                         if let sVal = npc1Value, let oVal = npc2Value {
@@ -1738,6 +1778,11 @@ public struct MockSocialService: SocialService, Sendable {
                         } else {
                             isBehind = false
                             isEqual = false
+                        }
+                        if isEqual {
+                            tieRepliesCount += 1
+                        } else {
+                            tieRepliesCount = 0
                         }
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
@@ -2070,6 +2115,7 @@ public struct MockSocialService: SocialService, Sendable {
                     var isNpc2Turn = true
                     var npc1PreviousComment: String? = baseComment.text
                     var npc2PreviousComment: String? = nil
+                    var tieRepliesCount = 0
                     
                     // Ensure competitive threads always have at least 2 replies so NPCs can beat each other's record
                     let targetDepth: Int
@@ -2114,6 +2160,10 @@ public struct MockSocialService: SocialService, Sendable {
                                 }
                             }
                             
+                            if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
+                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                            }
+                            
                             let isBehind: Bool
                             let isEqual: Bool
                             if let n1Val = npc1Value, let n2Val = npc2Value {
@@ -2122,6 +2172,11 @@ public struct MockSocialService: SocialService, Sendable {
                             } else {
                                 isBehind = false
                                 isEqual = false
+                            }
+                            if isEqual {
+                                tieRepliesCount += 1
+                            } else {
+                                tieRepliesCount = 0
                             }
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
@@ -2150,6 +2205,10 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             
+                            if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
+                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                            }
+                            
                             let isBehind: Bool
                             let isEqual: Bool
                             if let sVal = npc1Value, let oVal = npc2Value {
@@ -2158,6 +2217,11 @@ public struct MockSocialService: SocialService, Sendable {
                             } else {
                                 isBehind = false
                                 isEqual = false
+                            }
+                            if isEqual {
+                                tieRepliesCount += 1
+                            } else {
+                                tieRepliesCount = 0
                             }
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
@@ -3215,7 +3279,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             return (try? NSRegularExpression(pattern: pattern))?.firstMatch(in: lowered, range: NSRange(lowered.startIndex..., in: lowered)) != nil
         }) ?? "11n"
         let posterIdx = Self.allMilestones.firstIndex(of: posterM) ?? 15
-        let jump = Int.random(in: 1...10)
+        let jump = Self.randomMilestoneJump()
         let higherIdx = min(posterIdx + jump, Self.allMilestones.count - 1)
         let higherM = Self.allMilestones[higherIdx]
         let higherName = Self.leaderboardPlayerAtMilestone(higherM)

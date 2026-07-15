@@ -1586,6 +1586,74 @@ struct ParityModelsTests {
         // Expected: fallback to short delay -> between 60 and 120 seconds
         #expect(delayEqual >= 60.0 && delayEqual <= 120.0)
     }
+
+    @Test("Verify that a competitive thread breaks ties after 2 tie replies")
+    func testTieBreakerInCompetitiveThreads() async throws {
+        // We will run multiple simulations to verify that in any competitive thread generated,
+        // we never have more than 2 consecutive tie replies.
+        for _ in 0..<30 {
+            let service = MockSocialService()
+            try await service.postEvent(message: "Unlocked milestone 1024.", statText: "New tile")
+            guard let item = MockSocialService.loadFeedCache()?.first else { continue }
+            let comments = item.comments
+            
+            let topic = "milestone"
+            
+            func verifyChain(_ chain: [SocialFeedComment]) {
+                var tieCount = 0
+                var lastVal: String? = nil
+                for comment in chain {
+                    guard let val = MockSocialService.extractValue(from: comment.text, topic: topic) else { continue }
+                    if let prev = lastVal {
+                        if val == prev {
+                            tieCount += 1
+                            #expect(tieCount <= 2, "Found \(tieCount) consecutive ties in chain: \(chain.map { $0.text })")
+                        } else {
+                            tieCount = 0
+                        }
+                    }
+                    lastVal = val
+                }
+            }
+            
+            var currentChain: [SocialFeedComment] = []
+            for comment in comments {
+                if let last = currentChain.last {
+                    if comment.text.hasPrefix("@\(last.authorName)") {
+                        currentChain.append(comment)
+                    } else {
+                        verifyChain(currentChain)
+                        currentChain = [comment]
+                    }
+                } else {
+                    currentChain = [comment]
+                }
+            }
+            verifyChain(currentChain)
+        }
+    }
+
+    @Test("Verify milestone jump weights distribution (1: 5.6%, 2: 7.4%, 3: 11%, 4: 15%, 5: 19%, 6: 15%, 7: 11%, 8: 7.4%, 9: 5.6%, 10: 3%)")
+    func testMilestoneJumpDistribution() {
+        var counts = [Int: Int]()
+        let iterations = 10000
+        for _ in 0..<iterations {
+            let jump = MockSocialService.randomMilestoneJump()
+            counts[jump, default: 0] += 1
+        }
+        
+        let targetWeights: [Int: Double] = [
+            1: 5.6, 2: 7.4, 3: 11.0, 4: 15.0, 5: 19.0,
+            6: 15.0, 7: 11.0, 8: 7.4, 9: 5.6, 10: 3.0
+        ]
+        
+        for (jump, target) in targetWeights {
+            let count = counts[jump] ?? 0
+            let percentage = (Double(count) / Double(iterations)) * 100.0
+            print("Jump \(jump): target = \(target)%, actual = \(percentage)%")
+            #expect(abs(percentage - target) < 1.5, "Jump \(jump) percentage \(percentage)% is too far from target \(target)%")
+        }
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
