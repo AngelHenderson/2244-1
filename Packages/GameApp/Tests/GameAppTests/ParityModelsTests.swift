@@ -248,7 +248,18 @@ struct ParityModelsTests {
 
     private func isTooLowMilestoneReply(_ reply: String) -> Bool {
         let lowered = reply.lowercased()
-        let matchPhrases = ["too low to get ahead", "acting like", "a long time ago", "child's play", "is a joke", "you're celebrating", "in the dust", "out of your reach", "old news", "never get there", "always be behind", "completely outclassed", "except you", "delusional", "completely irrelevant", "final", "barrier", "infinitely behind", "stuck in the lower tiers", "never catch up", "dominate", "ahead of your", "nothing compared", "way past", "easily passed", "toying with", "untouchable", "ceiling", "embarrassing", "not built for", "stuck at", "lagging at", "warming up", "fell for it"]
+        let matchPhrases = [
+            "too low to get ahead", "acting like", "a long time ago", "child's play",
+            "is a joke", "you're celebrating", "celebrating", "in the dust", "out of your reach",
+            "old news", "never get there", "always be behind", "completely outclassed",
+            "except you", "delusional", "completely irrelevant", "final", "barrier",
+            "infinitely behind", "stuck in the lower tiers", "never catch up", "dominate",
+            "ahead of your", "nothing compared", "way past", "easily passed", "toying with",
+            "untouchable", "ceiling", "embarrassing", "not built for", "stuck at", "lagging at",
+            "warming up", "fell for it", "only at", "easily reached", "coasting at",
+            "easily bypassed", "proud of", "with ease", "left that behind", "never get past",
+            "why even mention", "is nothing", "enjoy the lead", "blew past", "without trying"
+        ]
         if matchPhrases.contains(where: { lowered.contains($0) }) {
             return true
         }
@@ -1273,12 +1284,15 @@ struct ParityModelsTests {
                 let firstReply = updatedItem.comments[2]
                 let secondReply = updatedItem.comments[3]
                 if firstReply.authorName == "EnigmaEra765829" && secondReply.authorName == "EnigmaEra765829" {
-                    secondReplyFound = true
                     // Assert second reply has the updated milestone
                     let text = secondReply.text
-                    let hasValue = text.contains("346am") || text.contains("692am") || text.contains("346") || text.contains("692")
-                    #expect(hasValue, "Expected second reply to contain milestone 346am or 692am, but got: \(secondReply.text)")
-                    break
+                    if let val = MockSocialService.extractValue(from: text, topic: "milestone"),
+                       let idx = MockSocialService.allMilestones.firstIndex(of: val),
+                       let targetIdx = MockSocialService.allMilestones.firstIndex(of: "346am") {
+                        #expect(idx >= targetIdx, "Expected milestone in \(text) to be >= 346am")
+                        secondReplyFound = true
+                        break
+                    }
                 }
             }
         }

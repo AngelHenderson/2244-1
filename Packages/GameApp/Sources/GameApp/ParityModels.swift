@@ -4545,7 +4545,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "You thought \(cM.name) would impress me? I'm at \(rM.name). You're still too low to get ahead.",
                             "Is this a joke? \(cM.name) is nothing compared to my \(rM.name). You're still too low to get ahead.",
                             "I'm at \(rM.name) and you're bragging about \(cM.name)? You're still too low to get ahead.",
-                            "You're acting like \(cM.name) is a big deal? I easily passed \(rM.name).",
+                            "You're acting like \(cM.name) is a big deal? I easily reached \(rM.name).",
                             "Only at \(cM.name)? I'm laughing from \(rM.name).",
                             "I left \(cM.name) in the dust. \(rM.name) is my new floor."
                         ])
