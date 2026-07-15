@@ -1224,7 +1224,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v62"
+    public static let feedDateKey = "socialFeed.cacheDate.v63"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1237,7 +1237,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v62.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v63.json")
     }
     
     private static var userPostsURL: URL {
@@ -2773,7 +2773,7 @@ public struct MockSocialService: SocialService, Sendable {
         var jealousReactions = [
             "So jealous", "I can't even get past 1M", "My board never looks like that",
             "How is that even possible", "You make it look so easy",
-            "I'm stuck on the previous tier", "I always lose right here",
+            "I'm stuck on the previous tier", "I always fail right here",
             "Meanwhile I'm still struggling", "Must be nice",
             "I wish my runs went like that", "Pain. Just pain.",
             "I keep choking at this point", "Why can't I do this",
@@ -2953,7 +2953,7 @@ public struct MockSocialService: SocialService, Sendable {
                 ])
                 jealousReactions.append(contentsOf: [
                     "I can't even get to \(m)", "How did you get \(m) so fast?",
-                    "I always lose before \(m)", "I've been stuck before \(m) forever",
+                    "I always fail before \(m)", "I've been stuck before \(m) forever",
                     "\(m) feels impossible for me", "I choke right before \(m)",
                     "My board always falls apart near \(m)",
                     "I keep dying one tile before \(m)",
@@ -3826,7 +3826,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             isCompetitive = true
         }
 
-        let jealousKeywords = ["can't even", "stuck", "i always lose", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
+        let jealousKeywords = ["can't even", "stuck", "i always fail", "impossible", "struggling", "must be nice", "pain", "i wish", "jealous", "i keep", "never", "i don't have", "so bad at", "still trying", "can never", "i can't", "behind", "keep up", "ridiculous", "catch you", "give up", "look easy", "so slow", "pathetic", "beginner"]
         let isJealous = !isForcedCompetitive && jealousKeywords.contains(where: { strippedLower.contains($0) })
 
         let positiveKeywords = ["gg", "nice", "incredible", "amazing", "congrats", "respect", "huge", "well done", "let's go", "fire", "legendary", "awesome", "love", "perfect", "clean", "gorgeous", "elite", "thank", "appreciate", "easily"]
@@ -3843,7 +3843,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 ("Add me if you want to watch me stay ahead.", 12.5),
                 ("Sure, add me so you can stare at my infinite lead.", 40.6),
                 ("You can watch my stats from the bottom.", 0.9),
-                ("Go for it—somebody has to watch from the sidelines.", 0.06),
+                ("Go for it — somebody has to watch from the sidelines.", 0.06),
                 ("Yes! Add me and witness infinity.", 4.94),
                 ("For sure — watch me extend my lead.", 3.2),
                 ("Definitely! But don't expect to ever reach my tier.", 1.8)
