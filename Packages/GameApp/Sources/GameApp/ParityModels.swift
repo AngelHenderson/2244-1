@@ -5216,11 +5216,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     replies.append(contentsOf: [
                         "Talk to me when you reach \(genericHigherM).",
                         "None of you are anywhere near my \(genericHigherM) record.",
-                        "I'm ignoring this and focusing on my \(genericHigherM) grind.",
+                        "I'm ignoring that garbage and focusing on my \(genericHigherM) grind.",
                         "I am safely ahead, I'm already pushing \(genericHigherM).",
                         "Your efforts are pointless. \(genericHigherM) completely buries you.",
                         "I am already ahead of you. I'm pushing \(genericHigherM).",
-                        "My record is flawless. \(genericHigherM) is completely out of your reach.",
+                        "Your record is nothing. \(genericHigherM) is completely out of your reach.",
                         "You won't catch me. I'm at \(genericHigherM).",
                         "This rivalry is entirely one-sided. I'm already at \(genericHigherM).",
                         "You'll never get there at this rate.",
@@ -5347,7 +5347,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "speedrun", "practice run", "in my sleep", "unmatched", "infinity count",
                     "hof entries", "speaks for itself", "farm ", "extended infinitely",
                     "pulls are cute", "dropped below", "talk to me", "anywhere near",
-                    "ignoring this", "efforts are pointless", "flawless", "view from the bottom",
+                    "ignoring that", "efforts are pointless", "flawless", "view from the bottom",
                     "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
                     "watch your back", "watch me stay ahead", "watch my stats",
                     "sidelines", "witness infinity", "extend my lead"

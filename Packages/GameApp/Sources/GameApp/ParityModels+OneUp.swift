@@ -98,7 +98,7 @@ extension MockSocialService {
                     "You're completely stuck at \(lower). I'm sitting comfortably at \(higher).",
                     "You're stuck at \(lower). My \(higher) is light years away from your skill level.",
                     "If \(lower) is your ceiling, you're not even in the same conversation as my \(higher).",
-                    "Why even mention \(lower)? My \(higher) is completely out of your league.",
+                    "Why even mention \(lower)? My \(higher) is completely out of your reach.",
                     "You're embarrassing yourself with \(lower). You were never going to threaten my \(higher) anyway.",
                     "You're not built for \(lower). Meanwhile, my \(higher) was completed with ease."
                 ]
