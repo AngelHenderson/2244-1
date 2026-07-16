@@ -1250,7 +1250,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v63"
+    public static let feedDateKey = "socialFeed.cacheDate.v64"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1263,7 +1263,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v63.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v64.json")
     }
     
     private static var userPostsURL: URL {
@@ -4466,7 +4466,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             replies.append("We're tied at \(num) days. The real race starts now.")
                             replies.append("\(num) days is solid. I'm sitting at \(higherNum) days too.")
                             replies.append("Looks like we're both at \(num) days. Enjoy it while it lasts.")
-                            replies.append("I also clocked \(higherNum) days. Cute, but irrelevant.")
+                            replies.append("I also hit \(higherNum) days. Cute, but irrelevant.")
                         } else {
                             replies.append("Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(num) days.")
                             replies.append("I'm at \(higherNum) days. Just wait until you lose your \(num) day streak.")
