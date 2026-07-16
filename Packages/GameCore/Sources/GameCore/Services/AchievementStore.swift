@@ -2411,10 +2411,11 @@ public final class AchievementStore {
         if definition.id == "tile_progression" {
             // Grant tier-specific rewards (fallback to definition if unspecified)
             if let rewards = tileRewards(for: definition) {
-                if let gems = rewards.gems, gems > 0 {
-                    grantGemsDirectly(gems)
-                }
-                onReward?(rewards)
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
             }
             
             // Advance to next tier (don't mark as claimed, reset for next tier)
@@ -2437,10 +2438,11 @@ public final class AchievementStore {
             let rewards = Self.movesTierRewards.indices.contains(movesProgressionTier)
                 ? Self.movesTierRewards[movesProgressionTier]
                 : AchievementDef.Rewards()
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             // Advance to next tier (don't mark as claimed, reset for next tier)
             if movesProgressionTier < Self.movesTiers.count - 1 {
@@ -2458,10 +2460,11 @@ public final class AchievementStore {
 
         if definition.id == "combo_6_10" {
             let rewards = combo610Display.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if combo610Tier < Self.combo610Tiers.count - 1 {
                 combo610Tier += 1
@@ -2476,10 +2479,11 @@ public final class AchievementStore {
         
         if definition.id == "combo_11_15" {
             let rewards = combo1115Display.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if combo1115Tier < Self.combo1115Tiers.count - 1 {
                 combo1115Tier += 1
@@ -2494,10 +2498,11 @@ public final class AchievementStore {
 
         if definition.id == "combo_16_20" {
             let rewards = combo1620Display.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if combo1620Tier < Self.combo1620Tiers.count - 1 {
                 combo1620Tier += 1
@@ -2512,10 +2517,11 @@ public final class AchievementStore {
 
         if definition.id == "combo_21_30" {
             let rewards = combo2130Display.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if combo2130Tier < Self.combo2130Tiers.count - 1 {
                 combo2130Tier += 1
@@ -2530,10 +2536,11 @@ public final class AchievementStore {
 
         if definition.id == "merge_progression" {
             let rewards = mergeDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if mergeProgressionTier < Self.mergeTiers.count - 1 {
                 mergeProgressionTier += 1
@@ -2548,10 +2555,11 @@ public final class AchievementStore {
 
         if definition.id == "swap_usage_progression" {
             let rewards = swapUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if swapUsesProgressionTier < Self.swapUseTiers.count - 1 {
                 swapUsesProgressionTier += 1
@@ -2566,10 +2574,11 @@ public final class AchievementStore {
 
         if definition.id == "hammer_usage_progression" {
             let rewards = hammerUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if hammerUsesProgressionTier < Self.hammerUseTiers.count - 1 {
                 hammerUsesProgressionTier += 1
@@ -2584,10 +2593,11 @@ public final class AchievementStore {
 
         if definition.id == "spin_usage_progression" {
             let rewards = spinUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if spinUsesProgressionTier < Self.spinUseTiers.count - 1 {
                 spinUsesProgressionTier += 1
@@ -2602,10 +2612,11 @@ public final class AchievementStore {
 
         if definition.id == "survive_moves_progression" {
             let rewards = surviveMovesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if surviveMovesProgressionTier < Self.surviveMovesTiers.count - 1 {
                 surviveMovesProgressionTier += 1
@@ -2620,10 +2631,11 @@ public final class AchievementStore {
 
         if definition.id == "playtime_progression" {
             let rewards = playtimeDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if playtimeProgressionTier < Self.playtimeTiers.count - 1 {
                 playtimeProgressionTier += 1
@@ -2638,10 +2650,11 @@ public final class AchievementStore {
 
         if definition.id == "infinity_progression" {
             let rewards = infinityDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if infinityProgressionTier < Self.infinityTiers.count - 1 {
                 infinityProgressionTier += 1
@@ -2656,10 +2669,11 @@ public final class AchievementStore {
 
         if definition.id == "boost2x_usage_progression" {
             let rewards = boost2xUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if boost2xUsesProgressionTier < Self.boost2xUseTiers.count - 1 {
                 boost2xUsesProgressionTier += 1
@@ -2674,10 +2688,11 @@ public final class AchievementStore {
 
         if definition.id == "boost3x_usage_progression" {
             let rewards = boost3xUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if boost3xUsesProgressionTier < Self.boost3xUseTiers.count - 1 {
                 boost3xUsesProgressionTier += 1
@@ -2692,10 +2707,11 @@ public final class AchievementStore {
 
         if definition.id == "boost4x_usage_progression" {
             let rewards = boost4xUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if boost4xUsesProgressionTier < Self.boost4xUseTiers.count - 1 {
                 boost4xUsesProgressionTier += 1
@@ -2710,10 +2726,11 @@ public final class AchievementStore {
 
         if definition.id == "spin_purchases_progression" {
             let rewards = spinPurchasesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if spinPurchasesProgressionTier < Self.spinPurchaseTiers.count - 1 {
                 spinPurchasesProgressionTier += 1
@@ -2728,10 +2745,11 @@ public final class AchievementStore {
 
         if definition.id == "daily_claims_progression" {
             let rewards = dailyClaimsDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if dailyClaimsProgressionTier < Self.dailyClaimsTiers.count - 1 {
                 dailyClaimsProgressionTier += 1
@@ -2746,10 +2764,11 @@ public final class AchievementStore {
 
         if definition.id == "boost5x_usage_progression" {
             let rewards = boost5xUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if boost5xUsesProgressionTier < Self.boost5xUseTiers.count - 1 {
                 boost5xUsesProgressionTier += 1
@@ -2764,10 +2783,11 @@ public final class AchievementStore {
 
         if definition.id == "boost20x_usage_progression" {
             let rewards = boost20xUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if boost20xUsesProgressionTier < Self.boost20xUseTiers.count - 1 {
                 boost20xUsesProgressionTier += 1
@@ -2782,10 +2802,11 @@ public final class AchievementStore {
 
         if definition.id == "wheel_collects_progression" {
             let rewards = wheelCollectsDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if wheelCollectsProgressionTier < Self.wheelCollectsTiers.count - 1 {
                 wheelCollectsProgressionTier += 1
@@ -2800,10 +2821,11 @@ public final class AchievementStore {
 
         if definition.id == "challenge_creation" {
             let rewards = challengeCreationDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if challengeCreationTier < Self.challengeCreationTiers.count - 1 {
                 challengeCreationTier += 1
@@ -2818,10 +2840,11 @@ public final class AchievementStore {
         
         if definition.id == "magnet_usage_progression" {
             let rewards = magnetUsesDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             if magnetUsesProgressionTier < Self.magnetUseTiers.count - 1 {
                 magnetUsesProgressionTier += 1
@@ -2836,10 +2859,11 @@ public final class AchievementStore {
 
         if definition.id == "leaderboard_rank_progression" {
             let rewards = leaderboardRankDisplay.rewards
-            if let gems = rewards.gems, gems > 0 {
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
                 grantGemsDirectly(gems)
             }
-            onReward?(rewards)
 
             // Mark this tier as claimed by advancing highestClaimedLeaderboardTier
             let claimedTierIndex = displayLeaderboardRankTier
@@ -2860,14 +2884,12 @@ public final class AchievementStore {
         saveUnlocks()
         
         guard let rewards = definition.rewards else { return }
-        
-        // Always grant gems directly so UI and wallet stay in sync
-        if let gems = rewards.gems, gems > 0 {
+        // Fallback or production reward path
+        if let onReward = onReward {
+            onReward(rewards)
+        } else if let gems = rewards.gems, gems > 0 {
             grantGemsDirectly(gems)
         }
-        
-        // Call reward callback for power-ups, spins, etc.
-        onReward?(rewards)
     }
 
     /// Build a stable, persisted context string identifying the current claim.
