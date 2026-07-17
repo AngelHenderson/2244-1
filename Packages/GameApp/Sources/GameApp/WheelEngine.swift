@@ -148,6 +148,17 @@ public final class WheelEngine {
     public func segmentCenterAngle(at index: Int) -> CGFloat {
         segmentStartAngle(at: index) + segmentSpan(at: index) / 2
     }
+
+    /// Pick a random segment using the same weighted probability as the physical wheel.
+    public func randomWeightedSegment() -> WheelSegment {
+        let total = totalWeight
+        var roll = Int.random(in: 0..<total)
+        for segment in segments {
+            roll -= segment.weight
+            if roll < 0 { return segment }
+        }
+        return segments.last!
+    }
     
     public func stop() {
         isSpinning = false

@@ -22,6 +22,7 @@ public struct SpinWheelView: View {
     @Environment(\.rewardLedgerOptional) private var rewardLedger
     @State private var showReward = false
     @State private var rewardMessage = ""
+    @State private var rewardTitle = "Congratulations!"
     @State private var purchaseFeedback: String?
     @State private var showShopFromGems = false
     @State private var showOutOfSpins = false
@@ -58,7 +59,10 @@ public struct SpinWheelView: View {
                                 
                                 HStack(spacing: 12) {
                                     purchaseOptions
-                                    spinButton
+                                    VStack(spacing: 8) {
+                                        spinButton
+                                        multiSpinOptions
+                                    }
                                 }
                                 .padding(.horizontal, 24)
                             }
@@ -90,7 +94,7 @@ public struct SpinWheelView: View {
                 spinState.refresh(now: date)
             }
         }
-        .alert("Congratulations!", isPresented: $showReward) {
+        .alert(rewardTitle, isPresented: $showReward) {
             Button("Collect", role: .cancel) {
                 showReward = false
             }
@@ -335,6 +339,155 @@ public struct SpinWheelView: View {
             handleWinning(segment: segment)
         }
     }
+
+    /// Total available spins (bonus + 1 free slot if ready)
+    private var availableSpins: Int {
+        var count = spinState.bonusSpins
+        if slotReady { count += 1 }
+        return count
+    }
+
+    private var multiSpinTiers: [Int] {
+        [2, 3, 5, 10, 25, 50, 100]
+    }
+
+    private var multiSpinOptions: some View {
+        let available = availableSpins
+        let tiers = multiSpinTiers.filter { $0 <= available }
+        return Group {
+            if !tiers.isEmpty && !homeState.isBanned {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(tiers, id: \.self) { count in
+                            Button {
+                                performMultiSpin(count: count)
+                            } label: {
+                                Text("Use x\(count)")
+                                    .font(.avenirNext(size: 12, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .glassOrMaterialBackground(cornerRadius: 14)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func performMultiSpin(count: Int) {
+        guard !engine.isSpinning, !homeState.isBanned else { return }
+        // Consume spins
+        var consumed = 0
+        for _ in 0..<count {
+            guard spinState.beginSpin(now: now) != nil else { break }
+            consumed += 1
+        }
+        guard consumed > 0 else {
+            showOutOfSpins = true
+            return
+        }
+        for _ in 0..<consumed {
+            gameStore.registerSpinUse()
+        }
+        haptics.mediumImpact()
+
+        // Accumulate rewards
+        var totals: [String: Int] = [:]
+        var totalPowerups = 0
+        let multiplier = spinState.activeMultiplier?.tier.multiplierValue ?? 1
+
+        for i in 0..<consumed {
+            currentSpinKey = "multispin:\(UUID().uuidString):\(i)"
+            giftBoxGrantIndex = 0
+            let segment = engine.randomWeightedSegment()
+            let (itemizedTotals, powerupCount) = applyRewardForMultiSpin(segment.reward, multiplier: multiplier)
+            totalPowerups += powerupCount
+            for (key, value) in itemizedTotals {
+                totals[key, default: 0] += value
+            }
+        }
+
+        if totalPowerups > 0 {
+            gameStore.achievementEvaluator?.onWheelCollected(count: totalPowerups)
+        }
+
+        // Build summary
+        let rewardLines = totals.sorted(by: { $0.key < $1.key }).map { key, value in
+            "\(value) \(key)"
+        }
+        rewardTitle = "Congratulations (\(consumed) spins used)"
+        rewardMessage = "You won \(rewardLines.joined(separator: ", "))!"
+        showReward = true
+        haptics.success()
+    }
+
+    /// Apply a reward for multi-spin, returning itemized totals dict and powerup count.
+    /// Gift box contents are broken down into their actual reward types.
+    private func applyRewardForMultiSpin(_ reward: WheelReward, multiplier: Int) -> ([String: Int], Int) {
+        var items: [String: Int] = [:]
+
+        switch reward.type {
+        case .giftBox:
+            // For gift boxes, generate the actual rewards and itemize them
+            let giftRewards: [WheelReward]
+            if Bool.random() {
+                giftRewards = randomMultipleGiftRewards()
+            } else {
+                giftRewards = [randomSingleGiftReward()]
+            }
+            var totalPowerups = 0
+            for giftReward in giftRewards {
+                let (subItems, pc) = itemizeReward(giftReward, multiplier: multiplier)
+                totalPowerups += pc
+                for (key, value) in subItems {
+                    items[key, default: 0] += value
+                }
+                // Actually grant the reward
+                let _ = applySingleReward(giftReward)
+            }
+            return (items, totalPowerups)
+
+        default:
+            // Apply the reward (grants items to the player)
+            let (_, powerupCount) = applyReward(reward)
+            let (subItems, _) = itemizeReward(reward, multiplier: multiplier)
+            for (key, value) in subItems {
+                items[key, default: 0] += value
+            }
+            return (items, powerupCount)
+        }
+    }
+
+    /// Return the display-name breakdown of a reward without applying it.
+    private func itemizeReward(_ reward: WheelReward, multiplier: Int) -> ([String: Int], Int) {
+        var items: [String: Int] = [:]
+        var powerups = 0
+        switch reward.type {
+        case .gems:
+            items["Gems"] = reward.amount * multiplier
+        case .hammers:
+            items["Hammers"] = reward.amount
+            powerups = reward.amount
+        case .magnets:
+            items["MegaMerges"] = reward.amount
+            powerups = reward.amount
+        case .swap:
+            items["Swaps"] = reward.amount
+            powerups = reward.amount
+        case .spin:
+            items["Spins"] = reward.amount
+            powerups = reward.amount
+        case .multiplier(let tier):
+            items["\(tier.displayName) Boost"] = 1
+            powerups = 1
+        case .giftBox:
+            break
+        }
+        return (items, powerups)
+    }
     
     private func purchaseBonusSpins(count: Int, cost: Int) {
         guard !homeState.isBanned else { return }
@@ -355,6 +508,7 @@ public struct SpinWheelView: View {
             giftBoxGrantIndex = 0
             let (message, powerupCount) = applyReward(segment.reward)
             haptics.success()
+            rewardTitle = "Congratulations (1 spin used)"
             rewardMessage = message
             showReward = true
             // Track powerups collected for achievement (count = number of powerups won)
