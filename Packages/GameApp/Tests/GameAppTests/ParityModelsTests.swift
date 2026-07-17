@@ -1523,7 +1523,7 @@ struct ParityModelsTests {
             "I easily passed your 1024. I'm at 2048.",
             "You thought you had the lead? Your 1024 is nothing. I'm at 2048.",
             "You fell for it. I easily beat your 1024. My real record is 2048.",
-            "I was just warming up. Your 1024 is a joke compared to my 2048.",
+            "I was just warming up. Your 1024 is nothing compared to my 2048.",
             "I blew past your 1024 and hit 2048 without even trying.",
             "Your 1024 is a joke compared to my 2048.",
             "I cleared 2048 without trying.",
@@ -1531,7 +1531,7 @@ struct ParityModelsTests {
         ]
         
         let bucket4Templates: Set<String> = [
-            "I am ahead of your 1024. I'm at 2048.",
+            "I am comfortably ahead of your 1024. I'm at 2048.",
             "I'm way past 1024. I am sitting at 2048.",
             "Your 1024 is nothing compared to my 2048.",
             "I easily passed 1024. I dominate 2048.",
@@ -1667,6 +1667,186 @@ struct ParityModelsTests {
             print("Jump \(jump): target = \(target)%, actual = \(percentage)%")
             #expect(abs(percentage - target) < 1.5, "Jump \(jump) percentage \(percentage)% is too far from target \(target)%")
         }
+    }
+
+    @Test("Verify streak loss reply weighting matches the requested distribution (7%, 13%, 46%, 4%, 19%, 11%)")
+    func testStreakLossReplyWeights() async throws {
+        let service = MockSocialService()
+        var counts = [String: Int]()
+        let iterations = 10000
+        
+        for _ in 0..<iterations {
+            let reply = service.generateContextualReply(
+                to: "My streak is dead.",
+                message: "I lost my streak today.",
+                forceTone: "one_up",
+                speakerValue: "50"
+            )
+            // Strip off any injected symbols in descending order of length to avoid partial matches
+            var clean = reply
+            let symbols = [" XDDDDDDD", " XDDDDDD", " XDDDDD", " XDDDD", " XDDD", " XDD", " XD", " >:)", " !!!", " !!", " >"]
+            for sym in symbols {
+                clean = clean.replacingOccurrences(of: sym, with: "")
+            }
+            clean = clean.trimmingCharacters(in: .whitespacesAndNewlines)
+            counts[clean, default: 0] += 1
+        }
+        
+        let targetWeights: [String: Double] = [
+            "You just lost your streak? I'm already at 50 days.": 7.0,
+            "Your streak is dead. My 50 days keep going.": 13.0,
+            "Lost your streak? Pathetic. I'm sitting at 50 days.": 46.0,
+            "Couldn't even keep it going? I'm comfortably at 50 days.": 4.0,
+            "Back to 0? I'm dominating with 50 days.": 19.0,
+            "Enjoy restarting from zero. You'll never be a threat to my 50 days.": 11.0
+        ]
+        
+        print("ALL GENERATED CLEAN STRINGS:")
+        for (k, v) in counts.sorted(by: { $0.value > $1.value }).prefix(15) {
+            print("  '\(k)': \(v)")
+        }
+        
+        for (template, target) in targetWeights {
+            let count = counts[template] ?? 0
+            let percentage = (Double(count) / Double(iterations)) * 100.0
+            print("Template [\(template)]: target = \(target)%, actual = \(percentage)%")
+            #expect(abs(percentage - target) < 1.5, "Template [\(template)] percentage \(percentage)% is too far from target \(target)%")
+        }
+    }
+
+    @Test("Verify toggleItemHeart state persistence across MockSocialService instances")
+    func testToggleItemHeartPersistence() async throws {
+        MockSocialService.clearFileStorageForTests()
+        
+        let service1 = MockSocialService()
+        let feed1 = try await service1.feed()
+        guard let firstItem = feed1.first else {
+            Issue.record("Feed is empty")
+            return
+        }
+        
+        let initialReactionCount = firstItem.reactionCount
+        #expect(firstItem.isHearted != true)
+        
+        // Toggle heart ON
+        try await service1.toggleItemHeart(itemID: firstItem.id)
+        
+        // Load feed again from service1
+        let feed2 = try await service1.feed()
+        guard let updatedItem1 = feed2.first(where: { $0.id == firstItem.id }) else {
+            Issue.record("Item not found in feed")
+            return
+        }
+        #expect(updatedItem1.isHearted == true)
+        #expect(updatedItem1.reactionCount == initialReactionCount + 1)
+        
+        // Recreate service to simulate new session / app restart
+        let service2 = MockSocialService()
+        let feed3 = try await service2.feed()
+        guard let updatedItem2 = feed3.first(where: { $0.id == firstItem.id }) else {
+            Issue.record("Item not found in feed after recreation")
+            return
+        }
+        #expect(updatedItem2.isHearted == true)
+        #expect(updatedItem2.reactionCount == initialReactionCount + 1)
+        
+        // Toggle heart OFF
+        try await service2.toggleItemHeart(itemID: firstItem.id)
+        
+        let feed4 = try await service2.feed()
+        guard let updatedItem3 = feed4.first(where: { $0.id == firstItem.id }) else {
+            Issue.record("Item not found in feed after toggling off")
+            return
+        }
+        #expect(updatedItem3.isHearted != true)
+        #expect(updatedItem3.reactionCount == initialReactionCount)
+    }
+
+    @Test("Verify toggleCommentHeart state persistence across MockSocialService instances")
+    func testToggleCommentHeartPersistence() async throws {
+        MockSocialService.clearFileStorageForTests()
+        
+        let service1 = MockSocialService()
+        let feed1 = try await service1.feed()
+        
+        // Find a feed item that has comments
+        guard let targetItem = feed1.first(where: { !$0.comments.isEmpty }),
+              let firstComment = targetItem.comments.first else {
+            Issue.record("No item with comments found")
+            return
+        }
+        
+        let initialLikes = firstComment.likes ?? 0
+        #expect(firstComment.isHearted != true)
+        
+        // Toggle comment heart ON
+        try await service1.toggleCommentHeart(itemID: targetItem.id, commentID: firstComment.id)
+        
+        // Load feed again
+        let feed2 = try await service1.feed()
+        guard let updatedItem1 = feed2.first(where: { $0.id == targetItem.id }),
+              let updatedComment1 = updatedItem1.comments.first(where: { $0.id == firstComment.id }) else {
+            Issue.record("Comment not found")
+            return
+        }
+        #expect(updatedComment1.isHearted == true)
+        #expect(updatedComment1.likes == initialLikes + 1)
+        
+        // Recreate service to simulate new session
+        let service2 = MockSocialService()
+        let feed3 = try await service2.feed()
+        guard let updatedItem2 = feed3.first(where: { $0.id == targetItem.id }),
+              let updatedComment2 = updatedItem2.comments.first(where: { $0.id == firstComment.id }) else {
+            Issue.record("Comment not found after recreation")
+            return
+        }
+        #expect(updatedComment2.isHearted == true)
+        #expect(updatedComment2.likes == initialLikes + 1)
+        
+        // Toggle comment heart OFF
+        try await service2.toggleCommentHeart(itemID: targetItem.id, commentID: firstComment.id)
+        
+        let feed4 = try await service2.feed()
+        guard let updatedItem3 = feed4.first(where: { $0.id == targetItem.id }),
+              let updatedComment3 = updatedItem3.comments.first(where: { $0.id == firstComment.id }) else {
+            Issue.record("Comment not found after toggling off")
+            return
+        }
+        #expect(updatedComment3.isHearted != true)
+        #expect(updatedComment3.likes == initialLikes)
+    }
+
+    @Test("Verify that a competitive comment thread successfully escalates/one-ups values")
+    func testCompetitiveThreadEscalation() async throws {
+        let service = MockSocialService()
+        var hasOneUpEscalation = false
+        
+        for _ in 0..<50 {
+            let items = try await service.feed()
+            for item in items where item.message.contains("timed challenge") || item.message.contains("clear") || item.message.contains("time") {
+                var values: [Int] = []
+                for comment in item.comments {
+                    if let valStr = MockSocialService.extractValue(from: comment.text, topic: "time") {
+                        let parts = valStr.split(separator: ":")
+                        if parts.count == 2, let mins = Int(parts[0]), let secs = Int(parts[1]) {
+                            values.append(mins * 60 + secs)
+                        }
+                    }
+                }
+                
+                if values.count >= 2 {
+                    for i in 1..<values.count {
+                        if values[i] < values[i-1] {
+                            hasOneUpEscalation = true
+                            break
+                        }
+                    }
+                }
+            }
+            if hasOneUpEscalation { break }
+        }
+        
+        #expect(hasOneUpEscalation, "Competitive comment thread should contain at least one instance of a faster/one-up clear time compared to preceding comment")
     }
 }
 

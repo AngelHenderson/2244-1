@@ -1721,8 +1721,14 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
-                        if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
-                            npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                        if let n1Val = npc1Value, let n2Val = npc2Value {
+                            if Self.isRecord(n2Val, worseThan: n1Val, topic: topic) {
+                                if Double.random(in: 0...1) < 0.70 {
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                }
+                            } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                            }
                         }
                         
                         let isBehind: Bool
@@ -1766,8 +1772,14 @@ public struct MockSocialService: SocialService, Sendable {
                         }
                         
                         
-                        if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
-                            npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                        if let n1Val = npc1Value, let n2Val = npc2Value, !npc1JustLostStreak {
+                            if Self.isRecord(n1Val, worseThan: n2Val, topic: topic) {
+                                if Double.random(in: 0...1) < 0.70 {
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                }
+                            } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                            }
                         }
                         
                         let isBehind: Bool
@@ -2160,8 +2172,14 @@ public struct MockSocialService: SocialService, Sendable {
                                 }
                             }
                             
-                            if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
-                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                            if let n1Val = npc1Value, let n2Val = npc2Value {
+                                if Self.isRecord(n2Val, worseThan: n1Val, topic: topic) {
+                                    if Double.random(in: 0...1) < 0.70 {
+                                        npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                    }
+                                } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                }
                             }
                             
                             let isBehind: Bool
@@ -2205,8 +2223,14 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                             
                             
-                            if let n1Val = npc1Value, let n2Val = npc2Value, n1Val == n2Val, tieRepliesCount >= 2 {
-                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                            if let n1Val = npc1Value, let n2Val = npc2Value, !npc1JustLostStreak {
+                                if Self.isRecord(n1Val, worseThan: n2Val, topic: topic) {
+                                    if Double.random(in: 0...1) < 0.70 {
+                                        npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                    }
+                                } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                }
                             }
                             
                             let isBehind: Bool
@@ -3525,7 +3549,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Failing so soon? Pathetic. I'm already at \(localHigherM).",
                         "Game over at \(m)? I'm laughing from \(localHigherM).",
                         "Stuck at \(m)? I left that in the dust. I'm sitting at \(localHigherM).",
-                        "Couldn't even get past \(m)? Stay down there. I'm already pushing \(localHigherM).",
+                        "Couldn't even get past \(m)? I'm already pushing \(localHigherM).",
                         "Dead end? Your skill is a joke. I'm dominating with \(localHigherM).",
                         "Imagine stopping at \(m). I'm comfortably sitting at \(localHigherM)."
                     ]
@@ -4068,7 +4092,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         }
 
         if isCompetitive {
-            if previousSelfComment != nil {
+            var useValueFree = false
+            if let prevComment = previousSelfComment {
+                let previousValue = Self.extractValue(from: prevComment, topic: msgTopic)
+                if previousValue == speakerValue {
+                    useValueFree = true
+                } else if previousValue == nil && speakerValue == nil {
+                    useValueFree = true
+                }
+            }
+            if useValueFree {
                 let activeTone: String
                 if let fTone = forceTone {
                     activeTone = fTone
@@ -4085,31 +4118,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     activeTone = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                 }
                 
-                let valStr: String = {
-                    let rawVal = (activeTone == "one_up" || activeTone == "caught_up") ? speakerValue : nil
-                    if let rawVal = rawVal {
-                        if msgTopic == "streak" {
-                            return rawVal.contains("day") ? rawVal : "\(rawVal) days"
-                        } else if msgTopic == "hof" {
-                            if rawVal.lowercased().contains("infinit") {
-                                return rawVal
-                            }
-                            return "\(rawVal) infinities"
-                        }
-                        return rawVal
-                    }
-                    if let m = mentionedMilestone {
-                        return m.name
-                    } else if mentionedStreak, let numStr = mentionedNumber {
-                        return "\(numStr) days"
-                    } else if mentionedTime, let timeTuple = commentTime ?? rootTime {
-                        return "\(timeTuple.0):\(String(format: "%02d", timeTuple.1))"
-                    } else if mentionedHoF, let numStr = mentionedNumber {
-                        return "\(numStr) infinities"
-                    }
-                    return ""
-                }()
-
                 let isMassiveGap: Bool = {
                     guard let sVal = speakerValue, let oVal = opponentValue else { return false }
                     switch msgTopic {
@@ -4152,60 +4160,36 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Enjoy the view from the top while it lasts."
                     ].randomElement()!
                 } else if activeTone == "one_up" {
-                    if !valStr.isEmpty {
-                        if isMassiveGap {
-                            valFreeReply = [
-                                "You're not even in the same league as my \(valStr). Just stop.",
-                                "You'll never catch my \(valStr). Just stop trying.",
-                                "Still lagging far behind my \(valStr)? Pathetic.",
-                                "You're far too outmatched to ever be a threat to my \(valStr).",
-                                "I comfortably stay ahead at \(valStr). You stand no chance.",
-                                "You're celebrating old progress while I'm leagues ahead at \(valStr).",
-                                "We both know you can't reach my \(valStr).",
-                                "You're not built for my \(valStr) tier play."
-                            ].randomElement()!
-                        } else {
-                            valFreeReply = [
-                                "You'll have to play better to catch my \(valStr).",
-                                "Still lagging behind my \(valStr)? Pathetic.",
-                                "I comfortably stay ahead at \(valStr).",
-                                "We both know you can't reach my \(valStr) right now.",
-                                "You're celebrating old progress while I'm ahead at \(valStr).",
-                                "You're not built for my \(valStr) pace."
-                            ].randomElement()!
-                        }
-                    } else {
+                    if isMassiveGap {
                         valFreeReply = [
                             "You're not even in the same league. Just stop.",
                             "You'll never catch me. Just stop trying.",
-                            "Still lagging behind? Pathetic.",
+                            "Still lagging far behind? Pathetic.",
                             "You're far too outmatched to ever be a threat.",
                             "I comfortably stay ahead. You stand no chance.",
-                            "You're celebrating old progress while I'm comfortably ahead.",
-                            "We both know you can't reach me.",
-                            "You're not built for this high-tier play."
-                        ].randomElement()!
-                    }
-                } else {
-                    if !valStr.isEmpty {
-                        valFreeReply = [
-                            "We won't be tied for long at \(valStr). The real race starts now.",
-                            "Enjoy the tie at \(valStr) while it lasts. I'm pulling ahead next.",
-                            "We're even at \(valStr) for now, but I'm breaking this tie soon.",
-                            "Looks like we're neck and neck at \(valStr). Let's see who gets ahead first.",
-                            "Our tie at \(valStr) is just temporary. I'm already aiming higher.",
-                            "We are even at \(valStr), but my next run will bury you."
+                            "You're celebrating old progress while I'm leagues ahead.",
+                            "We both know you can't reach my level.",
+                            "You're not built for my tier of play."
                         ].randomElement()!
                     } else {
                         valFreeReply = [
-                            "We won't be tied for long. The real race starts now.",
-                            "Enjoy the tie while it lasts. I'm pulling ahead next.",
-                            "We're even for now, but I'm breaking this tie soon.",
-                            "Looks like we're neck and neck. Let's see who slips first.",
-                            "Our tie is just temporary. I'm already aiming higher.",
-                            "We are even, but my next run will bury you."
+                            "You'll have to play better to catch me.",
+                            "Still lagging behind? Pathetic.",
+                            "I comfortably stay ahead.",
+                            "We both know you can't reach my pace right now.",
+                            "You're celebrating old progress while I'm ahead.",
+                            "You're not built for this pace."
                         ].randomElement()!
                     }
+                } else {
+                    valFreeReply = [
+                        "We won't be tied for long. The real race starts now.",
+                        "Enjoy the tie while it lasts. I'm pulling ahead next.",
+                        "We're even for now, but I'm breaking this tie soon.",
+                        "Looks like we're neck and neck. Let's see who gets ahead first.",
+                        "Our tie is just temporary. I'm already aiming higher.",
+                        "We are even, but my next run will bury you."
+                    ].randomElement()!
                 }
                 
                 if Double.random(in: 0...1) < 0.75 {
@@ -4649,7 +4633,30 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
 
 
             if mentionedStreak {
-                if let numStr = mentionedNumber, let num = Int(numStr) {
+                let isLost = message.contains("lost") || message.contains("broke") || message.contains("reset")
+                if isLost {
+                    let higherNum: Int
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        higherNum = valInt
+                    } else {
+                        higherNum = Int.random(in: 15...45)
+                    }
+                    let list: [(String, Double)] = [
+                        ("You just lost your streak? I'm already at \(higherNum) days.", 7.0),
+                        ("Your streak is dead. My \(higherNum) days keep going.", 13.0),
+                        ("Lost your streak? Pathetic. I'm sitting at \(higherNum) days.", 46.0),
+                        ("Couldn't even keep it going? I'm comfortably at \(higherNum) days.", 4.0),
+                        ("Back to 0? I'm dominating with \(higherNum) days.", 19.0),
+                        ("Enjoy restarting from zero. You'll never be a threat to my \(higherNum) days.", 11.0)
+                    ]
+                    let filteredList = list.filter { item in
+                        guard let prev = previousSelfComment else { return true }
+                        return !prev.contains(item.0) && !item.0.contains(prev)
+                    }
+                    let targetList = filteredList.isEmpty ? list : filteredList
+                    let chosen = Self.pickWeighted(targetList)
+                    replies.append(chosen)
+                } else if let numStr = mentionedNumber, let num = Int(numStr) {
                     let refNumber = speakerValue.flatMap(Int.init) ?? rootNumber
                     let isLowerStreakBrag = commentText != message && commentIsCompetitive && commentNumber != nil && refNumber != nil && commentNumber! < refNumber!
                     
@@ -4827,21 +4834,6 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             }
                         }
                     }
-                } else if message.contains("lost") || message.contains("broke") || message.contains("reset") {
-                    let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
-                        higherNum = valInt
-                    } else {
-                        higherNum = Int.random(in: 15...45)
-                    }
-                    replies.append(contentsOf: [
-                        "You just lost your streak? I'm already at \(higherNum) days.",
-                        "Your streak is dead. My \(higherNum) days keep going.",
-                        "Lost your streak? Pathetic. I'm sitting at \(higherNum) days.",
-                        "Couldn't even keep it going? I'm comfortably at \(higherNum) days.",
-                        "Back to 0? I'm dominating with \(higherNum) days.",
-                        "Enjoy restarting from zero. You'll never be a threat to my \(higherNum) days."
-                    ])
                 } else {
                     let isLowStreak = false
                     let assumedNum = Int.random(in: 15...45)
