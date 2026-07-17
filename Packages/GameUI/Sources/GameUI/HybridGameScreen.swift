@@ -1361,16 +1361,32 @@ struct GameplayInfoPanel: View {
         )
     }
 
+    private var smallestStep: Int {
+        gameStore.minSpawnStep
+    }
+
+    private var smallestLabel: String {
+        JourneyTileGenerator.formatTileAtStep(smallestStep)
+    }
+
     private var milestoneProgress: some View {
         VStack(spacing: isCompact ? 4 : 5) {
-            HStack(spacing: 8) {
+            HStack(spacing: 4) {
+                MilestoneValuePill(
+                    title: "Smallest",
+                    value: smallestLabel,
+                    color: currentTheme?.colorForStep(smallestStep) ?? .gray
+                )
+
+                Spacer(minLength: 4)
+
                 MilestoneValuePill(
                     title: "Best",
                     value: bestLabel,
                     color: currentTheme?.colorForStep(bestStep) ?? .green
                 )
 
-                Spacer(minLength: 8)
+                Spacer(minLength: 4)
 
                 MilestoneValuePill(
                     title: "Goal",
