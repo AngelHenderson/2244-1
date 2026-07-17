@@ -31,6 +31,7 @@ public struct SpinWheelView: View {
     @State private var now = Date()
     @State private var currentSpinKey: String = ""
     @State private var giftBoxGrantIndex: Int = 0
+    @State private var pendingBonusSpins: Int = 0
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -96,6 +97,10 @@ public struct SpinWheelView: View {
         }
         .alert(rewardTitle, isPresented: $showReward) {
             Button("Collect", role: .cancel) {
+                if pendingBonusSpins > 0 {
+                    spinState.addBonusSpins(pendingBonusSpins)
+                    pendingBonusSpins = 0
+                }
                 showReward = false
             }
         } message: {
@@ -394,6 +399,9 @@ public struct SpinWheelView: View {
         }
         haptics.mediumImpact()
 
+        // Snapshot bonus spins before applying rewards so we can defer won spins
+        let preSpinBonus = spinState.bonusSpins
+
         // Accumulate rewards
         var totals: [String: Int] = [:]
         var totalPowerups = 0
@@ -408,6 +416,15 @@ public struct SpinWheelView: View {
             for (key, value) in itemizedTotals {
                 totals[key, default: 0] += value
             }
+        }
+
+        // Defer any spins won: remove them now, re-add on Collect
+        let spinsWon = spinState.bonusSpins - preSpinBonus
+        if spinsWon > 0 {
+            spinState.removeBonusSpins(spinsWon)
+            pendingBonusSpins = spinsWon
+        } else {
+            pendingBonusSpins = 0
         }
 
         if totalPowerups > 0 {

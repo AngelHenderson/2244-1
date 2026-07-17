@@ -157,6 +157,13 @@ public final class SpinWheelState {
         bonusSpins += amount
         saveBonusSpins()
     }
+
+    /// Remove bonus spins (used to defer spins won during multi-spin).
+    public func removeBonusSpins(_ amount: Int) {
+        guard amount > 0 else { return }
+        bonusSpins = max(0, bonusSpins - amount)
+        saveBonusSpins()
+    }
     
     // MARK: - Multipliers
     
