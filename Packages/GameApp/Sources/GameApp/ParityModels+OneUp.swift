@@ -74,7 +74,6 @@ extension MockSocialService {
             switch randBucket {
             case 1:
                 let weightedReplies: [(String, Double)] = [
-                    ("Only at \(lower)? I easily reached \(higher).", 3.0),
                     ("You think \(lower) is a big milestone? I'm already coasting at \(higher).", 0.6),
                     ("Your \(lower) is a joke. You'll never catch my \(higher).", 9.9),
                     ("I easily bypassed \(lower) and hit \(higher).", 0.1),
@@ -137,12 +136,11 @@ extension MockSocialService {
             switch randBucket {
             case 1:
                 let weightedReplies: [(String, Double)] = [
-                    ("Only at \(lower)? I easily clocked \(higher).", 3.0),
                     ("You think \(lower) is a fast time? I'm already coasting at \(higher).", 0.6),
                     ("Your \(lower) is a joke. You'll never catch my \(higher).", 9.9),
                     ("I easily bypassed \(lower) and clocked \(higher).", 0.1),
                     ("I'm laughing from \(higher) while you're still at \(lower).", 3.5),
-                    ("Celebrating \(lower)? I easily clocked \(higher).", 13.0),
+                    ("Celebrating \(lower)? I easily clocked \(higher).", 16.0),
                     ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I clocked \(higher).", 62.0),
                     ("Imagine being proud of \(lower). I clocked \(higher) with ease.", 0.3),
                     ("Still at \(lower)? I already left that behind. \(higher) is where the real game is.", 1.7),
@@ -200,7 +198,6 @@ extension MockSocialService {
             switch randBucket {
             case 1:
                 let weightedReplies: [(String, Double)] = [
-                    ("Only at \(lower) days? I easily reached \(higher) days.", 3.0),
                     ("You think \(lower) days is a long streak? I'm already coasting at \(higher) days.", 0.6),
                     ("Your \(lower) days is a joke. You'll never catch my \(higher) days.", 9.9),
                     ("I easily bypassed \(lower) days and hit \(higher) days.", 0.1),
@@ -263,7 +260,6 @@ extension MockSocialService {
             switch randBucket {
             case 1:
                 let weightedReplies: [(String, Double)] = [
-                    ("Only at \(lower) infinities? I easily reached \(higher) infinities.", 3.0),
                     ("You think \(lower) infinities is a big infinity count? I'm already coasting at \(higher) infinities.", 0.6),
                     ("Your \(lower) infinities is a joke. You'll never catch my \(higher) infinities.", 9.9),
                     ("I easily bypassed \(lower) infinities and hit \(higher) infinities.", 0.1),

@@ -4244,7 +4244,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I'm right there at \(numStr) infinities too. Let's see who breaks it first.",
                             "We're tied at \(numStr) infinities. The real race starts now.",
                             "Looks like we're both at \(numStr) infinities. Enjoy it while it lasts.",
-                            "I also clocked \(numStr) infinities. Cute, but irrelevant."
+                            "I also hit \(numStr) infinities. Cute, but irrelevant."
                         ].randomElement()!
                     }
                 }
