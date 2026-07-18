@@ -9,12 +9,14 @@ public struct TierStat: Identifiable, Hashable, Sendable {
     public var key: String      // e.g., "K"
     public var value: Int       // e.g., 244
     public var color: Color     // badge color
+    public var textColor: Color // badge text color
     public var label: String    // e.g., "K-Tier Best"
     
-    public init(key: String, value: Int, color: Color, label: String) {
+    public init(key: String, value: Int, color: Color, textColor: Color = .white, label: String) {
         self.key = key
         self.value = value
         self.color = color
+        self.textColor = textColor
         self.label = label
     }
 }
@@ -53,10 +55,12 @@ public extension TierStat {
         return allTierKeys.map { key in
             let value = normalizedCounts[key] ?? 0
             let tierColor = value >= 1 ? color(for: key) : Color.gray.opacity(0.4)
+            let tierTextColor = value >= 1 ? textColor(for: key) : .white
             return TierStat(
                 key: key,
                 value: value,
                 color: tierColor,
+                textColor: tierTextColor,
                 label: "\(key.uppercased())-Tier"
             )
         }
@@ -77,6 +81,17 @@ public extension TierStat {
 
         // Fallback to gray for unknown tiers
         return .gray
+    }
+
+    @MainActor
+    private static func textColor(for key: String) -> Color {
+        if let step = stepForTierKey(key) {
+            return Theme.textColorForStep(step)
+        }
+        if key == "∞" {
+            return .black
+        }
+        return .white
     }
 
     /// Maps a tier key (K, M, B, a, b, ..., aa, ab, ..., bz) to its step index

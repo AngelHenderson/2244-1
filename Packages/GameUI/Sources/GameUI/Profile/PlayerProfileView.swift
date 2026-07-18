@@ -407,7 +407,7 @@ private struct TierCard: View {
                     .frame(width: 36, height: 36)
                 Text(tier.displayKey)
                     .font(.avenirNext(size: GameFonts.headlineSize, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(tier.textColor)
             }
             Text("\(tier.value)")
                 .font(.avenirNext(size: GameFonts.headlineSize, weight: .semibold))
