@@ -396,5 +396,21 @@
         "value": 100000
       }
     ]
+  },
+  {
+    "id": "infinity_leaderboard_rank_progression",
+    "gcIdentifier": "infinity_leaderboard_rank_progression",
+    "title": "Infinity Contender",
+    "description": "Climb the Infinity Leaderboard to unlock escalating rewards.",
+    "category": "Leaderboard",
+    "hidden": true,
+    "conditionExpr": "",
+    "conditions": [
+      {
+        "field": "best_infinity_leaderboard_rank",
+        "op": "<=",
+        "value": 100000
+      }
+    ]
   }
 ]
