@@ -202,7 +202,7 @@ public struct PlayerProfileView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .frame(height: 66)
+        .frame(height: 90)
     }
     
     private var coreStats: some View {
