@@ -176,8 +176,6 @@ public final class AchievementEvaluator {
         currentGameSnapshot.best_leaderboard_rank = currentLeaderboardRank
     }
 
-    /// Updates the best leaderboard rank when fetched from Game Center
-    /// - Parameter rank: The player's current global rank (1-based)
     public func onLeaderboardRankUpdated(_ rank: Int) {
         guard rank > 0 else { return }
 
@@ -190,6 +188,19 @@ public final class AchievementEvaluator {
 
         var snapshot = currentGameSnapshot
         snapshot.best_leaderboard_rank = currentLeaderboardRank
+        Task {
+            await achievementStore.evaluate(snapshot: snapshot)
+        }
+    }
+
+    public func onInfinityLeaderboardRankUpdated(_ rank: Int) {
+        guard rank > 0 else { return }
+
+        // We can reuse or store this rank in snapshot
+        currentGameSnapshot.best_infinity_leaderboard_rank = rank
+
+        var snapshot = currentGameSnapshot
+        snapshot.best_infinity_leaderboard_rank = rank
         Task {
             await achievementStore.evaluate(snapshot: snapshot)
         }
