@@ -1371,40 +1371,61 @@ struct GameplayInfoPanel: View {
 
     private var milestoneProgress: some View {
         VStack(spacing: isCompact ? 4 : 5) {
-            HStack(spacing: 4) {
-                MilestoneValuePill(
-                    title: "Smallest",
-                    value: smallestLabel,
-                    color: currentTheme?.colorForStep(smallestStep) ?? .gray
+            HStack(spacing: 0) {
+                // Smallest tile
+                MilestoneTileColumn(
+                    label: "Smallest",
+                    tile: Tile.make(forStep: smallestStep),
+                    theme: currentTheme,
+                    isCompact: isCompact
                 )
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 0)
 
-                MilestoneValuePill(
-                    title: "Best",
-                    value: bestLabel,
-                    color: currentTheme?.colorForStep(bestStep) ?? .green
+                // Progress line to Best
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.white.opacity(0.16))
+                        Capsule()
+                            .fill(currentTheme?.colorForStep(bestStep) ?? .green)
+                    }
+                }
+                .frame(height: 3)
+                .padding(.horizontal, 4)
+
+                Spacer(minLength: 0)
+
+                // Best tile (with crown)
+                MilestoneTileColumn(
+                    label: "Best",
+                    tile: Tile.make(forStep: bestStep),
+                    theme: currentTheme,
+                    isCompact: isCompact,
+                    showCrown: true
                 )
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 0)
 
-                MilestoneValuePill(
-                    title: "Goal",
-                    value: goalLabel,
-                    color: currentTheme?.colorForStep(goalStep) ?? .orange
-                )
-            }
-
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
+                // Progress line to Goal (empty)
+                GeometryReader { geometry in
                     Capsule()
                         .fill(Color.white.opacity(0.16))
-                    Capsule()
-                        .fill(currentTheme?.colorForStep(bestStep) ?? .green)
-                        .frame(width: max(5, geometry.size.width * 0.5))
                 }
+                .frame(height: 3)
+                .padding(.horizontal, 4)
+
+                Spacer(minLength: 0)
+
+                // Goal tile (locked)
+                MilestoneTileColumn(
+                    label: "Goal",
+                    tile: Tile.make(forStep: goalStep),
+                    theme: currentTheme,
+                    isCompact: isCompact,
+                    isLocked: true
+                )
             }
-            .frame(height: isCompact ? 4 : 5)
         }
     }
 
@@ -1450,6 +1471,49 @@ struct GameplayInfoPanel: View {
                     isCompact: isCompact
                 )
             }
+        }
+    }
+}
+
+struct MilestoneTileColumn: View {
+    let label: String
+    let tile: Tile
+    var theme: ThemeDescriptor? = nil
+    var isCompact: Bool = false
+    var showCrown: Bool = false
+    var isLocked: Bool = false
+
+    private var tileSize: CGFloat { isCompact ? 34 : 38 }
+
+    var body: some View {
+        VStack(spacing: 2) {
+            ZStack {
+                TileView(
+                    tile: tile,
+                    isSelected: false,
+                    isValid: true,
+                    size: tileSize,
+                    theme: theme
+                )
+
+                if isLocked {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.black.opacity(0.35))
+                        .frame(width: tileSize, height: tileSize)
+                }
+            }
+            .overlay(alignment: .top) {
+                if showCrown {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.yellow)
+                        .offset(y: -7)
+                }
+            }
+
+            Text(label)
+                .font(.avenirNext(size: GameFonts.caption2Size, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.6))
         }
     }
 }
