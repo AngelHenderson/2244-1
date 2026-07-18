@@ -118,7 +118,7 @@ extension MockSocialService {
             case 4:
                 let weightedReplies: [(String, Double)] = [
                     ("I am comfortably ahead of your \(lower). I'm at \(higher).", 6.0),
-                    ("I'm way past \(lower). I am sitting at \(higher).", 0.24),
+                    ("I'm already passed \(lower). I am sitting at \(higher).", 0.24),
                     ("Your \(lower) is nothing compared to my \(higher).", 2.76),
                     ("I easily passed \(lower). I dominate \(higher).", 5.01),
                     ("Your \(lower) is child's play compared to my \(higher).", 6.0),
