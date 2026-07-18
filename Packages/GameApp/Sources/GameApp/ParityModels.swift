@@ -1245,7 +1245,8 @@ public struct MockSocialService: SocialService, Sendable {
             let newSeed = index * 131 + countrySeed * 17 + day * 7
             let random = seededRandom(seed: newSeed, index: day)
             let avatarIndex = Int(random * Double(allAvatars.count))
-}
+            return allAvatars[avatarIndex % allAvatars.count]
+        }
         return avatarForPlayer(index: index, countrySeed: countrySeed)
     }
 
@@ -3540,8 +3541,16 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if let originalIdx = Self.allMilestones.firstIndex(of: m) {
                 let isLowMilestone = false
                 let oneMIndex = Self.allMilestones.firstIndex(of: "1M") ?? 0
+                let remaining = Self.allMilestones.count - 1 - originalIdx
+                
                 if originalIdx >= oneMIndex && (lowered.contains("ran out") || lowered.contains("no moves") || lowered.contains("game over") || lowered.contains("stuck") || lowered.contains("lost my run") || lowered.contains("died")) {
-                    let remaining = Self.allMilestones.count - 1 - originalIdx
+                    if remaining >= 10 && Double.random(in: 0...1) < 0.15 {
+                        let wayBehindJump = Int.random(in: 10...min(20, remaining))
+                        let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
+                        let realName = Self.leaderboardPlayerAtMilestone(wayBehindM)
+                        return ("You are infinitely behind. I'm already at \(wayBehindM).", realName, wayBehindM)
+                    }
+                    
                     let maxJump = min(10, remaining)
                     let jump = Int.random(in: min(1, maxJump)...maxJump)
                     let localHigherM = Self.allMilestones[originalIdx + jump]
@@ -3571,8 +3580,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
                     return (templates[idx], realName, localLowerM)
                 } else if originalIdx + 1 < Self.allMilestones.count {
+                    if remaining >= 10 && Double.random(in: 0...1) < 0.15 {
+                        let wayBehindJump = Int.random(in: 10...min(20, remaining))
+                        let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
+                        let realName = Self.leaderboardPlayerAtMilestone(wayBehindM)
+                        return ("You are infinitely behind. I'm already at \(wayBehindM).", realName, wayBehindM)
+                    }
+                    
                     // Pick a random milestone 5-60 steps ahead, avoiding already-used ones
-                    let remaining = Self.allMilestones.count - 1 - originalIdx
                     let maxJump = min(5, remaining)
                     let minJump = min(1, maxJump)
                     var localHigherM: String
@@ -3585,18 +3600,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } while usedStats.contains(localHigherM) && attempts < 8
                     usedStats.insert(localHigherM)
 
-                    var templates = [
+                    let templates = [
                         "Your milestone is entirely irrelevant. I'm at \(localHigherM).",
                         "I left your tier in the dust. I'm at \(localHigherM).",
                         "I easily reached \(localHigherM).",
                         "\(localHigherM) is my floor."
                     ]
-                    // "way behind" only with a moderate gap (10-20 steps ahead)
-                    if remaining >= 10 {
-                        let wayBehindJump = Int.random(in: 10...min(20, remaining))
-                        let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
-                        templates.append("You are infinitely behind. I'm already at \(wayBehindM).")
-                    }
                     let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
                     return (templates[idx], realName, localHigherM)

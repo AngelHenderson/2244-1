@@ -1532,7 +1532,7 @@ struct ParityModelsTests {
         
         let bucket4Templates: Set<String> = [
             "I am comfortably ahead of your 1024. I'm at 2048.",
-            "I'm way past 1024. I am sitting at 2048.",
+            "I've already passed 1024. I am sitting at 2048.",
             "Your 1024 is nothing compared to my 2048.",
             "I easily passed 1024. I dominate 2048.",
             "Your 1024 is child's play compared to my 2048.",
@@ -1847,6 +1847,66 @@ struct ParityModelsTests {
         }
         
         #expect(hasOneUpEscalation, "Competitive comment thread should contain at least one instance of a faster/one-up clear time compared to preceding comment")
+    }
+
+    @Test("Verify milestone way-behind reply probability is 15% for both normal and out-of-moves posts")
+    func testMilestoneWayBehindProbability() async throws {
+        let service = MockSocialService()
+        
+        let normalMessage = "Reached milestone 2n"
+        let outOfMovesMessage = "I ran out of moves at 2n"
+        
+        var normalWayBehindCount = 0
+        var normalTotalBrags = 0
+        
+        var outOfMovesWayBehindCount = 0
+        var outOfMovesTotalBrags = 0
+        
+        let iterations = 10000
+        
+        for _ in 0..<iterations {
+            var usedStats1 = Set<String>()
+            let (normalReply, _, _, _) = service.generateDynamicComment(message: normalMessage, usedStats: &usedStats1, forcedTone: "competitive")
+            
+            let isNormalBrag = normalReply.contains("infinitely behind") ||
+                               normalReply.contains("irrelevant") ||
+                               normalReply.contains("dust") ||
+                               normalReply.contains("reached") ||
+                               normalReply.contains("floor")
+            
+            if isNormalBrag {
+                normalTotalBrags += 1
+                if normalReply.contains("infinitely behind") {
+                    normalWayBehindCount += 1
+                }
+            }
+            
+            var usedStats2 = Set<String>()
+            let (outOfMovesReply, _, _, _) = service.generateDynamicComment(message: outOfMovesMessage, usedStats: &usedStats2, forcedTone: "competitive")
+            
+            let isOutOfMovesBrag = outOfMovesReply.contains("infinitely behind") ||
+                                   outOfMovesReply.contains("Pathetic") ||
+                                   outOfMovesReply.contains("laughing") ||
+                                   outOfMovesReply.contains("dust") ||
+                                   outOfMovesReply.contains("pushing") ||
+                                   outOfMovesReply.contains("joke") ||
+                                   outOfMovesReply.contains("comfortably")
+            
+            if isOutOfMovesBrag {
+                outOfMovesTotalBrags += 1
+                if outOfMovesReply.contains("infinitely behind") {
+                    outOfMovesWayBehindCount += 1
+                }
+            }
+        }
+        
+        let normalPercent = Double(normalWayBehindCount) / Double(normalTotalBrags) * 100.0
+        let outOfMovesPercent = Double(outOfMovesWayBehindCount) / Double(outOfMovesTotalBrags) * 100.0
+        
+        print("MILESTONE WAY-BEHIND PROBABILITY - Normal: \(normalPercent)% (of \(normalTotalBrags) brags), Out of Moves: \(outOfMovesPercent)% (of \(outOfMovesTotalBrags) brags)")
+        
+        #expect(normalPercent >= 12.0 && normalPercent <= 18.0, "Normal milestone way-behind should be ~15%, actual is \(normalPercent)%")
+        #expect(outOfMovesPercent >= 12.0 && outOfMovesPercent <= 18.0, "Out of moves milestone way-behind should be ~15%, actual is \(outOfMovesPercent)%")
     }
 }
 
