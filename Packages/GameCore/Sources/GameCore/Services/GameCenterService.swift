@@ -6,6 +6,7 @@ import GameKit
 public enum GameCenterLeaderboardID {
     public static let global = "com.game2244.global"
     public static let hallOfFame = "com.game2244.halloffame"
+    public static let infinity = "com.game2244.infinity"
 }
 
 public protocol GameCenterServiceProtocol: Sendable {
