@@ -1802,10 +1802,75 @@ public final class AchievementStore {
     }
 
     /// Highest tier index that has been claimed (persisted), -1 means no tiers claimed yet
+    /// Current infinity leaderboard rank from Game Center (lower is better)
+    public var currentInfinityLeaderboardRank: Int = 0 {
+        didSet {
+            defaults.set(currentInfinityLeaderboardRank, forKey: "currentInfinityLeaderboardRank")
+        }
+    }
+
+    private var highestClaimedInfinityLeaderboardTier: Int = -1 {
+        didSet {
+            defaults.set(highestClaimedInfinityLeaderboardTier, forKey: "highestClaimedInfinityLeaderboardTier")
+        }
+    }
+
     private var highestClaimedLeaderboardTier: Int = -1 {
         didSet {
             defaults.set(highestClaimedLeaderboardTier, forKey: "highestClaimedLeaderboardTier")
         }
+    }
+
+    public var infinityLeaderboardRankTier: Int {
+        guard currentInfinityLeaderboardRank > 0 else { return -1 }
+        var bestQualifiedIndex = -1
+        for (index, tier) in Self.leaderboardRankTiers.enumerated() {
+            if currentInfinityLeaderboardRank <= tier.milestone {
+                bestQualifiedIndex = index
+            } else {
+                break
+            }
+        }
+        return bestQualifiedIndex
+    }
+
+    private var displayInfinityLeaderboardRankTier: Int {
+        let nextTierToClaimIndex = highestClaimedInfinityLeaderboardTier + 1
+        let maxTier = Self.leaderboardRankTiers.count - 1
+        return min(nextTierToClaimIndex, maxTier)
+    }
+
+    private var currentInfinityLeaderboardRankTier: ComboTierDefinition {
+        let index = min(displayInfinityLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        return Self.leaderboardRankTiers[index]
+    }
+
+    public var infinityLeaderboardRankDisplay: ProgressTierDisplay {
+        let tier = currentInfinityLeaderboardRankTier
+        let clampedIndex = min(displayInfinityLeaderboardRankTier, Self.leaderboardRankTiers.count - 1)
+        let level = clampedIndex + 1
+        let isMaxed = isInfinityLeaderboardRankMaxed
+        let qualifiesForCurrentTier = currentInfinityLeaderboardRank > 0 && currentInfinityLeaderboardRank <= tier.milestone
+        let description: String
+
+        if isMaxed {
+            description = "You reached the top tier of the Infinity Leaderboard!"
+        } else if qualifiesForCurrentTier {
+            description = "You reached \(tier.categoryLabel) on the Infinity Leaderboard! Claim your reward."
+        } else {
+            description = "Reach \(tier.categoryLabel) on the Infinity Leaderboard to unlock this."
+        }
+
+        return ProgressTierDisplay(
+            title: isMaxed ? "Infinity Contender Maxed" : "Infinity Contender \(level)",
+            description: description,
+            rewards: tier.rewards,
+            isLocked: !isMaxed && !qualifiesForCurrentTier
+        )
+    }
+
+    public var isInfinityLeaderboardRankMaxed: Bool {
+        highestClaimedInfinityLeaderboardTier >= Self.leaderboardRankTiers.count - 1 && unlocks["infinity_leaderboard_rank_progression"]?.claimed == true
     }
 
     /// Leaderboard rank tier index based on CURRENT rank (not stored, calculated dynamically)
@@ -2066,6 +2131,11 @@ public final class AchievementStore {
         self.wheelCollectsProgressionTier = defaults.integer(forKey: "wheelCollectsProgressionTier")
         self.challengeCreationTier = defaults.integer(forKey: "challengeCreationTier")
         // Load highestClaimedLeaderboardTier (-1 means no tiers claimed)
+        if defaults.object(forKey: "highestClaimedInfinityLeaderboardTier") != nil {
+            self.highestClaimedInfinityLeaderboardTier = defaults.integer(forKey: "highestClaimedInfinityLeaderboardTier")
+        }
+        self.currentInfinityLeaderboardRank = defaults.integer(forKey: "currentInfinityLeaderboardRank")
+
         if defaults.object(forKey: "highestClaimedLeaderboardTier") != nil {
             self.highestClaimedLeaderboardTier = defaults.integer(forKey: "highestClaimedLeaderboardTier")
         } else {
@@ -2857,6 +2927,28 @@ public final class AchievementStore {
             return
         }
 
+        if definition.id == "infinity_leaderboard_rank_progression" {
+            let rewards = infinityLeaderboardRankDisplay.rewards
+            if let onReward = onReward {
+                onReward(rewards)
+            } else if let gems = rewards.gems, gems > 0 {
+                grantGemsDirectly(gems)
+            }
+
+            // Mark this tier as claimed by advancing highestClaimedInfinityLeaderboardTier
+            let claimedTierIndex = displayInfinityLeaderboardRankTier
+            if claimedTierIndex > highestClaimedInfinityLeaderboardTier {
+                highestClaimedInfinityLeaderboardTier = claimedTierIndex
+            }
+
+            // If there's another tier, unclaim it so the player can work towards it
+            if highestClaimedInfinityLeaderboardTier < Self.leaderboardRankTiers.count - 1 {
+                unlocks[definition.id] = .init(unlocked: false, unlockedAt: nil, claimed: false)
+            } else {
+                unlocks[definition.id] = .init(unlocked: true, unlockedAt: Date(), claimed: true)
+            }
+        }
+
         if definition.id == "leaderboard_rank_progression" {
             let rewards = leaderboardRankDisplay.rewards
             if let onReward = onReward {
@@ -3308,6 +3400,8 @@ public final class AchievementStore {
             return challengeCreationDisplay.rewards
         case "magnet_usage_progression":
             return magnetUsesDisplay.rewards
+        case "infinity_leaderboard_rank_progression":
+            return infinityLeaderboardRankDisplay.rewards
         case "leaderboard_rank_progression":
             return leaderboardRankDisplay.rewards
         default:
@@ -3400,6 +3494,7 @@ public final class AchievementStore {
         case "made_2244_square": return b(s.made_2244_square)
         case "max_tile": return .init(s.max_tile)
         case "win": return b(s.win)
+        case "best_infinity_leaderboard_rank": return .init(s.best_infinity_leaderboard_rank)
         case "best_leaderboard_rank": return .init(s.best_leaderboard_rank)
         default:
             #if DEBUG
@@ -3550,6 +3645,8 @@ public final class AchievementStore {
             return allComboTiers(tiers: Self.boost20xUseTiers, currentTierIndex: boost20xUsesProgressionTier)
         case "wheel_collects_progression":
             return allComboTiers(tiers: Self.wheelCollectsTiers, currentTierIndex: wheelCollectsProgressionTier)
+        case "infinity_leaderboard_rank_progression":
+            return allComboTiers(tiers: Self.leaderboardRankTiers, currentTierIndex: displayInfinityLeaderboardRankTier)
         case "leaderboard_rank_progression":
             return allComboTiers(tiers: Self.leaderboardRankTiers, currentTierIndex: displayLeaderboardRankTier)
         default:
