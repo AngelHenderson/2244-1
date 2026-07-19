@@ -5304,7 +5304,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Your milestone is nothing. I'm already at \(genericHigherM).",
                         "You'll never get there at this rate.",
                         "Don't bother trying. You're completely outclassed.",
-                        "Everyone progresses, except you. You're stuck at the bottom.",
+                        "Everyone progresses, except you. Enjoy being stuck at the bottom forever.",
                         "You're delusional if you think you'll ever break through.",
                         "I don't believe in you. You're completely irrelevant.",
                         "The wall you hit is final. Stay down there.",
