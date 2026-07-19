@@ -161,7 +161,7 @@ extension MockSocialService {
                     "If \(lower) is your fastest, you're not even in the same conversation as my \(higher).",
                     "Why even mention \(lower)? My \(higher) is completely out of your reach.",
                     "You're embarrassing yourself with \(lower). You were never going to threaten my \(higher) anyway.",
-                    "You're not built for \(lower). Meanwhile, my \(higher) was completed with ease."
+                    "You're not built for \(lower). Meanwhile, I clocked \(higher) easily."
                 ]
                 return pickRandom(list)
             case 3:
