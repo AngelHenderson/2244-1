@@ -1251,7 +1251,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v66"
+    public static let feedDateKey = "socialFeed.cacheDate.v67"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1264,7 +1264,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v66.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v67.json")
     }
     
     private static var userPostsURL: URL {
@@ -1277,6 +1277,8 @@ public struct MockSocialService: SocialService, Sendable {
     public static func clearFileStorageForTests() {
         try? FileManager.default.removeItem(at: userPostsURL)
         try? FileManager.default.removeItem(at: feedCacheURL)
+        UserDefaults.standard.removeObject(forKey: Self.userPostsKey)
+        UserDefaults.standard.removeObject(forKey: Self.feedCacheKey)
     }
     #endif
 
@@ -3142,14 +3144,14 @@ public struct MockSocialService: SocialService, Sendable {
                     let openersWithWeights: [(String, Double)] = [
                         ("That's old news.", 11.2),
                         ("That's zero effort.", 6.9),
-                        ("Laughable.", 3.0),
+                        ("That's laughable.", 3.0),
                         ("That's entirely average.", 4.0),
                         ("Not worth my time.", 0.6),
                         ("Unimpressive.", 1.0),
                         ("Not impressed.", 1.0),
                         ("That's cute.", 23.5),
-                        ("Light work.", 2.0),
-                        ("What a joke.", 7.2),
+                        ("That's no progress.", 2.0),
+                        ("That's a joke.", 7.2),
                         ("Imagine celebrating that.", 9.4),
                         ("Is that all?", 1.0),
                         ("I did this by accident.", 19.5),
@@ -5053,9 +5055,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I easily passed your time. My record is \(higherTime).",
                                     "I shaved time off your \(posterTime). My best is \(higherTime).",
                                     "You call \(posterTime) fast? I'm already down to \(higherTime).",
-                                    "I speedrun easily. \(higherTime) destroys your \(posterTime).",
-                                    "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
+                                    "I speedrun easily. \(higherTime) destroys your \(posterTime)."
                                 ]
+                                if totalSecs > 30 {
+                                    templates.append("Your \(posterTime) was my practice run. I'm down to \(higherTime).")
+                                }
                                 if diff >= 3 {
                                     templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
                                 }
@@ -5108,9 +5112,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I easily passed your time. My record is \(higherTime).",
                             "I shaved time off your \(posterTime). My best is \(higherTime).",
                             "You call \(posterTime) fast? I'm already down to \(higherTime).",
-                            "I speedrun easily. \(higherTime) destroys your \(posterTime).",
-                            "Your \(posterTime) was my practice run. I'm down to \(higherTime)."
+                            "I speedrun easily. \(higherTime) destroys your \(posterTime)."
                         ]
+                        if assumedTotal > 30 {
+                            templates.append("Your \(posterTime) was my practice run. I'm down to \(higherTime).")
+                        }
                         if diff >= 3 {
                             templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
                         }

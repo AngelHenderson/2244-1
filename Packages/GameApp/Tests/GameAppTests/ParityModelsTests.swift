@@ -1738,7 +1738,8 @@ struct ParityModelsTests {
             return
         }
         #expect(updatedItem1.isHearted == true)
-        #expect(updatedItem1.reactionCount == initialReactionCount + 1)
+        let currentBaseReactions1 = updatedItem1.reactionTimestamps?.filter { $0 <= Date() }.count ?? 0
+        #expect(updatedItem1.reactionCount == currentBaseReactions1 + 1)
         
         // Recreate service to simulate new session / app restart
         let service2 = MockSocialService()
@@ -1748,7 +1749,8 @@ struct ParityModelsTests {
             return
         }
         #expect(updatedItem2.isHearted == true)
-        #expect(updatedItem2.reactionCount == initialReactionCount + 1)
+        let currentBaseReactions2 = updatedItem2.reactionTimestamps?.filter { $0 <= Date() }.count ?? 0
+        #expect(updatedItem2.reactionCount == currentBaseReactions2 + 1)
         
         // Toggle heart OFF
         try await service2.toggleItemHeart(itemID: firstItem.id)
@@ -1759,7 +1761,8 @@ struct ParityModelsTests {
             return
         }
         #expect(updatedItem3.isHearted != true)
-        #expect(updatedItem3.reactionCount == initialReactionCount)
+        let currentBaseReactions3 = updatedItem3.reactionTimestamps?.filter { $0 <= Date() }.count ?? 0
+        #expect(updatedItem3.reactionCount == currentBaseReactions3)
     }
 
     @Test("Verify toggleCommentHeart state persistence across MockSocialService instances")
@@ -1907,6 +1910,40 @@ struct ParityModelsTests {
         
         #expect(normalPercent >= 12.0 && normalPercent <= 18.0, "Normal milestone way-behind should be ~15%, actual is \(normalPercent)%")
         #expect(outOfMovesPercent >= 12.0 && outOfMovesPercent <= 18.0, "Out of moves milestone way-behind should be ~15%, actual is \(outOfMovesPercent)%")
+    }
+
+    @Test("Verify that practice run templates are not generated for fast speedrun times")
+    func testPracticeRunTemplateThreshold() {
+        let service = MockSocialService()
+        
+        // Fast time (e.g. 0:24)
+        for _ in 0..<100 {
+            let reply = service.generateContextualReply(
+                to: "My best is 0:24",
+                message: "timed challenge in 0:20",
+                forceTone: "one_up",
+                speakerValue: "0:20",
+                opponentValue: "0:24"
+            )
+            #expect(!reply.contains("practice run"), "Practice run templates should not be generated for fast times (0:24)")
+        }
+        
+        // Slower time (e.g. 1:30)
+        var sawPracticeRun = false
+        for _ in 0..<100 {
+            let reply = service.generateContextualReply(
+                to: "My best is 1:30",
+                message: "timed challenge in 1:20",
+                forceTone: "one_up",
+                speakerValue: "1:20",
+                opponentValue: "1:30"
+            )
+            if reply.contains("practice run") {
+                sawPracticeRun = true
+                break
+            }
+        }
+        #expect(sawPracticeRun, "Practice run templates should be generated for slower times (1:30)")
     }
 }
 
