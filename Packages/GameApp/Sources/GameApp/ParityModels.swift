@@ -5358,7 +5358,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             // Generic dismissal
             if forceTone != "one_up" || replies.isEmpty {
                 replies.append(contentsOf: [
-                    "You're moving too slowly to matter.",
+                    "Your record does not matter anymore.",
                     "You're far too outmatched to ever be a threat.",
                     "While everyone climbs, you're cemented to the floor.",
                     "Dreaming won't get you out of the lower tiers.",
