@@ -1862,10 +1862,12 @@ public final class AchievementStore {
         }
 
         return ProgressTierDisplay(
+            milestone: tier.milestone,
+            level: level,
             title: isMaxed ? "Infinity Contender Maxed" : "Infinity Contender \(level)",
             description: description,
-            rewards: tier.rewards,
-            isLocked: !isMaxed && !qualifiesForCurrentTier
+            categoryLabel: tier.categoryLabel,
+            rewards: tier.rewards
         )
     }
 
