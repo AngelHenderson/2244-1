@@ -171,6 +171,8 @@ public struct AchievementsView: View {
             return achievements.isWheelCollectsProgressionMaxed
         case "leaderboard_rank_progression":
             return achievements.isLeaderboardRankMaxed
+        case "infinity_leaderboard_rank_progression":
+            return achievements.isInfinityLeaderboardRankMaxed
         default:
             // For non-progressive achievements, check if claimed
             return achievements.unlocks[id]?.claimed == true
