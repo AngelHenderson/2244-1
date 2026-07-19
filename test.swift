@@ -1,5 +1,8 @@
-let arr = [1, 2, 3]
-print(arr[3...])
-print("No crash on 3")
-print(arr[4...])
-print("No crash on 4")
+import Foundation
+
+let highestClaimed = 0
+let unlocksClaimed = false
+let tiersCount = 30
+
+let isMaxed = highestClaimed >= tiersCount - 1 && unlocksClaimed == true
+print("isMaxed: \(isMaxed)")

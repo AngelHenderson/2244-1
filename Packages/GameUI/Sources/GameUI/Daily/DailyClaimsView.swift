@@ -241,6 +241,18 @@ public struct DailyClaimsView: View {
                 Text("Claim it from the timeline below.")
                     .font(.avenirNext(size: GameFonts.subheadlineSize, weight: .regular))
                     .foregroundStyle(.secondary)
+
+                // Show timer for the next day beyond current available claims
+                if let timeRemaining = store.getTimeUntilNextClaim() {
+                    VStack(spacing: 6) {
+                        Text("Day \(store.currentClaimDay + store.availableClaims + 1) Available In")
+                            .font(.avenirNext(size: GameFonts.caption1Size, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        TimerView(timeRemaining: timeRemaining)
+                            .font(.avenirNext(size: GameFonts.title3Size, weight: .bold))
+                    }
+                    .padding(.top, 4)
+                }
             }
         }
         .padding()
@@ -314,7 +326,7 @@ public struct DailyClaimsView: View {
                         }
                     }
                 }
-                .platformPageTabViewStyle(indexDisplayMode: .automatic)
+                .platformPageTabViewStyle(indexDisplayMode: .never)
                 .frame(height: 7 * 86)
             }
         }
