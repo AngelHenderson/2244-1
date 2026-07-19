@@ -5293,7 +5293,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     }
 
                     replies.append(contentsOf: [
-                        "Talk to me when you reach \(genericHigherM).",
+                        "You'll never reach my \(genericHigherM).",
                         "None of you are anywhere near my \(genericHigherM) record.",
                         "I don't waste time on that garbage. My \(genericHigherM) record is on a whole different level.",
                         "I am safely ahead, I'm already pushing \(genericHigherM).",
