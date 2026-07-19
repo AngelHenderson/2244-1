@@ -5359,15 +5359,15 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             if forceTone != "one_up" || replies.isEmpty {
                 replies.append(contentsOf: [
                     "Your record does not matter anymore.",
-                    "You're far too outmatched to ever be a threat.",
-                    "While everyone climbs, you're cemented to the floor.",
-                    "Dreaming won't get you out of the lower tiers.",
-                    "You pose absolutely zero threat.",
-                    "That plateau is permanent. Get used to it.",
-                    "Keep struggling with basics while I remain untouchable.",
-                    "The gap between us is only getting wider.",
-                    "You're trapped in the beginner zone.",
-                    "Face reality. You're too far behind to ever matter."
+                    "You're so far behind that you're never a threat.",
+                    "While everyone climbs, you're cemented to the lower levels.",
+                    "You'll never get out of the lower tiers.",
+                    "You pose zero threat and always will.",
+                    "You're stuck permanently. Get used to it.",
+                    "You're stuck in the basics while I remain out of your reach forever.",
+                    "The gap between us is only getting wider and won't close.",
+                    "You're trapped in the beginner zone forever.",
+                    "Face it. You're too far behind to ever matter."
                 ])
             }
             if let prev = previousSelfComment {
