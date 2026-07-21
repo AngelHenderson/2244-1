@@ -32,12 +32,9 @@ struct MusicThemesView: View {
         .init(id: "piano", displayName: "Piano", tagline: "Merge with Classic Warmth!", assetName: "piano", priceLabel: "Free"),
         .init(id: "xylophone", displayName: "Xylophone", tagline: "Merging Melodies Chime!", assetName: "xylophone", priceLabel: "Free"),
         .init(id: "guitar", displayName: "Guitar", tagline: "Strumming Merges Delight!", assetName: "guitar", priceLabel: "Free"),
-        .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "$1.99",
-              iapProductID: "com.game2244.theme.lofi"),
-        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Softly Merge Melodies!", assetName: "guitar", priceLabel: "$1.99",
-              iapProductID: "com.game2244.theme.orchestral"),
-        .init(id: "drum", displayName: "Drum", tagline: "Feel the Rhythm Merge!", assetName: "drum", priceLabel: "$1.99",
-              iapProductID: "com.game2244.theme.cyberpunk")
+        .init(id: "kalimba", displayName: "Kalimba", tagline: "Merge with Gentle Resonance!", assetName: "kalimba", priceLabel: "Free"),
+        .init(id: "muted-nylon", displayName: "Muted Nylon", tagline: "Softly Merge Melodies!", assetName: "guitar", priceLabel: "Free"),
+        .init(id: "drum", displayName: "Drum", tagline: "Feel the Rhythm Merge!", assetName: "drum", priceLabel: "Free")
     ]
     var onTry: @Sendable (Instrument) -> Void = { _ in }
     var onPurchase: @Sendable (Instrument) -> Void = { _ in }
