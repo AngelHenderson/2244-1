@@ -78,11 +78,11 @@ extension MockSocialService {
                     ("Your \(lower) is a joke. You'll never catch my \(higher).", 9.9),
                     ("I easily bypassed \(lower) and hit \(higher).", 0.1),
                     ("I'm laughing from \(higher) while you're still at \(lower).", 6.5),
-                    ("Celebrating \(lower)? I easily cleared \(higher).", 35.0),
-                    ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I'm at \(higher).", 37.0),
+                    ("Celebrating \(lower)? I easily cleared \(higher).", 1.0),
+                    ("You're at \(lower)? Cute. \(lower) is completely irrelevant now that I'm at \(higher).", 55.0),
                     ("Imagine being proud of \(lower). My \(higher) was completed with ease.", 0.3),
                     ("Still at \(lower)? I already left that behind. \(higher) is where the real game is.", 1.7),
-                    ("Lagging at \(lower)? I'm coasting at \(higher).", 5.8),
+                    ("Lagging at \(lower)? I'm coasting at \(higher).", 21.8),
                     ("Imagine being at \(lower) while I dominate at \(higher).", 0.1)
                 ]
                 return pickWeighted(weightedReplies)

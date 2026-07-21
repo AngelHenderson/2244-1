@@ -1251,7 +1251,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v67"
+    public static let feedDateKey = "socialFeed.cacheDate.v61"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1264,7 +1264,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v67.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v61.json")
     }
     
     private static var userPostsURL: URL {
@@ -2498,13 +2498,13 @@ public struct MockSocialService: SocialService, Sendable {
             }
         } else {
             if rand < 34.9 {
-                eventType = 1 // Time (34.9%)
+                eventType = 1 // Time (21%)
             } else if rand < 70.0 {
-                eventType = 0 // Milestones (35.1%)
+                eventType = 0 // Milestones (49%)
             } else if rand < 85.0 {
-                eventType = 2 // Streaks (15%)
+                eventType = 2 // Streaks (16%)
             } else {
-                eventType = 3 // HOF (15%)
+                eventType = 3 // HOF (14%)
             }
         }
         switch eventType {
@@ -3919,7 +3919,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = !isForcedCompetitive && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "childs play", "compared to"]
+        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "compared to"]
         var isCompetitive = isForcedCompetitive || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -5304,7 +5304,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Your milestone is nothing. I'm already at \(genericHigherM).",
                         "You'll never get there at this rate.",
                         "Don't bother trying. You're completely outclassed.",
-                        "Everyone progresses, except you. Enjoy being stuck at the bottom forever.",
+                        "I progress. Enjoy being stuck at the bottom forever.",
                         "You're delusional if you think you'll ever break through.",
                         "I don't believe in you. You're completely irrelevant.",
                         "The wall you hit is final. Stay down there.",
@@ -5360,7 +5360,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 replies.append(contentsOf: [
                     "Your record does not matter anymore.",
                     "You're so far behind that you're never a threat.",
-                    "While everyone climbs, you're cemented to the lower levels.",
+                    "While I climb, you're cemented to the lower levels.",
                     "You'll never get out of the lower tiers.",
                     "You pose zero threat and always will.",
                     "You're stuck permanently. Get used to it.",
