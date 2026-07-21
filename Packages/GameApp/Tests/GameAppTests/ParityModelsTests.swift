@@ -1941,6 +1941,28 @@ struct ParityModelsTests {
         }
         #expect(sawPracticeRun, "Practice run templates should be generated for slower times (1:30)")
     }
+
+    @Test("Verify that NPC streak values do not increase within a single comment thread")
+    func testNpcStreakValuesDoNotIncreaseInThread() async throws {
+        let service = MockSocialService()
+        
+        for _ in 0..<50 {
+            let feed = try await service.feed()
+            for item in feed where item.message.contains("streak") || item.message.contains("day") {
+                var authorLastValue: [String: Int] = [:]
+                for comment in item.comments {
+                    let author = comment.authorName
+                    if let valStr = MockSocialService.extractValue(from: comment.text, topic: "streak"),
+                       let val = Int(valStr) {
+                        if let prev = authorLastValue[author] {
+                            #expect(val <= prev, "Author \(author) increased streak value from \(prev) to \(val) in thread")
+                        }
+                        authorLastValue[author] = val
+                    }
+                }
+            }
+        }
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
