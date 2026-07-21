@@ -1678,7 +1678,9 @@ public struct MockSocialService: SocialService, Sendable {
                 let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
                 var npc2: (name: String, avatar: String)? = nil
                 
-                var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
+                var npc1Value = Self.findEstablishedValue(for: npc1.name, in: comments, topic: topic)
+                    ?? Self.extractValue(from: baseComment.text, topic: topic)
+                    ?? rootValue
                 var npc2Value: String? = nil
                 
                 var isNpc2Turn = true
@@ -1701,6 +1703,7 @@ public struct MockSocialService: SocialService, Sendable {
                             rName = generateDynamicName()
                         }
                         npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
+                        npc2Value = Self.findEstablishedValue(for: npc2!.name, in: comments, topic: topic)
                     }
                     
                     var npc2JustLostStreak = false
@@ -1753,6 +1756,9 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
+                        if let extracted = Self.extractValue(from: replyText, topic: topic) {
+                            npc2Value = extracted
+                        }
                         npc2PreviousComment = replyText
                         let replyOffset = Self.requiredTimeDelay(from: npc1Value, to: npc2Value, topic: topic)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -1806,6 +1812,9 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
+                        if let extracted = Self.extractValue(from: replyText, topic: topic) {
+                            npc1Value = extracted
+                        }
                         npc1PreviousComment = replyText
                         let replyOffset = Self.requiredTimeDelay(from: npc2Value, to: npc1Value, topic: topic)
                         let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -2128,7 +2137,9 @@ public struct MockSocialService: SocialService, Sendable {
                     let npc1 = (name: baseComment.authorName, avatar: baseComment.avatarID)
                     var npc2: (name: String, avatar: String)? = nil
                     
-                    var npc1Value = Self.extractValue(from: baseComment.text, topic: topic) ?? rootValue
+                    var npc1Value = Self.findEstablishedValue(for: npc1.name, in: comments, topic: topic)
+                        ?? Self.extractValue(from: baseComment.text, topic: topic)
+                        ?? rootValue
                     var npc2Value: String? = nil
                     
                     var isNpc2Turn = true
@@ -2147,7 +2158,6 @@ public struct MockSocialService: SocialService, Sendable {
                         if npc2 == nil {
                             if Double.random(in: 0...1) < 0.6 {
                                 npc2 = (name: author, avatar: authorAvatar)
-                                npc2Value = rootValue
                             } else {
                                 let replyIndex = Int.random(in: 1...100000)
                                 var rName = generateDynamicName()
@@ -2155,6 +2165,10 @@ public struct MockSocialService: SocialService, Sendable {
                                     rName = generateDynamicName()
                                 }
                                 npc2 = (name: rName, avatar: Self.avatarForPlayer(index: replyIndex, countrySeed: 0, day: currentDay))
+                            }
+                            npc2Value = Self.findEstablishedValue(for: npc2!.name, in: comments, topic: topic)
+                            if npc2Value == nil && npc2!.name == author {
+                                npc2Value = rootValue
                             }
                         }
                         
@@ -2208,6 +2222,9 @@ public struct MockSocialService: SocialService, Sendable {
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
+                            if let extracted = Self.extractValue(from: replyText, topic: topic) {
+                                npc2Value = extracted
+                            }
                             npc2PreviousComment = replyText
                             let replyOffset = Self.requiredTimeDelay(from: npc1Value, to: npc2Value, topic: topic)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -2261,6 +2278,9 @@ public struct MockSocialService: SocialService, Sendable {
                             
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
+                            if let extracted = Self.extractValue(from: replyText, topic: topic) {
+                                npc1Value = extracted
+                            }
                             npc1PreviousComment = replyText
                             let replyOffset = Self.requiredTimeDelay(from: npc2Value, to: npc1Value, topic: topic)
                             let replyCreatedAt = lastComment.createdAt.addingTimeInterval(replyOffset)
@@ -3190,13 +3210,13 @@ public struct MockSocialService: SocialService, Sendable {
                 if Double.random(in: 0...1) < 0.80 {
                     var closersWithWeights: [(String, Double)] = [
                         ("Don't bother trying.", 0.6),
-                        ("I'm tiers ahead.", 2.4),
-                        ("I reign supreme.", 0.2),
-                        ("Keep dreaming.", 17.5),
+                        ("I'm tiers ahead.", 1.4),
+                        ("I'm unreachable.", 4.2),
+                        ("Keep dreaming.", 15.5),
                         ("You're no threat.", 17.5),
                         ("Your stats are completely irrelevant.", 8.1),
                         ("You're not reaching my stats.", 6.3),
-                        ("Stay down there.", 12.7),
+                        ("Stay down there.", 11.7),
                         ("This record belongs to me.", 1.8),
                         ("Don't bother comparing.", 2.5),
                         ("You couldn't catch me if you tried.", 16),

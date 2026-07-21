@@ -243,9 +243,9 @@ extension MockSocialService {
                 let weightedReplies: [(String, Double)] = [
                     ("I am comfortably ahead of your \(lower) days. I'm at \(higher) days.", 6.0),
                     ("I'm way past \(lower) days. I am sitting at \(higher) days.", 0.24),
-                    ("Your \(lower) days is nothing compared to my \(higher) days record.", 2.76),
+                    ("Your \(lower) days is nothing compared to my \(higher) days.", 2.76),
                     ("I easily passed \(lower) days. I dominate \(higher) days.", 8.0),
-                    ("Your \(lower) days is child's play compared to my \(higher) days record.", 6.0),
+                    ("Your \(lower) days is child's play compared to my \(higher) days.", 6.0),
                     ("\(lower) days is a joke. I'm already sitting at \(higher) days.", 5.0),
                     ("You're celebrating \(lower) days? I already cleared \(higher) days.", 44.0),
                     ("I left \(lower) days in the dust. \(higher) days is the new standard.", 9.0),
