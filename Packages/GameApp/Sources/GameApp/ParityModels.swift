@@ -1726,11 +1726,13 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if let n1Val = npc1Value, let n2Val = npc2Value {
                             if Self.isRecord(n2Val, worseThan: n1Val, topic: topic) {
-                                if Double.random(in: 0...1) < 0.70 {
+                                if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                if topic == "time" {
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                }
                             }
                         }
                         
@@ -1777,11 +1779,13 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if let n1Val = npc1Value, let n2Val = npc2Value, !npc1JustLostStreak {
                             if Self.isRecord(n1Val, worseThan: n2Val, topic: topic) {
-                                if Double.random(in: 0...1) < 0.70 {
+                                if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                     npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
                             } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                if topic == "time" {
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                }
                             }
                         }
                         
@@ -2177,11 +2181,13 @@ public struct MockSocialService: SocialService, Sendable {
                             
                             if let n1Val = npc1Value, let n2Val = npc2Value {
                                 if Self.isRecord(n2Val, worseThan: n1Val, topic: topic) {
-                                    if Double.random(in: 0...1) < 0.70 {
+                                    if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
                                 } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                    if topic == "time" {
+                                        npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
+                                    }
                                 }
                             }
                             
@@ -2228,11 +2234,13 @@ public struct MockSocialService: SocialService, Sendable {
                             
                             if let n1Val = npc1Value, let n2Val = npc2Value, !npc1JustLostStreak {
                                 if Self.isRecord(n1Val, worseThan: n2Val, topic: topic) {
-                                    if Double.random(in: 0...1) < 0.70 {
+                                    if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                         npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                     }
                                 } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                    if topic == "time" {
+                                        npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
+                                    }
                                 }
                             }
                             
