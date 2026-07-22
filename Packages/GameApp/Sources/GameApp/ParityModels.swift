@@ -1733,9 +1733,7 @@ public struct MockSocialService: SocialService, Sendable {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                if topic == "time" {
-                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
-                                }
+                                npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                             }
                         }
                         
@@ -1789,9 +1787,7 @@ public struct MockSocialService: SocialService, Sendable {
                                     npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
                             } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                if topic == "time" {
-                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
-                                }
+                                npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                             }
                         }
                         
@@ -2199,9 +2195,7 @@ public struct MockSocialService: SocialService, Sendable {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
                                 } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                    if topic == "time" {
-                                        npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
-                                    }
+                                    npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             }
                             
@@ -2255,9 +2249,7 @@ public struct MockSocialService: SocialService, Sendable {
                                         npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                     }
                                 } else if n1Val == n2Val && tieRepliesCount >= 2 {
-                                    if topic == "time" {
-                                        npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
-                                    }
+                                    npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
                             }
                             
@@ -3373,7 +3365,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "I told you that consistency would break. Now my \(myDays) days completely buries your \(cN) days."
                 ]
                 let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak_lost", count: templates.count)
-                return (templates[idx], higherName, String(myDays))
+                return (templates[idx], nil, String(myDays))
             } else if let streakDays = Self.extractNumber(from: message, near: ["day", "streak", "consecutive", "straight", "running"]) {
                 let isLowStreak = false
                 if isLowStreak && streakDays > 1 {
@@ -3403,7 +3395,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ]
                     }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
-                    return (templates[idx], higherName, String(lowerDays))
+                    return (templates[idx], nil, String(lowerDays))
                 } else {
                     let isMassiveGap = Bool.random()
                     var myDays = streakDays + (isMassiveGap ? Int.random(in: streakDays * 3...streakDays * 8 + 50) : Int.random(in: 5...max(10, streakDays / 2)))
@@ -3426,7 +3418,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
                     }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
-                    return (templates[idx], higherName, String(myDays))
+                    return (templates[idx], nil, String(myDays))
                 }
             }
         }
@@ -3450,7 +3442,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Only at \(slowerTime) right now, but I'll catch your \(posterTime) soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], higherName, slowerTime)
+                    return (templates[idx], nil, slowerTime)
                 } else {
                     // Brag about having a FASTER clear time (lower = better)
                     let isMassiveGap = Bool.random()
@@ -3483,7 +3475,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I easily clock \(myTime).",
                         "You'll never reach my \(myTime).",
                     ]
-                    if totalSecs - myTotal >= 3 {
+                    if totalSecs - myTotal >= 180 {
                         templates.append("I am leagues faster. My record is \(myTime).")
                     }
                     if myTotal <= totalSecs / 2 {
@@ -3491,7 +3483,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
                     }
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], higherName, myTime)
+                    return (templates[idx], nil, myTime)
                 }
             }
         }
@@ -3511,7 +3503,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Only at \(lowerCount) infinities right now, but I'll catch your \(infCount) soon."
                     ]
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_hof", count: templates.count)
-                    return (templates[idx], higherName, String(lowerCount))
+                    return (templates[idx], nil, String(lowerCount))
                 } else {
                     let isMassiveGap = Bool.random()
                     var myCount = infCount + (isMassiveGap ? Int.random(in: infCount * 3...infCount * 8 + 100) : Int.random(in: 1...max(3, infCount)))
@@ -3535,7 +3527,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else {
                         idx = 2
                     }
-                    return (templates[idx], higherName, String(myCount))
+                    return (templates[idx], nil, String(myCount))
                 }
             }
         }
@@ -3562,7 +3554,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     templates.append("You're only at \(posterTier) while I dominate with \(myTier).")
                 }
                 let idx = Self.drawIndexFromBag(key: "\(bagKey)_quest", count: templates.count)
-                return (templates[idx], higherName, myTier)
+                return (templates[idx], nil, myTier)
             }
         }
 
@@ -3573,11 +3565,17 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let oneMIndex = Self.allMilestones.firstIndex(of: "1M") ?? 0
                 let remaining = Self.allMilestones.count - 1 - originalIdx
                 
+                func claimLeaderboardName(_ rawName: String?) -> String? {
+                    guard let name = rawName, !usedStats.contains("author_\(name)") else { return nil }
+                    usedStats.insert("author_\(name)")
+                    return name
+                }
+                
                 if originalIdx >= oneMIndex && (lowered.contains("ran out") || lowered.contains("no moves") || lowered.contains("game over") || lowered.contains("stuck") || lowered.contains("lost my run") || lowered.contains("died")) {
                     if remaining >= 10 && Double.random(in: 0...1) < 0.15 {
                         let wayBehindJump = Int.random(in: 10...min(20, remaining))
                         let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
-                        let realName = Self.leaderboardPlayerAtMilestone(wayBehindM)
+                        let realName = claimLeaderboardName(Self.leaderboardPlayerAtMilestone(wayBehindM))
                         return ("You are infinitely behind. I'm already at \(wayBehindM).", realName, wayBehindM)
                     }
                     
@@ -3592,7 +3590,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Dead end? Your skill is a joke. I'm dominating with \(localHigherM).",
                         "Imagine stopping at \(m). I'm comfortably sitting at \(localHigherM)."
                     ]
-                    let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
+                    let realName = claimLeaderboardName(Self.leaderboardPlayerAtMilestone(localHigherM))
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_milestone_lost", count: templates.count)
                     return (templates[idx], realName, localHigherM)
                 } else if isLowMilestone && originalIdx > 0 {
@@ -3606,14 +3604,14 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Hit \(localLowerM) easily. I'll overtake your \(m) soon.",
                         "Only at \(localLowerM) right now, but I'll catch your \(m) soon."
                     ]
-                    let realName = Self.leaderboardPlayerAtMilestone(localLowerM)
+                    let realName = claimLeaderboardName(Self.leaderboardPlayerAtMilestone(localLowerM))
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
                     return (templates[idx], realName, localLowerM)
                 } else if originalIdx + 1 < Self.allMilestones.count {
                     if remaining >= 10 && Double.random(in: 0...1) < 0.15 {
                         let wayBehindJump = Int.random(in: 10...min(20, remaining))
                         let wayBehindM = Self.allMilestones[originalIdx + wayBehindJump]
-                        let realName = Self.leaderboardPlayerAtMilestone(wayBehindM)
+                        let realName = claimLeaderboardName(Self.leaderboardPlayerAtMilestone(wayBehindM))
                         return ("You are infinitely behind. I'm already at \(wayBehindM).", realName, wayBehindM)
                     }
                     
@@ -3636,7 +3634,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "I easily reached \(localHigherM).",
                         "\(localHigherM) is my floor."
                     ]
-                    let realName = Self.leaderboardPlayerAtMilestone(localHigherM)
+                    let realName = claimLeaderboardName(Self.leaderboardPlayerAtMilestone(localHigherM))
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_tile", count: templates.count)
                     return (templates[idx], realName, localHigherM)
                 }
@@ -5088,7 +5086,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 if totalSecs > 30 {
                                     templates.append("Your \(posterTime) was my practice run. I'm down to \(higherTime).")
                                 }
-                                if diff >= 3 {
+                                if diff >= 60 {
                                     templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
                                 }
                                 if diff >= 10 && commentIsCompetitive && commentText != message {
@@ -5145,7 +5143,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         if assumedTotal > 30 {
                             templates.append("Your \(posterTime) was my practice run. I'm down to \(higherTime).")
                         }
-                        if diff >= 3 {
+                        if diff >= 60 {
                             templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
                         }
                         if diff >= 10 && commentIsCompetitive && commentText != message {

@@ -239,11 +239,39 @@ struct ParityModelsTests {
             #expect(!reply.lowercased().contains("too slow"), "Should not contain 'too slow' when commenting on a 7s post: \(reply)")
         }
 
-        // Test Case 4: Gap of 1 or 2 seconds -> "leagues faster" should NOT be used.
+        // Test Case 4: Gap of less than 60 seconds -> "leagues faster" should NOT be used.
         for _ in 0..<50 {
-            let reply = service.generateContextualReply(to: "beat you 0:08", message: "0:06", forceTone: "one_up")
-            #expect(!reply.lowercased().contains("leagues faster"), "Should not contain 'leagues faster' when gap is 2s: \(reply)")
+            let reply = service.generateContextualReply(to: "beat you 1:30", message: "1:30", forceTone: "one_up", speakerValue: "1:00")
+            #expect(!reply.lowercased().contains("leagues faster"), "Should not contain 'leagues faster' when gap is under 60s: \(reply)")
         }
+    }
+
+    @Test("Verify leagues faster thresholds (60s+ for one_up)")
+    func testLeaguesFasterThresholds() async throws {
+        let service = MockSocialService()
+
+        // 1. One up reply with gap < 60s (30s gap: 1:30 vs 1:00) -> NO "leagues faster"
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(to: "I cleared 1:30.", message: "I cleared 1:30.", forceTone: "one_up", speakerValue: "1:00")
+            #expect(!reply.lowercased().contains("leagues faster"), "Should not contain 'leagues faster' for 30s gap: \(reply)")
+        }
+
+        // 2. One up reply with gap < 60s (59s gap: 1:59 vs 1:00) -> NO "leagues faster"
+        for _ in 0..<50 {
+            let reply = service.generateContextualReply(to: "I cleared 1:59.", message: "I cleared 1:59.", forceTone: "one_up", speakerValue: "1:00")
+            #expect(!reply.lowercased().contains("leagues faster"), "Should not contain 'leagues faster' for 59s gap: \(reply)")
+        }
+
+        // 3. One up reply with gap >= 60s (90s gap: 2:30 vs 1:00) -> CAN contain "leagues faster"
+        var sawLeaguesOneUp = false
+        for _ in 0..<100 {
+            let reply = service.generateContextualReply(to: "I cleared 2:30.", message: "I cleared 2:30.", forceTone: "one_up", speakerValue: "1:00")
+            if reply.lowercased().contains("leagues faster") {
+                sawLeaguesOneUp = true
+                break
+            }
+        }
+        #expect(sawLeaguesOneUp, "Should generate 'leagues faster' for one up reply when gap >= 60s")
     }
 
     private func isTooLowMilestoneReply(_ reply: String) -> Bool {
