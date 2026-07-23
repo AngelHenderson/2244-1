@@ -2551,8 +2551,10 @@ public final class GameStore {
             
             self.hammerAnimationState = HammerAnimationState(target: position, phase: .impact, startedAt: Date())
 
+            let gemsBeforeHammer = self.sandboxed ? self.state.gems : UserDefaults.standard.integer(forKey: "coins")
             let hammeredState = self.engine.hammer(at: position, applyGravity: false)
             self.state = hammeredState
+            self.state.gems = gemsBeforeHammer > 0 ? gemsBeforeHammer : hammeredState.gems
             
             do {
                 try await Task.sleep(nanoseconds: Self.hammerImpactDelay)
@@ -2568,8 +2570,10 @@ public final class GameStore {
             }
             
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                let gemsBeforeDrop = self.sandboxed ? self.state.gems : UserDefaults.standard.integer(forKey: "coins")
                 let dropState = self.engine.collapseColumns([position.col])
                 self.state = dropState
+                self.state.gems = gemsBeforeDrop > 0 ? gemsBeforeDrop : dropState.gems
             }
             
             do {
@@ -2665,9 +2669,11 @@ public final class GameStore {
             }
 
             self.engine.deferElimination = true
+            let gemsBeforeMagnet = self.sandboxed ? self.state.gems : UserDefaults.standard.integer(forKey: "coins")
             let magnetResult = self.engine.magnetize(value: value, to: position)
             self.engine.deferElimination = false
             self.state = magnetResult
+            self.state.gems = gemsBeforeMagnet > 0 ? gemsBeforeMagnet : magnetResult.gems
             self.processPendingRewards()
 
             // Store any deferred elimination tiles
