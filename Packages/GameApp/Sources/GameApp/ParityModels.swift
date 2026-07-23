@@ -1251,7 +1251,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v61"
+    public static let feedDateKey = "socialFeed.cacheDate.v60"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v7"
 
@@ -1264,7 +1264,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v61.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v60.json")
     }
     
     private static var userPostsURL: URL {
@@ -1732,7 +1732,7 @@ public struct MockSocialService: SocialService, Sendable {
                                 if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
-                            } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                            } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
                                 npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                             }
                         }
@@ -1786,7 +1786,7 @@ public struct MockSocialService: SocialService, Sendable {
                                 if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                     npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
-                            } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                            } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
                                 npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                             }
                         }
@@ -2194,7 +2194,7 @@ public struct MockSocialService: SocialService, Sendable {
                                     if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
-                                } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                                } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             }
@@ -2248,7 +2248,7 @@ public struct MockSocialService: SocialService, Sendable {
                                     if topic == "time" && Double.random(in: 0...1) < 0.70 {
                                         npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                     }
-                                } else if n1Val == n2Val && tieRepliesCount >= 2 {
+                                } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
                                     npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
                             }
@@ -3169,8 +3169,8 @@ public struct MockSocialService: SocialService, Sendable {
                         ("Not worth my time.", 0.6),
                         ("Unimpressive.", 1.0),
                         ("Not impressed.", 1.0),
-                        ("That's cute.", 23.5),
-                        ("That's no progress.", 2.0),
+                        ("That's cute.", 20.5),
+                        ("That's no progress.", 5.0),
                         ("That's a joke.", 7.2),
                         ("Imagine celebrating that.", 9.4),
                         ("Is that all?", 1.0),
@@ -4138,23 +4138,23 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     useValueFree = true
                 }
             }
-            if useValueFree {
-                let activeTone: String
-                if let fTone = forceTone {
-                    activeTone = fTone
+            let activeTone: String
+            if let fTone = forceTone {
+                activeTone = fTone
+            } else {
+                let isBehind: Bool
+                let isEqual: Bool
+                if let sVal = speakerValue, let oVal = opponentValue {
+                    isBehind = Self.isRecord(sVal, worseThan: oVal, topic: msgTopic)
+                    isEqual = sVal == oVal
                 } else {
-                    let isBehind: Bool
-                    let isEqual: Bool
-                    if let sVal = speakerValue, let oVal = opponentValue {
-                        isBehind = Self.isRecord(sVal, worseThan: oVal, topic: msgTopic)
-                        isEqual = sVal == oVal
-                    } else {
-                        isBehind = false
-                        isEqual = false
-                    }
-                    activeTone = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
+                    isBehind = false
+                    isEqual = false
                 }
-                
+                activeTone = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
+            }
+
+            if useValueFree && activeTone != "caught_up" {
                 let isMassiveGap: Bool = {
                     guard let sVal = speakerValue, let oVal = opponentValue else { return false }
                     switch msgTopic {

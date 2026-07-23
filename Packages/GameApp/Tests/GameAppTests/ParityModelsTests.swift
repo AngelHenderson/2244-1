@@ -1625,10 +1625,10 @@ struct ParityModelsTests {
         #expect(delayEqual >= 60.0 && delayEqual <= 120.0)
     }
 
-    @Test("Verify that a competitive thread breaks ties after 2 tie replies")
+    @Test("Verify that a competitive thread breaks ties after 1 tie reply")
     func testTieBreakerInCompetitiveThreads() async throws {
         // We will run multiple simulations to verify that in any competitive thread generated,
-        // we never have more than 2 consecutive tie replies.
+        // we never have more than 1 consecutive tie reply.
         for _ in 0..<30 {
             let service = MockSocialService()
             try await service.postEvent(message: "Unlocked milestone 1024.", statText: "New tile")
@@ -1645,7 +1645,7 @@ struct ParityModelsTests {
                     if let prev = lastVal {
                         if val == prev {
                             tieCount += 1
-                            #expect(tieCount <= 2, "Found \(tieCount) consecutive ties in chain: \(chain.map { $0.text })")
+                            #expect(tieCount <= 1, "Found \(tieCount) consecutive ties in chain: \(chain.map { $0.text })")
                         } else {
                             tieCount = 0
                         }
