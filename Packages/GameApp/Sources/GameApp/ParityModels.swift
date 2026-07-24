@@ -871,17 +871,17 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
 
-        let hasTimeFormatRoot = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: msgLower, range: NSRange(msgLower.startIndex..., in: msgLower)) != nil
+        let hasTimeFormatRoot = Self.extractTime(from: message) != nil
         let isMessageTime = hasTimeFormatRoot || ((msgLower.contains("timed") || msgLower.contains("challenge") || !msgWords.isDisjoint(with: ["sec", "secs", "min", "mins", "compete"])) && !rootMilestoneExists)
         let isMessageHoF = msgLower.contains("hall of fame") || msgLower.contains("infinity") || msgLower.contains("infinities") || !msgWords.isDisjoint(with: ["hof", "infinit"])
         let isMessageStreak = !msgWords.isDisjoint(with: ["streak", "day", "days", "consecutive"]) || msgLower.contains("streak")
 
         if isMessageHoF {
             return "hof"
-        } else if isMessageTime {
-            return "time"
         } else if isMessageStreak {
             return "streak"
+        } else if isMessageTime {
+            return "time"
         } else {
             return "milestone"
         }
@@ -919,8 +919,10 @@ public struct MockSocialService: SocialService, Sendable {
             if let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})") {
                 let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
                 for m in regexMatches {
-                    let val = nsText.substring(with: m.range)
-                    matches.append((val: val, range: m.range))
+                    if !isClockTimeMatch(in: text, range: m.range) {
+                        let val = nsText.substring(with: m.range)
+                        matches.append((val: val, range: m.range))
+                    }
                 }
             }
             
@@ -999,7 +1001,7 @@ public struct MockSocialService: SocialService, Sendable {
         // Score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
         let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "posted"]
-        let otherKeywords = ["your", "you're", "celebrating"]
+        let otherKeywords = ["your", "you're", "celebrating", "back to", "restarting from", "restart from"]
         
         func getClausePrefix(from text: String, startLoc: Int, mentionLength: Int) -> String {
             let prefixLen = min(80, startLoc - mentionLength)
@@ -3132,7 +3134,7 @@ public struct MockSocialService: SocialService, Sendable {
             if (forceBehind || Double.random(in: 0...1) < 0.45) && !isLostEvent {
                 // ── Behind (45% of competitive) — with behind opener and closer ──
                 let compBehindOpeners = [
-                    "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
+                    "I'm lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
                 ]
                 let compBehindClosers = [
                     "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
@@ -3315,7 +3317,18 @@ public struct MockSocialService: SocialService, Sendable {
         return text + symbol
     }
 
-    // MARK: - Truthful competitive comments
+    func generateTruthfulCompetitiveComment(to message: String) -> (String, String?, String?) {
+        var usedStats: Set<String> = []
+        let competitiveReactions = [
+            "I am grinding right now to pass you.",
+            "Your lead is temporary.",
+            "I'm already closing the gap.",
+            "My next run is going to crush that.",
+            "I'm targeting the top spot.",
+            "Just give me a little more time."
+        ]
+        return generateTruthfulCompetitive(message: message, pool: competitiveReactions, bagKey: "test", usedStats: &usedStats)
+    }
 
 private func generateTruthfulCompetitive(message: String, pool: [String], bagKey: String, usedStats: inout Set<String>) -> (String, String?, String?) {
         let lowered = message.lowercased()
@@ -3405,20 +3418,30 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         attempts += 1
                     }
                     usedStats.insert("streak_\(myDays)")
-                    var templates = [
-                        "I'm comfortably sitting at \(myDays) days.",
-                        "Your \(streakDays) days are irrelevant. I'm at \(myDays) days.",
-                        "I dominate eternity. I'm already at \(myDays) days.",
-                        "\(streakDays) days is cute. I'm at \(myDays) days.",
-                        "My infinite consistency is at \(myDays) days.",
-                        "You'll never touch my \(myDays) days.",
+                    var streakTemplatesWithWeights: [(String, Double)] = [
+                        ("I'm comfortably sitting at \(myDays) days.", 1.0),
+                        ("Your \(streakDays) days are irrelevant. I'm at \(myDays) days.", 4.0),
+                        ("I dominate eternity. I'm already at \(myDays) days.", 24.0),
+                        ("\(streakDays) days is cute. I'm at \(myDays) days.", 57.0),
+                        ("My infinite consistency is at \(myDays) days.", 13.0),
+                        ("You'll never touch my \(myDays) days.", 15.0)
                     ]
                     if myDays >= streakDays * 2 {
-                        templates.append("Your \(streakDays) days are meaningless against my \(myDays) days.")
-                        templates.append("You're entirely left behind at \(streakDays) days while I'm at \(myDays).")
+                        streakTemplatesWithWeights.append(("Your \(streakDays) days are meaningless against my \(myDays) days.", 10.0))
+                        streakTemplatesWithWeights.append(("You're entirely left behind at \(streakDays) days while I'm at \(myDays).", 10.0))
                     }
-                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_streak", count: templates.count)
-                    return (templates[idx], nil, String(myDays))
+                    let totalStreakWeight = streakTemplatesWithWeights.reduce(0) { $0 + $1.1 }
+                    let randomVal = Double.random(in: 0..<totalStreakWeight)
+                    var cumulativeStreakWeight = 0.0
+                    var selectedTemplate = streakTemplatesWithWeights.last!.0
+                    for (template, weight) in streakTemplatesWithWeights {
+                        cumulativeStreakWeight += weight
+                        if randomVal < cumulativeStreakWeight {
+                            selectedTemplate = template
+                            break
+                        }
+                    }
+                    return (selectedTemplate, nil, String(myDays))
                 }
             }
         }
@@ -3468,22 +3491,32 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let myMins = myTotal / 60
                     let mySecs = myTotal % 60
                     let myTime = "\(myMins):\(String(format: "%02d", mySecs))"
-                    var templates = [
-                        "Your \(posterTime) is irrelevant. I clear it in \(myTime).",
-                        "My clears have been unrivaled since \(myTime).",
-                        "Only \(posterTime)? I'm sitting at \(myTime).",
-                        "I easily clock \(myTime).",
-                        "You'll never reach my \(myTime).",
+                    var timeTemplatesWithWeights: [(String, Double)] = [
+                        ("Your \(posterTime) is irrelevant. I clear it in \(myTime).", 5.0),
+                        ("My clears have been unrivaled since \(myTime).", 3.0),
+                        ("Only \(posterTime)? I'm sitting at \(myTime).", 73.0),
+                        ("I easily clock \(myTime).", 2.0),
+                        ("You'll never reach my \(myTime).", 17.0)
                     ]
                     if totalSecs - myTotal >= 180 {
-                        templates.append("I am leagues faster. My record is \(myTime).")
+                        timeTemplatesWithWeights.append(("I am leagues faster. My record is \(myTime).", 10.0))
                     }
                     if myTotal <= totalSecs / 2 {
-                        templates.append("Your \(posterTime) is a joke compared to my \(myTime).")
-                        templates.append("You're entirely left behind at \(posterTime) while I clock \(myTime).")
+                        timeTemplatesWithWeights.append(("Your \(posterTime) is a joke compared to my \(myTime).", 10.0))
+                        timeTemplatesWithWeights.append(("You're entirely left behind at \(posterTime) while I clock \(myTime).", 10.0))
                     }
-                    let idx = Self.drawIndexFromBag(key: "\(bagKey)_time", count: templates.count)
-                    return (templates[idx], nil, myTime)
+                    let totalTimeWeight = timeTemplatesWithWeights.reduce(0) { $0 + $1.1 }
+                    let randomVal = Double.random(in: 0..<totalTimeWeight)
+                    var cumulativeTimeWeight = 0.0
+                    var selectedTemplate = timeTemplatesWithWeights.last!.0
+                    for (template, weight) in timeTemplatesWithWeights {
+                        cumulativeTimeWeight += weight
+                        if randomVal < cumulativeTimeWeight {
+                            selectedTemplate = template
+                            break
+                        }
+                    }
+                    return (selectedTemplate, nil, myTime)
                 }
             }
         }
@@ -3714,6 +3747,31 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         return nil
     }
 
+    private static func isClockTimeMatch(in text: String, range: NSRange) -> Bool {
+        let nsText = text as NSString
+        let afterStart = range.location + range.length
+        if afterStart < nsText.length {
+            let remainder = nsText.substring(from: afterStart).trimmingCharacters(in: .whitespaces).lowercased()
+            if remainder.hasPrefix("am") || remainder.hasPrefix("pm") || remainder.hasPrefix("a.m") || remainder.hasPrefix("p.m") || remainder.hasPrefix("o'clock") {
+                return true
+            }
+        }
+        if range.location > 0 {
+            let loc = max(0, range.location - 10)
+            let len = range.location - loc
+            let before = nsText.substring(with: NSRange(location: loc, length: len)).lowercased()
+            if before.contains("at ") || before.contains("past ") || before.contains("around ") || before.contains("until ") || before.contains("before ") {
+                if afterStart < nsText.length {
+                    let remainder = nsText.substring(from: afterStart).trimmingCharacters(in: .whitespaces).lowercased()
+                    if remainder.hasPrefix("am") || remainder.hasPrefix("pm") || remainder.hasPrefix("a.m") || remainder.hasPrefix("p.m") || remainder.hasPrefix("o'clock") {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
     /// Extracts a time in M:SS format from the message. Returns (minutes, seconds).
     private static func extractTime(from text: String) -> (Int, Int)? {
         let pattern = try? NSRegularExpression(pattern: "(\\d{1,2}):(\\d{2})")
@@ -3723,6 +3781,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         var bestTotal = Int.max
         
         for match in matches {
+            if isClockTimeMatch(in: text, range: match.range) {
+                continue
+            }
             if let mRange = Range(match.range(at: 1), in: text),
                let sRange = Range(match.range(at: 2), in: text),
                let mins = Int(text[mRange]),
@@ -3919,7 +3980,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         
         let combinedWords = Set(combinedLower.components(separatedBy: .whitespacesAndNewlines.union(.punctuationCharacters)))
         
-        let hasTimeFormat = (try? NSRegularExpression(pattern: "\\b\\d{1,2}:\\d{2}\\b"))?.firstMatch(in: combinedLower, range: NSRange(combinedLower.startIndex..., in: combinedLower)) != nil
+        let hasTimeFormat = Self.extractTime(from: combinedLower) != nil
         var mentionedTime = hasTimeFormat || !combinedWords.isDisjoint(with: ["time", "fast", "speed", "quick", "sec", "min", "mins", "clock", "timed", "seconds", "minutes"])
         var mentionedStreak = !combinedWords.isDisjoint(with: ["streak", "day", "days", "consecutive"])
         var mentionedHoF = combinedLower.contains("hall of fame") || combinedLower.contains("infinity") || combinedLower.contains("infinities") || !combinedWords.isDisjoint(with: ["hof", "infinit"])
@@ -3945,7 +4006,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = !isForcedCompetitive && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "one-sided", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "compared to"]
+        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "compared to"]
         var isCompetitive = isForcedCompetitive || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -3986,9 +4047,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             var reply = getWeightedReply()
             if Double.random(in: 0...1) < 0.45 * 0.86 {
                 let compBehindOpenersWithWeights: [(String, Double)] = [
-                    ("I might be lower right now.", 3.0),
-                    ("You're ahead for now.", 82.0),
-                    ("Enjoy the lead while it lasts.", 15.0)
+                    ("I'm lower right now.", 15.0),
+                    ("You're ahead for now.", 74.0),
+                    ("Enjoy the lead while it lasts.", 9.0)
                 ]
                 let totalOpenerWeight = compBehindOpenersWithWeights.reduce(0) { $0 + $1.1 }
                 let randomOpenerVal = Double.random(in: 0..<totalOpenerWeight)
@@ -4019,10 +4080,12 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 }
                 
                 let behindCompReactionsWithWeights: [(String, Double)] = [
-                    ("Add me so you can watch me catch up.", 19.0),
-                    ("Add me! I'm grinding right now to pass you.", 7.0),
-                    ("Sure, add me. Your lead is temporary.", 67.0),
-                    ("Add me! I'm already closing the gap.", 7.0)
+                    ("I am grinding right now to pass you.", 14.0),
+                    ("Your lead is temporary.", 7.0),
+                    ("I'm already closing the gap.", 8.0),
+                    ("My next run is going to crush that.", 3.0),
+                    ("I'm targeting the top spot.", 67.5),
+                    ("Just give me a little more time.", 0.5)
                 ]
                 let totalWeight = behindCompReactionsWithWeights.reduce(0) { $0 + $1.1 }
                 let randomVal = Double.random(in: 0..<totalWeight)
@@ -5074,27 +5137,31 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "You are no threat. I'm sitting comfortably at \(higherTime).",
                                     "I never stop climbing. \(higherTime) is already done."
                                 ])
-                            } else {
                                 let diff = totalSecs - higherNum
-                                var templates = [
-                                    "Your \(posterTime) time is cute. I clear it in \(higherTime).",
-                                    "I easily passed your time. My record is \(higherTime).",
-                                    "I shaved time off your \(posterTime). My best is \(higherTime).",
-                                    "You call \(posterTime) fast? I'm already down to \(higherTime).",
-                                    "I speedrun easily. \(higherTime) destroys your \(posterTime)."
+                                var templatesWithWeights: [(String, Double)] = [
+                                    ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 71.0),
+                                    ("I easily passed your time. My record is \(higherTime).", 2.0),
+                                    ("I shaved time off your \(posterTime). My best is \(higherTime).", 7.0),
+                                    ("You call \(posterTime) fast? I'm already down to \(higherTime).", 6.0),
+                                    ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 14.0)
                                 ]
                                 if totalSecs > 30 {
-                                    templates.append("Your \(posterTime) was my practice run. I'm down to \(higherTime).")
+                                    templatesWithWeights.append(("Your \(posterTime) was my practice run. I'm down to \(higherTime).", 5.0))
                                 }
                                 if diff >= 60 {
-                                    templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
+                                    templatesWithWeights.append(("I am leagues faster than your \(posterTime). I'm at \(higherTime).", 10.0))
                                 }
                                 if diff >= 10 && commentIsCompetitive && commentText != message {
-                                    templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
+                                    templatesWithWeights.append(("\(posterTime) is too slow. I just clocked \(higherTime).", 10.0))
                                 } else {
-                                    templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
+                                    templatesWithWeights.append(("\(posterTime) is close, but I just clocked \(higherTime).", 10.0))
                                 }
-                                replies.append(contentsOf: templates)
+                                let filteredList = templatesWithWeights.filter { item in
+                                    guard let prev = previousSelfComment else { return true }
+                                    return !prev.contains(item.0) && !item.0.contains(prev)
+                                }
+                                let targetList = filteredList.isEmpty ? templatesWithWeights : filteredList
+                                replies.append(Self.pickWeighted(targetList))
                             }
                         }
                 } else {
@@ -5133,25 +5200,30 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         ])
                     } else {
                         let diff = assumedTotal - higherNum
-                        var templates = [
-                            "Your \(posterTime) time is cute. I clear it in \(higherTime).",
-                            "I easily passed your time. My record is \(higherTime).",
-                            "I shaved time off your \(posterTime). My best is \(higherTime).",
-                            "You call \(posterTime) fast? I'm already down to \(higherTime).",
-                            "I speedrun easily. \(higherTime) destroys your \(posterTime)."
+                        var templatesWithWeights: [(String, Double)] = [
+                            ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 27.0),
+                            ("I easily passed your time. My record is \(higherTime).", 2.0),
+                            ("I shaved time off your \(posterTime). My best is \(higherTime).", 7.0),
+                            ("You call \(posterTime) fast? I'm already down to \(higherTime).", 6.0),
+                            ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 58.0)
                         ]
                         if assumedTotal > 30 {
-                            templates.append("Your \(posterTime) was my practice run. I'm down to \(higherTime).")
+                            templatesWithWeights.append(("Your \(posterTime) was my practice run. I'm down to \(higherTime).", 5.0))
                         }
                         if diff >= 60 {
-                            templates.append("I am leagues faster than your \(posterTime). I'm at \(higherTime).")
+                            templatesWithWeights.append(("I am leagues faster than your \(posterTime). I'm at \(higherTime).", 10.0))
                         }
                         if diff >= 10 && commentIsCompetitive && commentText != message {
-                            templates.append("\(posterTime) is too slow. I just clocked \(higherTime).")
+                            templatesWithWeights.append(("\(posterTime) is too slow. I just clocked \(higherTime).", 10.0))
                         } else {
-                            templates.append("\(posterTime) is close, but I just clocked \(higherTime).")
+                            templatesWithWeights.append(("\(posterTime) is close, but I just clocked \(higherTime).", 10.0))
                         }
-                        replies.append(contentsOf: templates)
+                        let filteredList = templatesWithWeights.filter { item in
+                            guard let prev = previousSelfComment else { return true }
+                            return !prev.contains(item.0) && !item.0.contains(prev)
+                        }
+                        let targetList = filteredList.isEmpty ? templatesWithWeights : filteredList
+                        replies.append(Self.pickWeighted(targetList))
                     }
                 }
             }
@@ -5292,21 +5364,38 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
             // Generic competitive
             if replies.isEmpty {
                 if forceTone == "behind" {
-                    let compBehindOpeners = [
-                        "I might be lower right now.", "You're ahead for now.", "Enjoy the lead while it lasts."
+                    let compBehindOpenersWithWeights: [(String, Double)] = [
+                        ("I'm lower right now.", 15.0),
+                        ("You're ahead for now.", 74.0),
+                        ("Enjoy the lead while it lasts.", 9.0)
                     ]
-                    let compBehindClosers = [
-                        "I'm coming for that spot.", "Watch your back.", "I will overtake you soon."
+                    let compBehindClosersWithWeights: [(String, Double)] = [
+                        ("I'm coming for that spot.", 68.0),
+                        ("Watch your back.", 27.0),
+                        ("I will overtake you soon.", 5.0)
                     ]
-                    let behindCompReactions = [
-                        "I am grinding right now to pass you.",
-                        "Your lead is temporary.",
-                        "I'm already closing the gap.",
-                        "My next run is going to crush that.",
-                        "I'm targeting the top spot.",
-                        "Just give me a little more time."
+                    let behindCompReactionsWithWeights: [(String, Double)] = [
+                        ("I am grinding right now to pass you.", 14.0),
+                        ("Your lead is temporary.", 7.0),
+                        ("I'm already closing the gap.", 8.0),
+                        ("My next run is going to crush that.", 3.0),
+                        ("I'm targeting the top spot.", 67.5),
+                        ("Just give me a little more time.", 0.5)
                     ]
-                    replies.append("\(compBehindOpeners.randomElement()!)  \(behindCompReactions.randomElement()!)  \(compBehindClosers.randomElement()!)")
+                    let drawWeighted = { (items: [(String, Double)]) -> String in
+                        let totalWeight = items.reduce(0) { $0 + $1.1 }
+                        let rand = Double.random(in: 0..<totalWeight)
+                        var cumulative = 0.0
+                        for (item, weight) in items {
+                            cumulative += weight
+                            if rand < cumulative { return item }
+                        }
+                        return items.last!.0
+                    }
+                    let opener = drawWeighted(compBehindOpenersWithWeights)
+                    let reaction = drawWeighted(behindCompReactionsWithWeights)
+                    let closer = drawWeighted(compBehindClosersWithWeights)
+                    replies.append("\(opener) \(reaction) \(closer)")
                 } else {
                     let fallbackIdx = mentionedMilestone?.index ?? 15
                     let genericJump = Int.random(in: 1...5)
@@ -5449,7 +5538,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "baseline", "left you behind", "no threat", "never stop climbing",
                     "without even looking", "time is cute", "shaved time", "speedrun", "in my sleep", "unrivaled", "infinity count",
                     "hof entries", "speaks for itself", "dropped below", "talk to me", "anywhere near","ignoring that", "efforts are pointless",
-                    "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                    "one-sided", "lower right now", "ahead for now", "grinding", "too comfortable",
                     "watch your back", "watch me stay ahead", "watch my stats",
                     "sidelines", "witness infinity", "extend my lead"
                 ]

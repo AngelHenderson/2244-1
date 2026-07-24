@@ -188,7 +188,7 @@ struct ParityModelsTests {
                     "hof entries", "speaks for itself", "farm ", "extended infinitely",
                     "pulls are cute", "dropped below", "talk to me", "anywhere near",
                     "ignoring that", "efforts are pointless", "flawless", "view from the bottom",
-                    "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                    "one-sided", "lower right now", "ahead for now", "grinding", "too comfortable",
                     "watch your back", "watch me stay ahead", "watch my stats",
                     "sidelines", "witness infinity", "extend my lead"
                 ]
@@ -264,7 +264,7 @@ struct ParityModelsTests {
 
         // 3. One up reply with gap >= 60s (90s gap: 2:30 vs 1:00) -> CAN contain "leagues faster"
         var sawLeaguesOneUp = false
-        for _ in 0..<100 {
+        for _ in 0..<500 {
             let reply = service.generateContextualReply(to: "I cleared 2:30.", message: "I cleared 2:30.", forceTone: "one_up", speakerValue: "1:00")
             if reply.lowercased().contains("leagues faster") {
                 sawLeaguesOneUp = true
@@ -272,6 +272,222 @@ struct ParityModelsTests {
             }
         }
         #expect(sawLeaguesOneUp, "Should generate 'leagues faster' for one up reply when gap >= 60s")
+    }
+
+    @Test("Verify clock time of day (11:58 PM) is not parsed as speedrun time")
+    func testClockTimeOfDayExcludedFromSpeedrunTime() async throws {
+        let service = MockSocialService()
+        let message = "Continued the 6-day streak. Played at 11:58 PM to save it."
+        
+        let topic = MockSocialService.determineTopic(message: message)
+        #expect(topic == "streak", "Expected topic to be 'streak', got '\(topic)'")
+        
+        for _ in 0..<20 {
+            let reply = service.generateContextualReply(to: message, message: message, forceTone: "competitive")
+            #expect(!reply.contains("11:58"), "Reply should not parse 11:58 PM as speedrun time: \(reply)")
+            #expect(!reply.contains("clocking 11:58"), "Reply should not say clocking 11:58: \(reply)")
+        }
+    }
+
+    @Test("Verify behind opener weighting matches requested distribution (15% lower, 74% ahead for now, 9% enjoy lead)")
+    func testBehindOpenerWeightsDistribution() async throws {
+        let service = MockSocialService()
+        let message = "Playing the game"
+        let comment = "Having fun"
+        
+        var countLower = 0
+        var countAhead = 0
+        var countEnjoy = 0
+        let iterations = 10000
+        
+        for _ in 0..<iterations {
+            let reply = service.generateContextualReply(to: comment, message: message, forceTone: "behind")
+            if reply.contains("I'm lower right now.") {
+                countLower += 1
+            } else if reply.contains("You're ahead for now.") {
+                countAhead += 1
+            } else if reply.contains("Enjoy the lead while it lasts.") {
+                countEnjoy += 1
+            }
+        }
+        
+        let total = Double(countLower + countAhead + countEnjoy)
+        guard total > 0 else {
+            Issue.record("No behind openers detected")
+            return
+        }
+        
+        let pctLower = (Double(countLower) / total) * 100.0
+        let pctAhead = (Double(countAhead) / total) * 100.0
+        let pctEnjoy = (Double(countEnjoy) / total) * 100.0
+        
+        #expect(abs(pctLower - 15.3) < 4.0, "Expected ~15.3% for 'I'm lower right now.', got \(pctLower)%")
+        #expect(abs(pctAhead - 75.5) < 4.0, "Expected ~75.5% for 'You're ahead for now.', got \(pctAhead)%")
+        #expect(abs(pctEnjoy - 9.2) < 4.0, "Expected ~9.2% for 'Enjoy the lead while it lasts.', got \(pctEnjoy)%")
+    }
+
+    @Test("Verify behind reaction weighting matches requested distribution (14%, 7%, 8%, 3%, 67.5%, 0.5%)")
+    func testBehindReactionWeightsDistribution() async throws {
+        let service = MockSocialService()
+        let message = "Playing the game"
+        let comment = "Having fun"
+        
+        var counts: [String: Int] = [
+            "I am grinding right now to pass you.": 0,
+            "Your lead is temporary.": 0,
+            "I'm already closing the gap.": 0,
+            "My next run is going to crush that.": 0,
+            "I'm targeting the top spot.": 0,
+            "Just give me a little more time.": 0
+        ]
+        
+        let iterations = 10000
+        for _ in 0..<iterations {
+            let reply = service.generateContextualReply(to: comment, message: message, forceTone: "behind")
+            for key in counts.keys {
+                if reply.contains(key) {
+                    counts[key]! += 1
+                    break
+                }
+            }
+        }
+        
+        let total = Double(counts.values.reduce(0, +))
+        guard total > 0 else {
+            Issue.record("No behind reactions detected")
+            return
+        }
+        
+        let pcts = counts.mapValues { (Double($0) / total) * 100.0 }
+        
+        #expect(abs(pcts["I am grinding right now to pass you."]! - 14.0) < 4.0)
+        #expect(abs(pcts["Your lead is temporary."]! - 7.0) < 3.0)
+        #expect(abs(pcts["I'm already closing the gap."]! - 8.0) < 3.0)
+        #expect(abs(pcts["My next run is going to crush that."]! - 3.0) < 2.5)
+        #expect(abs(pcts["I'm targeting the top spot."]! - 67.5) < 5.0)
+        #expect(pcts["Just give me a little more time."]! >= 0.0 && pcts["Just give me a little more time."]! <= 2.5)
+    }
+
+    @Test("Verify streak higher template weighting distribution (1%, 4%, 24%, 57%, 13%, 15%)")
+    func testStreakHigherTemplateWeightsDistribution() async throws {
+        let service = MockSocialService()
+        let message = "Continued the 5-day streak."
+        
+        var counts: [String: Int] = [
+            "comfortably sitting": 0,
+            "are irrelevant": 0,
+            "dominate eternity": 0,
+            "is cute": 0,
+            "infinite consistency": 0,
+            "never touch": 0
+        ]
+        
+        let iterations = 10000
+        for _ in 0..<iterations {
+            let (comment, _, _) = service.generateTruthfulCompetitiveComment(to: message)
+            for key in counts.keys {
+                if comment.contains(key) {
+                    counts[key]! += 1
+                    break
+                }
+            }
+        }
+        
+        let total = Double(counts.values.reduce(0, +))
+        guard total > 0 else {
+            Issue.record("No streak higher comments generated")
+            return
+        }
+        
+        let pcts = counts.mapValues { (Double($0) / total) * 100.0 }
+        
+        // Relative proportions among base 6 (1 + 4 + 24 + 57 + 13 + 15 = 114):
+        // 1/114 = 0.88%, 4/114 = 3.5%, 24/114 = 21.0%, 57/114 = 50.0%, 13/114 = 11.4%, 15/114 = 13.15%
+        #expect(pcts["comfortably sitting"]! >= 0.0 && pcts["comfortably sitting"]! <= 4.0)
+        #expect(abs(pcts["are irrelevant"]! - 3.5) < 4.0)
+        #expect(abs(pcts["dominate eternity"]! - 21.0) < 6.0)
+        #expect(abs(pcts["is cute"]! - 50.0) < 8.0)
+        #expect(abs(pcts["infinite consistency"]! - 11.4) < 5.0)
+        #expect(abs(pcts["never touch"]! - 13.15) < 6.0)
+    }
+
+    @Test("Verify speedrun higher template weighting distribution (5%, 3%, 73%, 2%, 17%)")
+    func testSpeedrunHigherTemplateWeightsDistribution() async throws {
+        let service = MockSocialService()
+        let message = "Just finished timed challenge in 5:00"
+        
+        var counts: [String: Int] = [
+            "is irrelevant": 0,
+            "unrivaled since": 0,
+            "sitting at": 0,
+            "easily clock": 0,
+            "never reach": 0
+        ]
+        
+        let iterations = 10000
+        for _ in 0..<iterations {
+            let (comment, _, _) = service.generateTruthfulCompetitiveComment(to: message)
+            for key in counts.keys {
+                if comment.contains(key) {
+                    counts[key]! += 1
+                    break
+                }
+            }
+        }
+        
+        let total = Double(counts.values.reduce(0, +))
+        guard total > 0 else {
+            Issue.record("No speedrun higher comments generated")
+            return
+        }
+        
+        let pcts = counts.mapValues { (Double($0) / total) * 100.0 }
+        
+        #expect(abs(pcts["is irrelevant"]! - 5.0) < 4.0)
+        #expect(abs(pcts["unrivaled since"]! - 3.0) < 3.0)
+        #expect(abs(pcts["sitting at"]! - 73.0) < 7.0)
+        #expect(abs(pcts["easily clock"]! - 2.0) < 2.5)
+        #expect(abs(pcts["never reach"]! - 17.0) < 5.0)
+    }
+
+    @Test("Verify speedrun one-up reply weighting distribution (71%, 2%, 7%, 6%, 14%)")
+    func testSpeedrunOneUpReplyWeightsDistribution() async throws {
+        let service = MockSocialService()
+        let message = "I cleared 0:20."
+        let comment = "I cleared 0:20."
+        
+        var counts: [String: Int] = [
+            "time is cute": 0,
+            "easily passed your time": 0,
+            "shaved time off": 0,
+            "call 0:20 fast": 0,
+            "destroys your 0:20": 0
+        ]
+        
+        let iterations = 10000
+        for _ in 0..<iterations {
+            let reply = service.generateContextualReply(to: comment, message: message, forceTone: "one_up", speakerValue: "0:15")
+            for key in counts.keys {
+                if reply.contains(key) {
+                    counts[key]! += 1
+                    break
+                }
+            }
+        }
+        
+        let total = Double(counts.values.reduce(0, +))
+        guard total > 0 else {
+            Issue.record("No speedrun one-up replies generated")
+            return
+        }
+        
+        let pcts = counts.mapValues { (Double($0) / total) * 100.0 }
+        
+        #expect(abs(pcts["time is cute"]! - 71.0) < 8.0)
+        #expect(abs(pcts["easily passed your time"]! - 2.0) < 2.5)
+        #expect(abs(pcts["shaved time off"]! - 7.0) < 4.0)
+        #expect(abs(pcts["call 0:20 fast"]! - 6.0) < 4.0)
+        #expect(abs(pcts["destroys your 0:20"]! - 14.0) < 5.0)
     }
 
     private func isTooLowMilestoneReply(_ reply: String) -> Bool {
@@ -567,7 +783,7 @@ struct ParityModelsTests {
                             "baseline", "left you behind", "no threat", "never stop climbing",
                             "without even looking", "time is cute", "shaved time", "speedrun", "in my sleep", "unrivaled", "infinity count",
                             "hof entries", "speaks for itself", "dropped below", "talk to me", "anywhere near","ignoring that", "efforts are pointless",
-                            "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                            "one-sided", "lower right now", "ahead for now", "grinding", "too comfortable",
                             "watch your back", "watch me stay ahead", "watch my stats",
                             "sidelines", "witness infinity", "extend my lead"
                         ]
@@ -622,7 +838,7 @@ struct ParityModelsTests {
                         "hof entries", "speaks for itself", "farm ", "extended infinitely",
                         "pulls are cute", "dropped below", "talk to me", "anywhere near",
                         "ignoring that", "efforts are pointless", "flawless", "view from the bottom",
-                        "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                        "one-sided", "lower right now", "ahead for now", "grinding", "too comfortable",
                         "watch your back", "watch me stay ahead", "watch my stats",
                         "sidelines", "witness infinity", "extend my lead"
                     ]
@@ -733,7 +949,7 @@ struct ParityModelsTests {
                         "hof entries", "speaks for itself", "farm ", "extended infinitely",
                         "pulls are cute", "dropped below", "talk to me", "anywhere near",
                         "ignoring that", "efforts are pointless", "flawless", "view from the bottom",
-                        "one-sided", "might be lower", "ahead for now", "grinding", "too comfortable",
+                        "one-sided", "lower right now", "ahead for now", "grinding", "too comfortable",
                         "watch your back", "watch me stay ahead", "watch my stats",
                         "sidelines", "witness infinity", "extend my lead"
                     ]
@@ -797,7 +1013,7 @@ struct ParityModelsTests {
     func testGetTooComfortableDoesNotTriggerOutOfReach() {
         let service = MockSocialService()
         
-        let commentText = "@Sofia Nelson I might be lower right now. Don't get too comfortable up there. I will overtake you soon. !!"
+        let commentText = "@Sofia Nelson I'm lower right now. Don't get too comfortable up there. I will overtake you soon. !!"
         
         let reply = service.generateContextualReply(to: commentText, message: "Unlocked milestone 17ad.", forceTone: "behind", speakerValue: "4ad")
         
@@ -1954,7 +2170,7 @@ struct ParityModelsTests {
         
         // Slower time (e.g. 1:30)
         var sawPracticeRun = false
-        for _ in 0..<100 {
+        for _ in 0..<500 {
             let reply = service.generateContextualReply(
                 to: "My best is 1:30",
                 message: "timed challenge in 1:20",
