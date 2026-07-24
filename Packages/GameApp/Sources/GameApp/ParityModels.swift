@@ -4283,7 +4283,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Your lead is temporary. Watch your back.",
                         "I'm closing the gap. You won't stay ahead for long.",
                         "Keep looking over your shoulder. I'm right behind you.",
-                        "I'm warming up. You won't be holding that lead much longer.",
+                        "I'm coming for you. You won't be holding that lead much longer.",
                         "You're not as safe up there as you think.",
                         "Enjoy the view from the top while it lasts."
                     ].randomElement()!

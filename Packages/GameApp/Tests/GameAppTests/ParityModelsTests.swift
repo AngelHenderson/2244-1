@@ -500,7 +500,7 @@ struct ParityModelsTests {
             "infinitely behind", "stuck in the lower tiers", "never catch up", "dominate",
             "ahead of your", "nothing compared", "way past", "easily passed", "toying with",
             "untouchable", "ceiling", "embarrassing", "not built for", "stuck at", "lagging at",
-            "warming up", "fell for it", "only at", "easily reached", "coasting at",
+            "not even close", "fell for it", "only at", "easily reached", "coasting at",
             "easily bypassed", "proud of", "with ease", "left that behind", "never get past",
             "why even mention", "is nothing", "enjoy the lead", "blew past", "without trying"
         ]
@@ -1584,7 +1584,7 @@ struct ParityModelsTests {
             previousSelfComment: previousSelfComment
         )
         print("DEBUG REPLY GENERATED: \(reply)")
-        #expect(reply.contains("won't stay ahead") || reply.contains("won't last") || reply.contains("temporary") || reply.contains("closing the gap") || reply.contains("shoulder") || reply.contains("warming up") || reply.contains("safe up there") || reply.contains("view from the top"))
+        #expect(reply.contains("won't stay ahead") || reply.contains("won't last") || reply.contains("temporary") || reply.contains("closing the gap") || reply.contains("shoulder") || reply.contains("coming for you") || reply.contains("safe up there") || reply.contains("view from the top"))
     }
 
     @Test("Debug simulated thread")
@@ -1763,7 +1763,7 @@ struct ParityModelsTests {
             "I easily passed your 1024. I'm at 2048.",
             "You thought you had the lead? Your 1024 is nothing. I'm at 2048.",
             "You fell for it. I easily beat your 1024. My real record is 2048.",
-            "I was just warming up. Your 1024 is nothing compared to my 2048.",
+            "You're not even close. Your 1024 is nothing compared to my 2048.",
             "I blew past your 1024 and hit 2048 without even trying.",
             "Your 1024 is a joke compared to my 2048.",
             "I cleared 2048 without trying.",
