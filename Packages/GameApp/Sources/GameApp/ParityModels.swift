@@ -1325,7 +1325,7 @@ public struct MockSocialService: SocialService, Sendable {
         return try? JSONDecoder().decode([SocialFeedItem].self, from: data)
     }
     
-    private static func saveFeedCache(_ feed: [SocialFeedItem]) {
+    public static func saveFeedCache(_ feed: [SocialFeedItem]) {
         #if DEBUG
         if inMemoryFeedOverride != nil {
             inMemoryFeedOverride = feed
@@ -1497,7 +1497,35 @@ public struct MockSocialService: SocialService, Sendable {
                     responseText = "@\(playerName) " + ans
                 } else {
                     let tone = posterBeatsNPC ? "behind" : "one_up"
-                    responseText = "@\(playerName) " + generateContextualReply(to: text, message: baseText, forceTone: tone)
+                    let establishedVal = Self.findEstablishedValue(for: responderName, in: item.comments, topic: topic)
+                    let userVal = Self.extractValue(from: text, topic: topic)
+                    
+                    let speakerVal: String?
+                    if let est = establishedVal {
+                        if tone == "one_up" {
+                            if let uV = userVal, MockSocialService.isRecord(est, worseThan: uV, topic: topic) {
+                                speakerVal = Self.oneUpValue(for: uV, topic: topic)
+                            } else {
+                                speakerVal = est
+                            }
+                        } else {
+                            speakerVal = est
+                        }
+                    } else {
+                        if tone == "one_up", let uV = userVal {
+                            speakerVal = Self.oneUpValue(for: uV, topic: topic)
+                        } else {
+                            speakerVal = nil
+                        }
+                    }
+                    
+                    responseText = "@\(playerName) " + generateContextualReply(
+                        to: text,
+                        message: baseText,
+                        forceTone: tone,
+                        speakerValue: speakerVal,
+                        opponentValue: userVal
+                    )
                 }
                 let responseComment = SocialFeedComment(authorName: responderName, avatarID: responderAvatar, text: responseText, createdAt: responseTime)
                 item.comments.append(responseComment)
@@ -4766,6 +4794,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
+                        } else if forceTone == "behind" && cN > 1 {
+                            higherNum = max(1, cN - Int.random(in: 1...max(5, cN / 2)))
                         } else if let rN = refNumber {
                             higherNum = rN
                         } else {
@@ -4846,10 +4876,10 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let higherNum: Int
                         if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
+                        } else if (isLowStreak || forceTone == "behind") && cN > 1 {
+                            higherNum = max(1, cN - Int.random(in: 1...max(5, cN / 2)))
                         } else if let rN = refNumber {
                             higherNum = rN
-                        } else if (isLowStreak || forceTone == "behind") && cN > 1 {
-                            higherNum = cN - Int.random(in: 1...max(5, cN / 2))
                         } else {
                             higherNum = min(Self.daysSinceReference, cN + Int.random(in: 5...max(15, cN / 5)))
                         }
@@ -5137,6 +5167,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "You are no threat. I'm sitting comfortably at \(higherTime).",
                                     "I never stop climbing. \(higherTime) is already done."
                                 ])
+                            } else {
                                 let diff = totalSecs - higherNum
                                 var templatesWithWeights: [(String, Double)] = [
                                     ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 71.0),
@@ -5290,7 +5321,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I already passed \(numStr) infinities. I'm at \(higherNum).",
                                 "Your \(numStr) is child's play compared to my \(higherNum) entries.",
                                 "You're bragging about \(numStr)? \(higherNum) in the HoF completely buries you.",
-                                "I dominate the HoF with \(higherNum) entries. \(numStr) isn't enough.",
+                                "I dominate the HoF with \(higherNum) entries. \(numStr) is completely pathetic.",
                                 "My Hall of Fame status speaks for itself. \(higherNum) > \(numStr)."
                             ])
                         }
@@ -5345,7 +5376,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             "I already passed \(assumedNum) infinities. I'm at \(higherNum).",
                             "Your \(assumedNum) is child's play compared to my \(higherNum) entries.",
                             "You're bragging about \(assumedNum)? \(higherNum) in the HoF completely buries you.",
-                            "I dominate the HoF with \(higherNum) entries. \(assumedNum) isn't enough.",
+                            "I dominate the HoF with \(higherNum) entries. \(assumedNum) is completely pathetic.",
                             "My Hall of Fame status speaks for itself. \(higherNum) > \(assumedNum)."
                         ])
                     }
@@ -5419,7 +5450,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Your milestone is nothing. I'm already at \(genericHigherM).",
                         "You'll never get there at this rate.",
                         "Don't bother trying. You're completely outclassed.",
-                        "I progress. Enjoy being stuck at the bottom forever.",
+                        "Enjoy being stuck at the bottom forever.",
                         "You're delusional if you think you'll ever break through.",
                         "I don't believe in you. You're completely irrelevant.",
                         "The wall you hit is final. Stay down there.",

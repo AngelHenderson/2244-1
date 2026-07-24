@@ -2207,6 +2207,38 @@ struct ParityModelsTests {
             }
         }
     }
+
+    @Test("Verify established NPC streak is preserved when replying to user comment")
+    func testEstablishedNpcStreakPreservedWhenReplyingToUser() async throws {
+        let service = MockSocialService()
+        var feed = try await service.feed()
+        guard !feed.isEmpty else { return }
+        
+        var item = feed[0]
+        item.comments = [
+            SocialFeedComment(
+                authorName: "CavernKing387813",
+                avatarID: "avatar1",
+                text: "@Player384593 I'm at 31 days. Just wait until you lose your 50 day streak XDDDD."
+            )
+        ]
+        feed[0] = item
+        MockSocialService.saveFeedCache(feed)
+        
+        try await service.addComment(
+            to: item.id,
+            text: "@CavernKing387813 Can't even hold a streak? I'm untouched at 54 days."
+        )
+        
+        let cached = MockSocialService.loadFeedCache()!
+        let updatedItem = cached.first(where: { $0.id == item.id })!
+        
+        #expect(updatedItem.comments.count >= 3)
+        let lastComment = updatedItem.comments.last!
+        #expect(lastComment.authorName == "CavernKing387813")
+        #expect(!lastComment.text.contains("297 days"), "NPC should not jump from 31 days to 297 days when replying to user")
+        #expect(lastComment.text.contains("31 days"), "NPC should preserve established 31 days streak in reply")
+    }
 }
 
 private final class InMemoryMoveReviewStorage: MoveReviewStorage, @unchecked Sendable {
