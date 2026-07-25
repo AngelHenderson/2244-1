@@ -472,7 +472,15 @@ public struct SocialFeedView: View {
     @State private var itemToDelete: SocialFeedItem?
     @State private var showDeleteAlert = false
 
-    public init() {}
+    private func isUserPost(_ item: SocialFeedItem) -> Bool {
+        let defaults = UserDefaults.standard
+        let pName1 = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        let pName2 = defaults.string(forKey: "player.displayName") ?? "Player"
+        let author = item.authorName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let p1 = pName1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let p2 = pName2.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return author == p1 || author == p2 || author == "player"
+    }
 
     public var body: some View {
         NavigationStack {
@@ -495,7 +503,7 @@ public struct SocialFeedView: View {
                     } else {
                         let filteredItems = selectedSection == .global 
                             ? items 
-                            : items.filter { $0.authorName == (UserDefaults.standard.string(forKey: "profilePlayerName") ?? "Player") }
+                            : items.filter { isUserPost($0) }
                         
                         if filteredItems.isEmpty {
                             ContentUnavailableView(

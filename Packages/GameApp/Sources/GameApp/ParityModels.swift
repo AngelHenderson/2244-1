@@ -1253,9 +1253,9 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v60"
+    public static let feedDateKey = "socialFeed.cacheDate.v62"
     /// Version-independent key for user-posted events so they survive cache bumps.
-    public static let userPostsKey = "socialFeed.userPosts.v7"
+    public static let userPostsKey = "socialFeed.userPosts.v8"
 
     
     // MARK: - File Storage
@@ -1266,7 +1266,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v60.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v62.json")
     }
     
     private static var userPostsURL: URL {
@@ -1345,7 +1345,15 @@ public struct MockSocialService: SocialService, Sendable {
 
         // Return cached feed if it was generated today
         let defaults = UserDefaults.standard
-        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        let pName1 = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        let pName2 = defaults.string(forKey: "player.displayName") ?? "Player"
+        let isPlayerAuthor: (String) -> Bool = { name in
+            let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            return trimmed == pName1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ||
+                   trimmed == pName2.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ||
+                   trimmed == "player"
+        }
+
         #if DEBUG
         let shouldBypass = Self.bypassFeedCache
         #else
@@ -1356,12 +1364,25 @@ public struct MockSocialService: SocialService, Sendable {
            cachedDate == todayString,
            var cached = Self.loadFeedCache() {
             
-            // Filter out future posts so they arrive naturally throughout the day
-            cached = cached.filter { $0.createdAt <= now }
+            // Merge in user posts so user-created posts always appear in feed() even on cached days
+            if let userPosts = Self.loadUserPosts() {
+                let existingIDs = Set(cached.map { $0.id })
+                var addedAny = false
+                for post in userPosts where !existingIDs.contains(post.id) {
+                    cached.append(post)
+                    addedAny = true
+                }
+                if addedAny {
+                    cached.sort { $0.createdAt > $1.createdAt }
+                }
+            }
+
+            // Filter out future posts so they arrive naturally throughout the day, but always show player posts
+            cached = cached.filter { $0.createdAt <= now || isPlayerAuthor($0.authorName) }
             
             // Filter out future comments so simulated responses arrive naturally, but always show player comments
             for i in 0..<cached.count {
-                cached[i].comments = cached[i].comments.filter { $0.createdAt <= now || $0.authorName == playerName || $0.authorName == "Player" }
+                cached[i].comments = cached[i].comments.filter { $0.createdAt <= now || isPlayerAuthor($0.authorName) }
                 cached[i].commentCount = cached[i].comments.count
                 if let rts = cached[i].reactionTimestamps {
                     var count = rts.filter { $0 <= now }.count
@@ -1392,10 +1413,10 @@ public struct MockSocialService: SocialService, Sendable {
             defaults.set(todayString, forKey: Self.feedDateKey)
         }
 
-        // Apply time-filtering to the returned array so simulated future events don't show up yet
-        items = items.filter { $0.createdAt <= now }
+        // Apply time-filtering to the returned array so simulated future events don't show up yet, but keep player posts
+        items = items.filter { $0.createdAt <= now || isPlayerAuthor($0.authorName) }
         for i in 0..<items.count {
-            items[i].comments = items[i].comments.filter { $0.createdAt <= now || $0.authorName == playerName || $0.authorName == "Player" }
+            items[i].comments = items[i].comments.filter { $0.createdAt <= now || isPlayerAuthor($0.authorName) }
             items[i].commentCount = items[i].comments.count
             if let rts = items[i].reactionTimestamps {
                 var count = rts.filter { $0 <= now }.count
@@ -1405,7 +1426,6 @@ public struct MockSocialService: SocialService, Sendable {
                 items[i].reactionCount = count
             }
         }
-
         return items
     }
 
@@ -1629,8 +1649,8 @@ public struct MockSocialService: SocialService, Sendable {
         let currentDay = Self.daysSinceReference
 
         // Build the player's post
-        let playerName = defaults.string(forKey: "player.displayName") ?? "Player"
-        let playerAvatar = defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
+        let playerName = defaults.string(forKey: "profilePlayerName") ?? defaults.string(forKey: "player.displayName") ?? "Player"
+        let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
 
         var comments: [SocialFeedComment] = []
         let targetTotalComments = Int.random(in: 45...85)

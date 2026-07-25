@@ -1886,6 +1886,28 @@ struct ParityModelsTests {
         }
     }
 
+    @Test("Verify user posts appear in feed and match user author filters")
+    func testUserPostsAppearInFeed() async throws {
+        let service = MockSocialService()
+        let testMessage = "Testing my post creation \(UUID().uuidString)"
+        try await service.postEvent(message: testMessage, statText: "Test Stat")
+        
+        let feedItems = try await service.feed()
+        let found = feedItems.first(where: { $0.message == testMessage })
+        #expect(found != nil, "User post should appear in socialService.feed()")
+        
+        if let userPost = found {
+            let defaults = UserDefaults.standard
+            let pName1 = defaults.string(forKey: "profilePlayerName") ?? "Player"
+            let pName2 = defaults.string(forKey: "player.displayName") ?? "Player"
+            let author = userPost.authorName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let p1 = pName1.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let p2 = pName2.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let isMatch = author == p1 || author == p2 || author == "player"
+            #expect(isMatch, "Author name '\(userPost.authorName)' should match player name filters")
+        }
+    }
+
     @Test("Verify milestone jump weights distribution (1: 5.6%, 2: 7.4%, 3: 11%, 4: 15%, 5: 19%, 6: 15%, 7: 11%, 8: 7.4%, 9: 5.6%, 10: 3%)")
     func testMilestoneJumpDistribution() {
         var counts = [Int: Int]()
