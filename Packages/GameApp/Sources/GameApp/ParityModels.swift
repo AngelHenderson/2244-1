@@ -5190,11 +5190,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             } else {
                                 let diff = totalSecs - higherNum
                                 var templatesWithWeights: [(String, Double)] = [
-                                    ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 71.0),
+                                    ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 27.0),
                                     ("I easily passed your time. My record is \(higherTime).", 2.0),
                                     ("I shaved time off your \(posterTime). My best is \(higherTime).", 7.0),
                                     ("You call \(posterTime) fast? I'm already down to \(higherTime).", 6.0),
-                                    ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 14.0)
+                                    ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 58.0)
                                 ]
                                 if totalSecs > 30 {
                                     templatesWithWeights.append(("Your \(posterTime) was my practice run. I'm down to \(higherTime).", 5.0))
