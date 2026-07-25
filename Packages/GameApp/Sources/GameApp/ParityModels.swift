@@ -3217,15 +3217,15 @@ public struct MockSocialService: SocialService, Sendable {
                         ("That's laughable.", 3.0),
                         ("That's entirely average.", 4.0),
                         ("Not worth my time.", 0.6),
-                        ("Unimpressive.", 1.0),
-                        ("Not impressed.", 1.0),
+                        ("Unimpressive.", 0.01),
+                        ("Not impressed.", 0.01),
                         ("That's cute.", 20.5),
                         ("That's no progress.", 5.0),
                         ("That's a joke.", 7.2),
                         ("Imagine celebrating that.", 9.4),
-                        ("Is that all?", 1.0),
+                        ("Is that all?", 0.01),
                         ("I did this by accident.", 19.5),
-                        ("That's nothing.", 8.6),
+                        ("That's nothing.", 11.57),
                         ("Are you even trying?", 0.1)
                     ]
                     
