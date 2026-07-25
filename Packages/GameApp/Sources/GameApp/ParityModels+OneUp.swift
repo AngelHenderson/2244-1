@@ -293,7 +293,7 @@ extension MockSocialService {
                     ("I easily passed your \(lower) infinities. I'm at \(higher) infinities.", 10.0),
                     ("You thought you had the lead? Your \(lower) infinities is nothing. I'm at \(higher) infinities.", 18.0),
                     ("You fell for it. I easily beat your \(lower) infinities. My real record is \(higher) infinities.", 19.9),
-                    ("You're not even close. Your \(lower) infinities is nothing compared to my \(higher) infinities.", 24.9),
+                    ("You thought I was at \(lower) infinities? Cute. I'm now at \(higher) infinities.", 24.9),
                     ("I blew past your \(lower) infinities and hit \(higher) infinities without even trying.", 6.1),
                     ("Only at \(lower) infinities? I easily reached \(higher) infinities.", 4.6),
                     ("Your \(lower) infinities is a joke compared to my \(higher) infinities.", 2.4),
