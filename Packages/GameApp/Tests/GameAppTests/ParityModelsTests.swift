@@ -452,15 +452,15 @@ struct ParityModelsTests {
     @Test("Verify speedrun one-up reply weighting distribution (71%, 2%, 7%, 6%, 14%)")
     func testSpeedrunOneUpReplyWeightsDistribution() async throws {
         let service = MockSocialService()
-        let message = "I cleared 0:20."
-        let comment = "I cleared 0:20."
+        let message = "I cleared 1:20."
+        let comment = "I cleared 1:20."
         
         var counts: [String: Int] = [
             "time is cute": 0,
             "easily passed your time": 0,
             "shaved time off": 0,
-            "call 0:20 fast": 0,
-            "destroys your 0:20": 0
+            "call 1:20 fast": 0,
+            "destroys your 1:20": 0
         ]
         
         let iterations = 10000
@@ -485,8 +485,8 @@ struct ParityModelsTests {
         #expect(abs(pcts["time is cute"]! - 71.0) < 8.0)
         #expect(abs(pcts["easily passed your time"]! - 2.0) < 2.5)
         #expect(abs(pcts["shaved time off"]! - 7.0) < 4.0)
-        #expect(abs(pcts["call 0:20 fast"]! - 6.0) < 4.0)
-        #expect(abs(pcts["destroys your 0:20"]! - 14.0) < 5.0)
+        #expect(abs(pcts["call 1:20 fast"]! - 6.0) < 4.0)
+        #expect(abs(pcts["destroys your 1:20"]! - 14.0) < 5.0)
     }
 
     private func isTooLowMilestoneReply(_ reply: String) -> Bool {
@@ -1762,7 +1762,7 @@ struct ParityModelsTests {
             "I easily passed your 1024. I'm at 2048.",
             "You thought you had the lead? Your 1024 is nothing. I'm at 2048.",
             "You fell for it. I easily beat your 1024. My real record is 2048.",
-            "You're not even close. Your 1024 is nothing compared to my 2048.",
+            "You thought I was at 1024? Cute. I'm now at 2048.",
             "I blew past your 1024 and hit 2048 without even trying.",
             "Your 1024 is a joke compared to my 2048.",
             "I cleared 2048 without trying.",
@@ -2259,6 +2259,40 @@ struct ParityModelsTests {
         #expect(lastComment.authorName == "CavernKing387813")
         #expect(!lastComment.text.contains("297 days"), "NPC should not jump from 31 days to 297 days when replying to user")
         #expect(lastComment.text.contains("31 days"), "NPC should preserve established 31 days streak in reply")
+    }
+
+    @Test("Verify that NPCs progress and escalate milestone values in competitive threads")
+    func testNpcMilestoneEscalationInCompetitiveThreads() async throws {
+        let service = MockSocialService()
+        var sawMilestoneEscalation = false
+        
+        for _ in 0..<30 {
+            let feed = try await service.feed()
+            for item in feed {
+                let topic = MockSocialService.determineTopic(message: item.message)
+                guard topic == "milestone" else { continue }
+                
+                var maxMilestoneIndex = -1
+                var escalated = false
+                for comment in item.comments {
+                    if let val = MockSocialService.extractValue(from: comment.text, topic: "milestone"),
+                       let idx = MockSocialService.allMilestones.firstIndex(of: val) {
+                        if maxMilestoneIndex >= 0 && idx > maxMilestoneIndex {
+                            escalated = true
+                            break
+                        }
+                        maxMilestoneIndex = max(maxMilestoneIndex, idx)
+                    }
+                }
+                if escalated {
+                    sawMilestoneEscalation = true
+                    break
+                }
+            }
+            if sawMilestoneEscalation { break }
+        }
+        
+        #expect(sawMilestoneEscalation, "Bots should progress and escalate milestone values in competitive comment threads")
     }
 }
 

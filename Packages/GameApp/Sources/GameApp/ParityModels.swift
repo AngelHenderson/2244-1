@@ -1745,6 +1745,8 @@ public struct MockSocialService: SocialService, Sendable {
                 } else {
                     targetDepth = Double.random(in: 0...1) < 0.85 ? Int.random(in: 2...5) : 0
                 }
+                var npc1JustLostStreak = false
+                var npc2JustLostStreak = false
                 while currentDepth < targetDepth {
                     if npc2 == nil {
                         let replyIndex = Int.random(in: 1...100000)
@@ -1756,9 +1758,8 @@ public struct MockSocialService: SocialService, Sendable {
                         npc2Value = Self.findEstablishedValue(for: npc2!.name, in: comments, topic: topic)
                     }
                     
-                    var npc2JustLostStreak = false
-                    if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
-                        if Double.random(in: 0...1) < 0.60 {
+                    if topic == "streak" && (npc2JustLostStreak || Self.commentPredictsStreakLoss(lastComment.text)) {
+                        if npc2JustLostStreak || Double.random(in: 0...1) < 0.60 {
                             npc2Value = "0"
                             npc2JustLostStreak = true
                         }
@@ -1779,7 +1780,7 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if let n1Val = npc1Value, let n2Val = npc2Value {
                             if Self.isRecord(n2Val, worseThan: n1Val, topic: topic) {
-                                if topic == "time" && Double.random(in: 0...1) < 0.70 {
+                                if topic != "streak" && Double.random(in: 0...1) < 0.70 {
                                     npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                 }
                             } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
@@ -1805,7 +1806,11 @@ public struct MockSocialService: SocialService, Sendable {
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
                         if let extracted = Self.extractValue(from: replyText, topic: topic) {
-                            npc2Value = extracted
+                            if topic == "streak", let current = npc2Value, let cVal = Int(current), let eVal = Int(extracted), eVal > cVal {
+                                // Do not increase streak value within thread
+                            } else {
+                                npc2Value = extracted
+                            }
                         }
                         npc2PreviousComment = replyText
                         let replyOffset = Self.requiredTimeDelay(from: npc1Value, to: npc2Value, topic: topic)
@@ -1822,9 +1827,8 @@ public struct MockSocialService: SocialService, Sendable {
                         lastComment = replyComment
                         currentDepth += 1
                     } else {
-                        var npc1JustLostStreak = false
-                        if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
-                            if Double.random(in: 0...1) < 0.60 {
+                        if topic == "streak" && (npc1JustLostStreak || Self.commentPredictsStreakLoss(lastComment.text)) {
+                            if npc1JustLostStreak || Double.random(in: 0...1) < 0.60 {
                                 npc1Value = "0"
                                 npc1JustLostStreak = true
                             }
@@ -1833,7 +1837,7 @@ public struct MockSocialService: SocialService, Sendable {
                         
                         if let n1Val = npc1Value, let n2Val = npc2Value, !npc1JustLostStreak {
                             if Self.isRecord(n1Val, worseThan: n2Val, topic: topic) {
-                                if topic == "time" && Double.random(in: 0...1) < 0.70 {
+                                if topic != "streak" && Double.random(in: 0...1) < 0.70 {
                                     npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                 }
                             } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
@@ -1859,7 +1863,11 @@ public struct MockSocialService: SocialService, Sendable {
                         let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                         let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
                         if let extracted = Self.extractValue(from: replyText, topic: topic) {
-                            npc1Value = extracted
+                            if topic == "streak", let current = npc1Value, let cVal = Int(current), let eVal = Int(extracted), eVal > cVal {
+                                // Do not increase streak value within thread
+                            } else {
+                                npc1Value = extracted
+                            }
                         }
                         npc1PreviousComment = replyText
                         let replyOffset = Self.requiredTimeDelay(from: npc2Value, to: npc1Value, topic: topic)
@@ -2200,6 +2208,9 @@ public struct MockSocialService: SocialService, Sendable {
                     } else {
                         targetDepth = Double.random(in: 0...1) < 0.85 ? (topic == "streak" ? Int.random(in: 1...2) : Int.random(in: 2...10)) : 0
                     }
+                    var npc1JustLostStreak = false
+                    var npc2JustLostStreak = false
+                    
                     while currentDepth < targetDepth {
                         if npc2 == nil {
                             if Double.random(in: 0...1) < 0.6 {
@@ -2218,9 +2229,8 @@ public struct MockSocialService: SocialService, Sendable {
                             }
                         }
                         
-                        var npc2JustLostStreak = false
-                        if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
-                            if Double.random(in: 0...1) < 0.60 {
+                        if topic == "streak" && (npc2JustLostStreak || Self.commentPredictsStreakLoss(lastComment.text)) {
+                            if npc2JustLostStreak || Double.random(in: 0...1) < 0.60 {
                                 npc2Value = "0"
                                 npc2JustLostStreak = true
                             }
@@ -2241,7 +2251,7 @@ public struct MockSocialService: SocialService, Sendable {
                             
                             if let n1Val = npc1Value, let n2Val = npc2Value {
                                 if Self.isRecord(n2Val, worseThan: n1Val, topic: topic) {
-                                    if topic == "time" && Double.random(in: 0...1) < 0.70 {
+                                    if topic != "streak" && Double.random(in: 0...1) < 0.70 {
                                         npc2Value = Self.oneUpValue(for: n1Val, topic: topic)
                                     }
                                 } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
@@ -2267,7 +2277,11 @@ public struct MockSocialService: SocialService, Sendable {
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc2Value, opponentValue: npc1Value, previousSelfComment: npc2PreviousComment)
                             if let extracted = Self.extractValue(from: replyText, topic: topic) {
-                                npc2Value = extracted
+                                if topic == "streak", let current = npc2Value, let cVal = Int(current), let eVal = Int(extracted), eVal > cVal {
+                                    // Do not increase streak value within thread
+                                } else {
+                                    npc2Value = extracted
+                                }
                             }
                             npc2PreviousComment = replyText
                             let replyOffset = Self.requiredTimeDelay(from: npc1Value, to: npc2Value, topic: topic)
@@ -2284,9 +2298,8 @@ public struct MockSocialService: SocialService, Sendable {
                             lastComment = replyComment
                             currentDepth += 1
                         } else {
-                            var npc1JustLostStreak = false
-                            if topic == "streak" && Self.commentPredictsStreakLoss(lastComment.text) {
-                                if Double.random(in: 0...1) < 0.60 {
+                            if topic == "streak" && (npc1JustLostStreak || Self.commentPredictsStreakLoss(lastComment.text)) {
+                                if npc1JustLostStreak || Double.random(in: 0...1) < 0.60 {
                                     npc1Value = "0"
                                     npc1JustLostStreak = true
                                 }
@@ -2295,7 +2308,7 @@ public struct MockSocialService: SocialService, Sendable {
                             
                             if let n1Val = npc1Value, let n2Val = npc2Value, !npc1JustLostStreak {
                                 if Self.isRecord(n1Val, worseThan: n2Val, topic: topic) {
-                                    if topic == "time" && Double.random(in: 0...1) < 0.70 {
+                                    if topic != "streak" && Double.random(in: 0...1) < 0.70 {
                                         npc1Value = Self.oneUpValue(for: n2Val, topic: topic)
                                     }
                                 } else if n1Val == n2Val && tieRepliesCount >= 1 && topic != "streak" {
@@ -2321,7 +2334,11 @@ public struct MockSocialService: SocialService, Sendable {
                             let toneStr = isBehind ? "behind" : (isEqual ? "caught_up" : "one_up")
                             let replyText = "@\(lastComment.authorName) " + generateContextualReply(to: lastComment.text, message: message, forceTone: toneStr, speakerValue: npc1Value, opponentValue: npc2Value, previousSelfComment: npc1PreviousComment)
                             if let extracted = Self.extractValue(from: replyText, topic: topic) {
-                                npc1Value = extracted
+                                if topic == "streak", let current = npc1Value, let cVal = Int(current), let eVal = Int(extracted), eVal > cVal {
+                                    // Do not increase streak value within thread
+                                } else {
+                                    npc1Value = extracted
+                                }
                             }
                             npc1PreviousComment = replyText
                             let replyOffset = Self.requiredTimeDelay(from: npc2Value, to: npc1Value, topic: topic)
@@ -5190,11 +5207,11 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             } else {
                                 let diff = totalSecs - higherNum
                                 var templatesWithWeights: [(String, Double)] = [
-                                    ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 27.0),
+                                    ("Your \(posterTime) time is cute. I clear it in \(higherTime).", 71.0),
                                     ("I easily passed your time. My record is \(higherTime).", 2.0),
                                     ("I shaved time off your \(posterTime). My best is \(higherTime).", 7.0),
                                     ("You call \(posterTime) fast? I'm already down to \(higherTime).", 6.0),
-                                    ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 58.0)
+                                    ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 14.0)
                                 ]
                                 if totalSecs > 30 {
                                     templatesWithWeights.append(("Your \(posterTime) was my practice run. I'm down to \(higherTime).", 5.0))
@@ -5529,8 +5546,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "While I climb, you're cemented to the lower levels.",
                     "You'll never get out of the lower tiers.",
                     "You pose zero threat and always will.",
-                    "You're stuck permanently. Get used to it.",
-                    "You're stuck in the basics while I remain out of your reach forever.",
+                    "You're trapped permanently. Get used to it.",
+                    "You're in the basics while I remain out of your reach forever.",
                     "The gap between us is only getting wider and won't close.",
                     "You're trapped in the beginner zone forever.",
                     "Face it. You're too far behind to ever matter."
