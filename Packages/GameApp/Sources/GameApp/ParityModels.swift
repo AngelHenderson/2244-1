@@ -1000,8 +1000,8 @@ public struct MockSocialService: SocialService, Sendable {
         
         // Score each candidate based on context
         var scoredMatches: [(val: String, netScore: Int)] = []
-        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "down to", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "clocked", "posted"]
-        let otherKeywords = ["your", "you're", "celebrating", "back to", "restarting from", "restart from"]
+        let speakerKeywords = ["i'm", "i am", "my", "floor", "coasting", "best", "clocked", "untouched", "permanent", "pull", "farm", "laughing", "sitting", "cleared", "record", "pushing", "i own", "hoard", "standard", "clear", "reached", "hit", "posted"]
+        let otherKeywords = ["your", "you're", "celebrating", "back to", "restarting from", "restart from", "down to", "dropping to", "dropping", "reset to", "lost your", "lost a"]
         
         func getClausePrefix(from text: String, startLoc: Int, mentionLength: Int) -> String {
             let prefixLen = min(80, startLoc - mentionLength)
@@ -3025,7 +3025,7 @@ public struct MockSocialService: SocialService, Sendable {
             competitiveReactions.append(contentsOf: [
                 "Your infinity count is entirely irrelevant to my dominance.",
                 "I will always have more infinities.",
-                "It's over.",
+                "My HoF lead is completely unreachable.",
                 "My infinity count will remain untouched.",
                 "I easily dominate the Hall of Fame.",
                 "My infinity count is growing.",
@@ -3096,7 +3096,7 @@ public struct MockSocialService: SocialService, Sendable {
             competitiveReactions.append(contentsOf: [
                 "Your time is entirely irrelevant to my speed.",
                 "My clears have been unrivaled for a while.",
-                "It's over.",
+                "You'll never beat my clear time.",
                 "I will hold the faster clear.",
                 "I absolutely dominate the speed leaderboards.",
                 "Your time is too slow to matter.",
@@ -3142,7 +3142,7 @@ public struct MockSocialService: SocialService, Sendable {
                     "Your progress is entirely irrelevant to my infinity.",
                     "I'm way past that.",
                     "The gap between us just gets larger.",
-                    "It's over.",
+                    "You will never close the gap.",
                     "That feels like ages ago.",
                     "My lead is secure.",
                     "I dominate without even looking.",

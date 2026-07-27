@@ -494,14 +494,15 @@ struct ParityModelsTests {
         let matchPhrases = [
             "too low to get ahead", "acting like", "a long time ago", "child's play",
             "is a joke", "you're celebrating", "celebrating", "in the dust", "out of your reach",
-            "old news", "never reach", "always be behind", "completely outclassed",
+            "old news", "never reach", "never get there", "always be behind", "completely outclassed",
             "except you", "delusional", "completely irrelevant", "final", "barrier",
             "infinitely behind", "stuck in the lower tiers", "never catch up", "dominate",
             "ahead of your", "nothing compared", "way past", "easily passed", "toying with",
             "untouchable", "ceiling", "embarrassing", "not built for", "stuck at", "lagging at",
             "not even close", "fell for it", "only at", "easily reached", "coasting at",
             "easily bypassed", "proud of", "with ease", "left that behind", "never get past",
-            "why even mention", "is nothing", "enjoy the lead", "blew past", "without trying"
+            "why even mention", "is nothing", "enjoy the lead", "blew past", "without trying",
+            "you thought i was lower than", "lower than"
         ]
         if matchPhrases.contains(where: { lowered.contains($0) }) {
             return true
