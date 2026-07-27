@@ -2961,7 +2961,7 @@ public struct MockSocialService: SocialService, Sendable {
             "You will never exist on my level.", "Enjoy chasing my lead.",
             "My next run will just establish a higher ceiling.", "I'm comfortably ahead.",
             "You are nothing compared to my dominance.", "I dominate everything easily.",
-            "That record is cute. I'm already leagues ahead.", "You will never touch my stats.",
+            "Your record is cute. I'm already leagues ahead.", "You will never touch my stats.",
             "I'll be staying far ahead.", "I am laughing from the top.",
             "I am maintaining absolute dominance.", "I am completely unreachable.",
         ]
