@@ -3012,10 +3012,11 @@ public struct MockSocialService: SocialService, Sendable {
                 "The ultimate achievement!", "HoF gang!",
                 "You earned that spot.", "Top of the mountain!",
                 "That's endgame right there.", "Hall of Fame royalty!",
+                "I'm still grinding for HoF.",
             ])
             jealousReactions.append(contentsOf: [
                 "I'll never reach the Hall of Fame", "How long did it take to get to HoF?",
-                "I'm still grinding for HoF", "HoF feels so far away for me",
+                "HoF feels so far away for me",
                 "I dream about reaching HoF", "One day I'll join you there",
                 "Still so many tiles between me and HoF",
                 "I've been trying to reach HoF for months",
