@@ -5572,8 +5572,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             filtered = [
                                 "You're completely stuck. You'll never catch me.",
                                 "You're stuck while I'm tiers ahead.",
-                                "You are nothing. Know your place.",
-                                "You're delusional. You are no threat."
+                                "Your record are nothing. Know your place.",
+                                "You're delusional. Your record are no threat."
                             ]
                         } else if forceTone == "caught_up" {
                             filtered = [
