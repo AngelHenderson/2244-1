@@ -1762,7 +1762,7 @@ struct ParityModelsTests {
             "I easily passed your 1024. I'm at 2048.",
             "You thought you had the lead? Your 1024 is nothing. I'm at 2048.",
             "You fell for it. I easily beat your 1024. My real record is 2048.",
-            "You thought I was at 1024? Cute. I'm now at 2048.",
+            "You thought I was lower than 1024? Cute. I'm now at 2048.",
             "I blew past your 1024 and hit 2048 without even trying.",
             "Your 1024 is a joke compared to my 2048.",
             "I cleared 2048 without trying.",
