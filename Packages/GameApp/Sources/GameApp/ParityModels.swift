@@ -1083,27 +1083,20 @@ public struct MockSocialService: SocialService, Sendable {
                 return mins * 60 + secs
             }
             let currentSecs = val.map(timeToSeconds) ?? Int.random(in: 60...120)
-            let minGap: Int
             let maxGap: Int
             if currentSecs >= 240 {
-                minGap = 41
                 maxGap = 60
             } else if currentSecs >= 90 {
-                minGap = 26
                 maxGap = 40
             } else if currentSecs >= 30 {
-                minGap = 16
                 maxGap = 25
             } else if currentSecs >= 10 {
-                minGap = 3
                 maxGap = 15
             } else {
-                minGap = 1
                 maxGap = 2
             }
-            let upper = min(maxGap, max(minGap, currentSecs - 1))
-            let lower = min(minGap, upper)
-            let gap = Int.random(in: lower...upper)
+            let upper = min(maxGap, max(1, currentSecs - 1))
+            let gap = Int.random(in: 1...upper)
             let newSecs = max(1, currentSecs - gap)
             let mins = newSecs / 60
             let secs = newSecs % 60
