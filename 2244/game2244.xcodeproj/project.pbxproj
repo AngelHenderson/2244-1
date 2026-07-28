@@ -323,7 +323,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/../scripts/fix-sim-audio.sh\" --check\n";
+			shellScript = "
+";
 		};
 /* End PBXShellScriptBuildPhase section */
 
