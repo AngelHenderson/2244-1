@@ -273,6 +273,29 @@ struct ParityModelsTests {
         #expect(sawLeaguesOneUp, "Should generate 'leagues faster' for one up reply when gap >= 60s")
     }
 
+    @Test("Verify one up speedrun time zones and gaps")
+    func testOneUpSpeedrunTimeZonesAndGaps() {
+        // 4 mins+ (e.g. 5:00 = 300s -> gap 60 -> 4:00 = 240s)
+        #expect(MockSocialService.oneUpValue(for: "5:00", topic: "time") == "4:00")
+        #expect(MockSocialService.oneUpValue(for: "4:00", topic: "time") == "3:00")
+        
+        // 1:30 - 4:00 (e.g. 3:00 = 180s -> gap 40 -> 2:20 = 140s)
+        #expect(MockSocialService.oneUpValue(for: "3:00", topic: "time") == "2:20")
+        #expect(MockSocialService.oneUpValue(for: "1:30", topic: "time") == "0:50")
+        
+        // 0:30 - 1:30 (e.g. 1:15 = 75s -> gap 25 -> 0:50 = 50s)
+        #expect(MockSocialService.oneUpValue(for: "1:15", topic: "time") == "0:50")
+        #expect(MockSocialService.oneUpValue(for: "0:45", topic: "time") == "0:20")
+        
+        // 0:10 - 0:30 (e.g. 0:25 = 25s -> gap 15 -> 0:10 = 10s)
+        #expect(MockSocialService.oneUpValue(for: "0:25", topic: "time") == "0:10")
+        #expect(MockSocialService.oneUpValue(for: "0:20", topic: "time") == "0:05")
+        
+        // < 10 Seconds (e.g. 0:08 = 8s -> gap 2 -> 0:06 = 6s)
+        #expect(MockSocialService.oneUpValue(for: "0:08", topic: "time") == "0:06")
+        #expect(MockSocialService.oneUpValue(for: "0:03", topic: "time") == "0:01")
+    }
+
     @Test("Verify clock time of day (11:58 PM) is not parsed as speedrun time")
     func testClockTimeOfDayExcludedFromSpeedrunTime() async throws {
         let service = MockSocialService()

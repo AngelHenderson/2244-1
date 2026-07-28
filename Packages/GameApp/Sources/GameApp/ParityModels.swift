@@ -1083,12 +1083,19 @@ public struct MockSocialService: SocialService, Sendable {
                 return mins * 60 + secs
             }
             let currentSecs = val.map(timeToSeconds) ?? Int.random(in: 60...120)
-            let newSecs: Int
-            if currentSecs <= 10 {
-                newSecs = max(2, currentSecs - Int.random(in: 1...3))
+            let gap: Int
+            if currentSecs >= 240 {
+                gap = 60
+            } else if currentSecs >= 90 {
+                gap = 40
+            } else if currentSecs >= 30 {
+                gap = 25
+            } else if currentSecs >= 10 {
+                gap = 15
             } else {
-                newSecs = max(10, currentSecs - Int.random(in: 2...10))
+                gap = 2
             }
+            let newSecs = max(1, currentSecs - gap)
             let mins = newSecs / 60
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
