@@ -1271,7 +1271,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v63"
+    public static let feedDateKey = "socialFeed.cacheDate.v64"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v8"
 
@@ -1284,7 +1284,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v63.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v64.json")
     }
     
     private static var userPostsURL: URL {
@@ -2151,16 +2151,16 @@ public struct MockSocialService: SocialService, Sendable {
             let rand = Double.random(in: 0...1)
             let randomMilestone: String
             if rand < 0.35 {
-                // 9% raw numbers-B-tier (Indices 14...61, starting at 32k to avoid trivial early tiles)
+                // 6% raw numbers-B-tier (Indices 14...61, starting at 32k to avoid trivial early tiles)
                 randomMilestone = Self.allMilestones[Int.random(in: 14...61)]
             } else if rand < 0.75 {
-                // 21% a-z-tier
+                // 15% a-z-tier
                 randomMilestone = Self.allMilestones[Int.random(in: 62...297)]
             } else if rand < 0.89 {
-                // 49% aa-az
+                // 21% aa-az
                 randomMilestone = Self.allMilestones[Int.random(in: 298...557)]
             } else {
-                // 21% ba-bz
+                // 58% ba-bz
                 randomMilestone = Self.allMilestones[Int.random(in: 558...816)]
             }
             
