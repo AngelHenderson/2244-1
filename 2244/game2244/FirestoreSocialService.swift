@@ -96,6 +96,21 @@ struct FirestoreSocialService: SocialService, Sendable {
         }
     }
 
+    func deleteComment(itemID: UUID, commentID: UUID) async throws {
+        let _ = try await currentUser()
+        let firestore = Firestore.firestore()
+        let commentRef = firestore.collection("socialFeed").document(itemID.uuidString).collection("comments").document(commentID.uuidString)
+        let commentDoc = try await commentRef.getDocument()
+        if commentDoc.exists {
+            try await commentRef.delete()
+            let itemRef = firestore.collection("socialFeed").document(itemID.uuidString)
+            try await itemRef.updateData([
+                "commentCount": FieldValue.increment(Int64(-1)),
+                "updatedAt": FieldValue.serverTimestamp()
+            ])
+        }
+    }
+
     func toggleItemHeart(itemID: UUID) async throws {
         let currentUser = try await currentUser()
         let firestore = Firestore.firestore()
@@ -242,12 +257,19 @@ struct FirestoreSocialService: SocialService, Sendable {
             throw FirestoreSocialServiceError.notSignedIn
         }
 
+        let defaults = UserDefaults.standard
+        let storedName = defaults.string(forKey: "profilePlayerName")
+            ?? defaults.string(forKey: "player.displayName")
+            ?? defaults.string(forKey: "playerName")
         let displayName = snapshot.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let resolvedName = displayName?.isEmpty == false ? displayName! : "Player"
+        let resolvedName = (storedName?.isEmpty == false) ? storedName! : ((displayName?.isEmpty == false) ? displayName! : "Player")
         let username = snapshot.email?.split(separator: "@").first.map(String.init) ?? resolvedName
         let friendCode = String(snapshot.uid.prefix(6)).uppercased()
-        let avatarID = UserDefaults.standard.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot"
-        let countryCode = UserDefaults.standard.string(forKey: "profileCountryCode")
+        let avatarID = defaults.string(forKey: "profileAvatarId")
+            ?? defaults.string(forKey: "player.avatarID")
+            ?? defaults.string(forKey: "avatarSystemName")
+            ?? "avatar_buddy_bot"
+        let countryCode = defaults.string(forKey: "profileCountryCode")
 
         try? await FirebaseService.shared.upsertPublicUserProfile(
             uid: snapshot.uid,

@@ -75,8 +75,11 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             bestScoreText = formatScore(intScore)
         }
 
-        // Read player name (with fallback)
-        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
+        // Read player name (with fallbacks across all keys)
+        let playerName = defaults.string(forKey: "profilePlayerName")
+            ?? defaults.string(forKey: "player.displayName")
+            ?? defaults.string(forKey: "playerName")
+            ?? "Player"
 
         // Read friend code (with fallback)
         let friendCode = defaults.string(forKey: "profileFriendCode") ?? generateFriendCode()
@@ -104,8 +107,11 @@ public struct LiveProfileClient: ProfileClient, Sendable {
             return nil
         }()
 
-        // Read avatar
-        let avatarId = defaults.string(forKey: "profileAvatarId") ?? AvatarCatalog.default.id
+        // Read avatar (with fallbacks across all keys)
+        let avatarId = defaults.string(forKey: "profileAvatarId")
+            ?? defaults.string(forKey: "player.avatarID")
+            ?? defaults.string(forKey: "avatarSystemName")
+            ?? AvatarCatalog.default.id
 
         // Calculate global rank based on user's milestone
         let globalRank = calculateGlobalRank(milestone: highestTile)
@@ -129,6 +135,14 @@ public struct LiveProfileClient: ProfileClient, Sendable {
 
     public func updatePlayerName(_ name: String) async throws {
         UserDefaults.standard.set(name, forKey: "profilePlayerName")
+        UserDefaults.standard.set(name, forKey: "player.displayName")
+        UserDefaults.standard.set(name, forKey: "playerName")
+    }
+
+    public func updateAvatarId(_ avatarId: String) async throws {
+        UserDefaults.standard.set(avatarId, forKey: "profileAvatarId")
+        UserDefaults.standard.set(avatarId, forKey: "player.avatarID")
+        UserDefaults.standard.set(avatarId, forKey: "avatarSystemName")
     }
 
     public func updateCountry(_ countryCode: String?) async throws {

@@ -838,7 +838,7 @@ public struct LeaderboardView: View {
 
             // Avatar with platform badge
             ZStack(alignment: .bottomTrailing) {
-                if let avatarID = entry.avatarURL, avatarID.hasPrefix("avatar-") {
+                if let avatarID = entry.avatarURL, avatarID.hasPrefix("avatar-") || avatarID.hasPrefix("avatar_") {
                     // Local avatar from AvatarCatalog
                     AvatarBadge(option: AvatarCatalog.option(for: avatarID), size: 44)
                 } else if let avatarURL = entry.avatarURL, let url = URL(string: avatarURL) {

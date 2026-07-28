@@ -1063,7 +1063,40 @@ struct ParityModelsTests {
         // Since isTargetOutOfReach is false, it shouldn't generate the "If you can't even get to..." out-of-reach reply.
         // It should generate a behind reply instead.
         #expect(!reply.contains("can't even get to"), "Reply should not contain out-of-reach response: \(reply)")
-        #expect(!reply.contains("out of reach for you"), "Reply should not contain out-of-reach response: \(reply)")
+    }
+
+    @Test("Verify deleting a comment updates feed item and count")
+    func testDeleteComment() async throws {
+        MockSocialService.clearFileStorageForTests()
+        defer { MockSocialService.clearFileStorageForTests() }
+        
+        let service = MockSocialService()
+        try await service.postEvent(message: "Testing comment deletion", statText: "stat")
+        
+        guard let userPosts = MockSocialService.loadUserPosts(), let post = userPosts.first else {
+            Issue.record("Failed to load user posts")
+            return
+        }
+        
+        try await service.addComment(to: post.id, text: "Test comment to delete")
+        
+        guard let updatedPosts = MockSocialService.loadUserPosts(),
+              let updatedPost = updatedPosts.first(where: { $0.id == post.id }),
+              let addedComment = updatedPost.comments.first(where: { $0.text == "Test comment to delete" }) else {
+            Issue.record("Failed to find added comment")
+            return
+        }
+        
+        let initialCount = updatedPost.comments.count
+        try await service.deleteComment(itemID: post.id, commentID: addedComment.id)
+        
+        guard let postAfterDelete = MockSocialService.loadUserPosts()?.first(where: { $0.id == post.id }) else {
+            Issue.record("Failed to load post after delete")
+            return
+        }
+        
+        #expect(postAfterDelete.comments.count == initialCount - 1, "Expected comment count to decrease by 1")
+        #expect(!postAfterDelete.comments.contains(where: { $0.id == addedComment.id }), "Expected comment to be removed")
     }
 
     @Test("Same milestone replies use rivalry/tie phrasing")

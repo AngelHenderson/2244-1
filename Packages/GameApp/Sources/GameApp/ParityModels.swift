@@ -613,7 +613,11 @@ public struct LocalAccountService: AccountService, @unchecked Sendable {
         guard let data = try? JSONEncoder().encode(profile) else { return }
         defaults.set(data, forKey: key)
         defaults.set(profile.displayName, forKey: "profilePlayerName")
+        defaults.set(profile.displayName, forKey: "player.displayName")
+        defaults.set(profile.displayName, forKey: "playerName")
         defaults.set(profile.avatarID, forKey: "profileAvatarId")
+        defaults.set(profile.avatarID, forKey: "player.avatarID")
+        defaults.set(profile.avatarID, forKey: "avatarSystemName")
         defaults.set(profile.friendCode, forKey: "profileFriendCode")
         if let countryCode = profile.countryCode {
             defaults.set(countryCode, forKey: "profileCountryCode")
@@ -720,6 +724,7 @@ public protocol SocialService: Sendable {
     func toggleItemHeart(itemID: UUID) async throws
     func toggleCommentHeart(itemID: UUID, commentID: UUID) async throws
     func deleteItem(itemID: UUID) async throws
+    func deleteComment(itemID: UUID, commentID: UUID) async throws
     func searchFriends(query: String) async throws -> [AccountProfile]
     func invites() async throws -> [FamilyInvite]
     func removeInvite(id: UUID) async throws
@@ -760,6 +765,10 @@ public struct UnavailableSocialService: SocialService, Sendable {
     }
 
     public func deleteItem(itemID: UUID) async throws {
+        throw SocialServiceError.unavailable
+    }
+
+    public func deleteComment(itemID: UUID, commentID: UUID) async throws {
         throw SocialServiceError.unavailable
     }
 
@@ -1262,7 +1271,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v62"
+    public static let feedDateKey = "socialFeed.cacheDate.v63"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v8"
 
@@ -1275,7 +1284,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v62.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v63.json")
     }
     
     private static var userPostsURL: URL {
@@ -1443,8 +1452,14 @@ public struct MockSocialService: SocialService, Sendable {
         var foundAndUpdated: SocialFeedItem? = nil
         
         let now = Date()
-        let playerName = defaults.string(forKey: "profilePlayerName") ?? "Player"
-        let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot"
+        let playerName = defaults.string(forKey: "profilePlayerName")
+            ?? defaults.string(forKey: "player.displayName")
+            ?? defaults.string(forKey: "playerName")
+            ?? "Player"
+        let playerAvatar = defaults.string(forKey: "profileAvatarId")
+            ?? defaults.string(forKey: "player.avatarID")
+            ?? defaults.string(forKey: "avatarSystemName")
+            ?? "avatar_buddy_bot"
         func processItem(_ item: inout SocialFeedItem) {
             let replyDate = now
             var targetComment: SocialFeedComment? = nil
@@ -1658,8 +1673,14 @@ public struct MockSocialService: SocialService, Sendable {
         let currentDay = Self.daysSinceReference
 
         // Build the player's post
-        let playerName = defaults.string(forKey: "profilePlayerName") ?? defaults.string(forKey: "player.displayName") ?? "Player"
-        let playerAvatar = defaults.string(forKey: "profileAvatarId") ?? defaults.string(forKey: "player.avatarID") ?? "avatar_buddy_bot"
+        let playerName = defaults.string(forKey: "profilePlayerName")
+            ?? defaults.string(forKey: "player.displayName")
+            ?? defaults.string(forKey: "playerName")
+            ?? "Player"
+        let playerAvatar = defaults.string(forKey: "profileAvatarId")
+            ?? defaults.string(forKey: "player.avatarID")
+            ?? defaults.string(forKey: "avatarSystemName")
+            ?? "avatar_buddy_bot"
 
         var comments: [SocialFeedComment] = []
         let targetTotalComments = Int.random(in: 45...85)
@@ -2081,6 +2102,33 @@ public struct MockSocialService: SocialService, Sendable {
             }
         }
         
+        if let item = foundAndUpdated {
+            persistInteractedItem(item)
+        }
+    }
+
+    public func deleteComment(itemID: UUID, commentID: UUID) async throws {
+        let defaults = UserDefaults.standard
+        var foundAndUpdated: SocialFeedItem? = nil
+
+        if var cached = Self.loadFeedCache(),
+           let itemIndex = cached.firstIndex(where: { $0.id == itemID }) {
+            cached[itemIndex].comments.removeAll { $0.id == commentID }
+            cached[itemIndex].commentCount = cached[itemIndex].comments.count
+            Self.saveFeedCache(cached)
+            foundAndUpdated = cached[itemIndex]
+        }
+
+        if var userPosts = Self.loadUserPosts(),
+           let itemIndex = userPosts.firstIndex(where: { $0.id == itemID }) {
+            userPosts[itemIndex].comments.removeAll { $0.id == commentID }
+            userPosts[itemIndex].commentCount = userPosts[itemIndex].comments.count
+            Self.saveUserPosts(userPosts)
+            if foundAndUpdated == nil {
+                foundAndUpdated = userPosts[itemIndex]
+            }
+        }
+
         if let item = foundAndUpdated {
             persistInteractedItem(item)
         }
@@ -5582,8 +5630,8 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             filtered = [
                                 "You're completely stuck. You'll never catch me.",
                                 "You're stuck while I'm tiers ahead.",
-                                "Your record are nothing. Know your place.",
-                                "You're delusional. Your record are no threat."
+                                "Your record is nothing. Know your place.",
+                                "You're delusional. Your record is no threat."
                             ]
                         } else if forceTone == "caught_up" {
                             filtered = [

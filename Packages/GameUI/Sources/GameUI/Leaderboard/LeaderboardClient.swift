@@ -18,13 +18,21 @@ public enum UserLeaderboardData {
     /// The user's display name
     /// Reads from UserDefaults "playerName" (set by profile)
     public static var playerName: String {
-        UserDefaults.standard.string(forKey: "playerName") ?? "Player"
+        let defaults = UserDefaults.standard
+        return defaults.string(forKey: "profilePlayerName")
+            ?? defaults.string(forKey: "player.displayName")
+            ?? defaults.string(forKey: "playerName")
+            ?? "Player"
     }
 
     /// The user's avatar ID
-    /// Reads from UserDefaults "avatarSystemName" (set by profile)
+    /// Reads from UserDefaults "profileAvatarId" / "player.avatarID" / "avatarSystemName" (set by profile)
     public static var avatarID: String {
-        UserDefaults.standard.string(forKey: "avatarSystemName") ?? "avatar-shiba-dog"
+        let defaults = UserDefaults.standard
+        return defaults.string(forKey: "profileAvatarId")
+            ?? defaults.string(forKey: "player.avatarID")
+            ?? defaults.string(forKey: "avatarSystemName")
+            ?? "avatar_buddy_bot"
     }
 
     /// The user's country code (e.g., "US", "GB")

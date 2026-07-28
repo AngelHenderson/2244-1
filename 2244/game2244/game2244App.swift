@@ -321,13 +321,22 @@ struct game2244App: App {
                         try? await FirebaseService.shared.signInAnonymously()
                         NotificationCenter.default.post(name: Notification.Name("Game2244FirebaseAuthReady"), object: nil)
                         if let snapshot = FirebaseService.shared.currentAuthUser {
+                            let defaults = UserDefaults.standard
+                            let storedName = defaults.string(forKey: "profilePlayerName")
+                                ?? defaults.string(forKey: "player.displayName")
+                                ?? defaults.string(forKey: "playerName")
+                            let resolvedName = storedName ?? snapshot.displayName ?? "Player"
+                            let resolvedAvatar = defaults.string(forKey: "profileAvatarId")
+                                ?? defaults.string(forKey: "player.avatarID")
+                                ?? defaults.string(forKey: "avatarSystemName")
+                                ?? "avatar_buddy_bot"
                             try? await FirebaseService.shared.upsertPublicUserProfile(
                                 uid: snapshot.uid,
-                                displayName: snapshot.displayName ?? "Player",
+                                displayName: resolvedName,
                                 username: snapshot.email?.split(separator: "@").first.map(String.init) ?? "player",
-                                avatarID: UserDefaults.standard.string(forKey: "profileAvatarId") ?? "avatar_buddy_bot",
+                                avatarID: resolvedAvatar,
                                 friendCode: String(snapshot.uid.prefix(6)).uppercased(),
-                                countryCode: UserDefaults.standard.string(forKey: "profileCountryCode")
+                                countryCode: defaults.string(forKey: "profileCountryCode")
                             )
                         }
                         await gemWallet.startCloudSync()

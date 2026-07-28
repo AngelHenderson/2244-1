@@ -55,7 +55,9 @@ enum AvatarCatalog {
     }
 
     static func option(for id: String) -> AvatarOption {
-        all.first { $0.id == id } ?? `default`
+        let normalizedId = id.replacingOccurrences(of: "_", with: "-")
+        let normalizedImageName = id.replacingOccurrences(of: "-", with: "_")
+        return all.first { $0.id == id || $0.id == normalizedId || $0.imageName == id || $0.imageName == normalizedImageName } ?? `default`
     }
 }
 
@@ -73,15 +75,6 @@ struct AvatarBadge: View {
     }
 
     private var avatarImage: Image {
-        #if canImport(UIKit)
-        if let uiImage = UIImage(named: option.imageName) {
-            return Image(uiImage: uiImage)
-        }
-        #elseif canImport(AppKit)
-        if let nsImage = NSImage(named: option.imageName) {
-            return Image(nsImage: nsImage)
-        }
-        #endif
-        return Image(systemName: "person.circle.fill")
+        Image.avatar(option.imageName)
     }
 }

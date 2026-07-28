@@ -1492,7 +1492,7 @@ private struct FeedItemRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(item.avatarID)
+                Image.avatar(item.avatarID)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 36, height: 36)
@@ -1608,6 +1608,9 @@ private struct FeedCommentsView: View {
     @State private var refreshTick = Date()
     private let commentTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
+    @State private var commentToDelete: SocialFeedComment?
+    @State private var showDeleteCommentAlert = false
+    
     @State private var activeCommentTasks: [Task<Void, Never>] = []
     let onDismiss: () async -> Void
 
@@ -1633,7 +1636,7 @@ private struct FeedCommentsView: View {
                             HStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Image(item.comments[idx].avatarID)
+                                        Image.avatar(item.comments[idx].avatarID)
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 24, height: 24)
@@ -1684,8 +1687,37 @@ private struct FeedCommentsView: View {
                         .onTapGesture {
                             comment = "@\(item.comments[idx].authorName) "
                         }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                commentToDelete = item.comments[idx]
+                                showDeleteCommentAlert = true
+                            } label: {
+                                Label("Delete Comment", systemImage: "trash")
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                commentToDelete = item.comments[idx]
+                                showDeleteCommentAlert = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
+            }
+            .alert("Delete Comment?", isPresented: $showDeleteCommentAlert, presenting: commentToDelete) { targetComment in
+                Button("Delete", role: .destructive) {
+                    let commentID = targetComment.id
+                    item.comments.removeAll { $0.id == commentID }
+                    item.commentCount = item.comments.count
+                    Task {
+                        try? await socialService.deleteComment(itemID: item.id, commentID: commentID)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { targetComment in
+                Text("Are you sure you want to delete this comment? This action cannot be undone.")
             }
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 0) {
@@ -1757,7 +1789,7 @@ private struct FriendProfileRow: View {
 
     var body: some View {
         HStack {
-            Image(profile.avatarID)
+            Image.avatar(profile.avatarID)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 32, height: 32)
@@ -1946,3 +1978,28 @@ private func heroCard(title: String, subtitle: String, systemImage: String) -> s
     }
 }
 #endif
+
+extension Image {
+    public static func avatar(_ avatarID: String) -> Image {
+        let normalized = avatarID.replacingOccurrences(of: "-", with: "_")
+        #if canImport(UIKit)
+        if let uiImage = UIImage(named: normalized) {
+            return Image(uiImage: uiImage)
+        }
+        #elseif canImport(AppKit)
+        if let nsImage = NSImage(named: normalized) {
+            return Image(nsImage: nsImage)
+        }
+        #endif
+        #if canImport(UIKit)
+        if let defaultImg = UIImage(named: "avatar_buddy_bot") {
+            return Image(uiImage: defaultImg)
+        }
+        #elseif canImport(AppKit)
+        if let defaultImg = NSImage(named: "avatar_buddy_bot") {
+            return Image(nsImage: defaultImg)
+        }
+        #endif
+        return Image(systemName: "person.circle.fill")
+    }
+}
