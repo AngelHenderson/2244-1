@@ -234,12 +234,7 @@ public actor LiveAudioService: AudioServiceProtocol {
         _avPlayerBroken = true
         _audioCompletelyDead = true  // SystemSoundID won't work either with a dead HAL
         print("🔇 Audio HAL is dead — all audio disabled until simulator restarts")
-        print("🔇 Audio will auto-fix on next build (simulator device will restart)")
-        
-        // Write marker file so the Xcode build phase knows to restart the simulator
-        #if targetEnvironment(simulator)
-        FileManager.default.createFile(atPath: "/private/tmp/sim-audio-broken", contents: nil)
-        #endif
+        print("🔇 Fix: run ./scripts/fix-sim-audio.sh then rebuild")
         
         // Run aggressive recovery once in case it helps
         aggressiveAudioRecovery()
