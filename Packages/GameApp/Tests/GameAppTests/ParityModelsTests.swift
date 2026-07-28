@@ -275,25 +275,45 @@ struct ParityModelsTests {
 
     @Test("Verify one up speedrun time zones and gaps")
     func testOneUpSpeedrunTimeZonesAndGaps() {
-        // 4 mins+ (e.g. 5:00 = 300s -> gap 60 -> 4:00 = 240s)
-        #expect(MockSocialService.oneUpValue(for: "5:00", topic: "time") == "4:00")
-        #expect(MockSocialService.oneUpValue(for: "4:00", topic: "time") == "3:00")
+        func parseSecs(_ timeStr: String) -> Int {
+            let parts = timeStr.split(separator: ":")
+            return Int(parts[0])! * 60 + Int(parts[1])!
+        }
         
-        // 1:30 - 4:00 (e.g. 3:00 = 180s -> gap 40 -> 2:20 = 140s)
-        #expect(MockSocialService.oneUpValue(for: "3:00", topic: "time") == "2:20")
-        #expect(MockSocialService.oneUpValue(for: "1:30", topic: "time") == "0:50")
+        // 4 mins+ (e.g. 5:00 = 300s -> gap in 41...60 -> max 60s)
+        for _ in 0..<50 {
+            let resSecs = parseSecs(MockSocialService.oneUpValue(for: "5:00", topic: "time"))
+            let gap = 300 - resSecs
+            #expect(gap >= 41 && gap <= 60, "Gap for 5:00 should be between 41 and 60 seconds (max 60s), got \(gap)")
+        }
         
-        // 0:30 - 1:30 (e.g. 1:15 = 75s -> gap 25 -> 0:50 = 50s)
-        #expect(MockSocialService.oneUpValue(for: "1:15", topic: "time") == "0:50")
-        #expect(MockSocialService.oneUpValue(for: "0:45", topic: "time") == "0:20")
+        // 1:30 - 4:00 (e.g. 3:00 = 180s -> gap in 26...40 -> max 40s)
+        for _ in 0..<50 {
+            let resSecs = parseSecs(MockSocialService.oneUpValue(for: "3:00", topic: "time"))
+            let gap = 180 - resSecs
+            #expect(gap >= 26 && gap <= 40, "Gap for 3:00 should be between 26 and 40 seconds (max 40s), got \(gap)")
+        }
         
-        // 0:10 - 0:30 (e.g. 0:25 = 25s -> gap 15 -> 0:10 = 10s)
-        #expect(MockSocialService.oneUpValue(for: "0:25", topic: "time") == "0:10")
-        #expect(MockSocialService.oneUpValue(for: "0:20", topic: "time") == "0:05")
+        // 0:30 - 1:30 (e.g. 1:15 = 75s -> gap in 16...25 -> max 25s)
+        for _ in 0..<50 {
+            let resSecs = parseSecs(MockSocialService.oneUpValue(for: "1:15", topic: "time"))
+            let gap = 75 - resSecs
+            #expect(gap >= 16 && gap <= 25, "Gap for 1:15 should be between 16 and 25 seconds (max 25s), got \(gap)")
+        }
         
-        // < 10 Seconds (e.g. 0:08 = 8s -> gap 2 -> 0:06 = 6s)
-        #expect(MockSocialService.oneUpValue(for: "0:08", topic: "time") == "0:06")
-        #expect(MockSocialService.oneUpValue(for: "0:03", topic: "time") == "0:01")
+        // 0:10 - 0:30 (e.g. 0:25 = 25s -> gap in 3...15 -> max 15s)
+        for _ in 0..<50 {
+            let resSecs = parseSecs(MockSocialService.oneUpValue(for: "0:25", topic: "time"))
+            let gap = 25 - resSecs
+            #expect(gap >= 3 && gap <= 15, "Gap for 0:25 should be between 3 and 15 seconds (max 15s), got \(gap)")
+        }
+        
+        // < 10 Seconds (e.g. 0:08 = 8s -> gap in 1...2 -> max 2s)
+        for _ in 0..<50 {
+            let resSecs = parseSecs(MockSocialService.oneUpValue(for: "0:08", topic: "time"))
+            let gap = 8 - resSecs
+            #expect(gap >= 1 && gap <= 2, "Gap for 0:08 should be between 1 and 2 seconds (max 2s), got \(gap)")
+        }
     }
 
     @Test("Verify clock time of day (11:58 PM) is not parsed as speedrun time")
