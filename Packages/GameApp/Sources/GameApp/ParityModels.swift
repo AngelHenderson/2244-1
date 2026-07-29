@@ -3493,17 +3493,17 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     "Back to 0? I'm dominating with \(myDays) days.",
                     "Enjoy restarting from zero. You'll never be a threat to my \(myDays) days.",
                     "Lost your streak? Typical. I'm already at \(myDays) days.",
-                    "Back to \(cN) days? Don't even try to catch my \(myDays) days.",
+                    "Don't even try to catch my \(myDays) days. Back to \(cN) days?",
                     "Dropping your streak is pathetic. I'm sitting comfortably at \(myDays) days.",
                     "I'm at \(myDays) days and you're down to \(cN). We are not the same.",
                     "Can't even hold a streak? I'm untouched at \(myDays) days.",
-                    "Imagine dropping to \(cN) days. I'm already at \(myDays) days.",
-                    "Down to \(cN)? My \(myDays) days will always be ahead.",
+                    "I'm already at \(myDays) days. Imagine dropping to \(cN) days.",
+                    "My \(myDays) days will always be ahead. Down to \(cN)?",
                     "Your streak died as expected. Now my \(myDays) days is higher!",
                     "Losing your streak was inevitable. Now my streak is higher than yours!",
                     "Your streak was bound to break. Now my \(myDays) days is higher than your \(cN)!",
                     "Consistency is clearly beyond you. Now my \(myDays) days dominates yours.",
-                    "Your streak couldn't handle the pressure. My \(myDays) days is already higher.",
+                    "You folded under zero pressure. My \(myDays) days is already higher.",
                     "You actually thought you'd keep it? Now my \(myDays) days is higher anyway!",
                     "Your streak finally snapped. Now my \(myDays) day streak is higher than yours.",
                     "Dropping your streak is embarrassing. Now my \(myDays) days is higher than your pathetic \(cN) days!",
@@ -4954,7 +4954,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "Losing your streak was inevitable. Now my streak is higher than yours!",
                                     "Your streak was bound to break. Now my \(higherNum) days is higher than your \(cN)!",
                                     "Consistency is clearly beyond you. Now my \(higherNum) days dominates yours.",
-                                    "Your streak couldn't handle the pressure. My \(higherNum) days is already higher.",
+                                    "You folded under zero pressure. My \(higherNum) days is already higher.",
                                     "You actually thought you'd keep it? Now my \(higherNum) days is higher anyway!",
                                     "Your streak finally snapped. Now my \(higherNum) day streak is higher than yours.",
                                     "Dropping your streak is embarrassing. Now my \(higherNum) days is higher than your pathetic \(cN) days!",
@@ -5016,8 +5016,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                 "I'm right there at \(cN) days too. Let's see who breaks it first.",
                                 "We're tied at \(cN) days. The real race starts now.",
                                 "I hit \(higherNum) days without sweating. I'm pulling ahead soon.",
-                                "Looks like we're both at \(cN) days. Enjoy it while it lasts.",
-                                "I also hit \(higherNum) days. Cute, but irrelevant."
+                                "Looks like we're both at \(cN) days. Enjoy it while it lasts."
                             ])
                         } else {
                             if wantsBetter {
@@ -5029,19 +5028,9 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             } else {
                                 if cN <= 2 {
                                     replies.append(contentsOf: [
-                                         "Lost your streak? Typical. I'm already at \(higherNum) days.",
-                                         "Back to \(cN) days? Don't even try to catch my \(higherNum) days.",
-                                         "Dropping your streak is pathetic. I'm sitting comfortably at \(higherNum) days.",
-                                         "I'm at \(higherNum) days and you're down to \(cN). We are not the same.",
-                                         "Can't even hold a streak? I'm untouched at \(higherNum) days.",
-                                         "Imagine dropping to \(cN) days. I'm already at \(higherNum) days.",
-                                         "Down to \(cN)? My \(higherNum) days will always be ahead.",
-                                         "Your streak died as expected. Now my \(higherNum) days is higher!",
-                                         "Losing your streak was inevitable. Now my streak is higher than yours!",
-                                         "Your streak was bound to break. Now my \(higherNum) days is higher than your \(cN)!",
-                                         "Consistency is clearly beyond you. Now my \(higherNum) days dominates yours.",
-                                         "Your streak couldn't handle the pressure. My \(higherNum) days is already higher.",
-                                         "You actually thought you'd keep it? Now my \(higherNum) days is higher anyway!",
+                                         "I'm already at \(higherNum) days. Lost your streak? Typical.",
+                                         "I'm already at \(higherNum) days. Don't even try to catch me",
+                                         "Your streak first. My \(higherNum) days is already higher.",
                                          "Your streak finally snapped. Now my \(higherNum) day streak is higher than yours.",
                                          "Dropping your streak is embarrassing. Now my \(higherNum) days is higher than your pathetic \(cN) days!",
                                          "Your streak is dead. Now my \(higherNum) days sits higher than yours.",
@@ -5049,13 +5038,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                      ])
                                 } else {
                                     replies.append(contentsOf: [
-                                        "I am ahead of your \(cN) days. I'm at \(higherNum).",
-                                        "Your \(cN) day streak is cute. You'll never catch my \(higherNum) days.",
-                                        "I already passed \(cN) days. I'm untouched at \(higherNum).",
-                                        "Your \(cN) days is a joke. I'm already sitting at \(higherNum) days.",
+                                        "I'm at \(higherNum) days. I am ahead of your \(cN) days.",
+                                        "I'm at \(higherNum) days. Your \(cN) day streak is cute.",
+                                        "I'm untouched at \(higherNum) days. I already passed \(cN) days.",
+                                        "I'm already sitting at \(higherNum) days. Your \(cN) days is a joke.",
                                         "\(higherNum) days leaves you behind. Your \(cN) is nothing.",
                                         "My infinite consistency is at \(higherNum) days. \(cN) is a joke.",
-                                        "You're bragging about \(cN) days? I'm at \(higherNum).",
+                                        "I'm at \(higherNum) days. You're bragging about \(cN) days?",
                                         "I own \(higherNum) days. \(higherNum) > \(cN)."
                                     ])
                                 }

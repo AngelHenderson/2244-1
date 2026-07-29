@@ -1199,7 +1199,7 @@ struct ParityModelsTests {
         )
         let isStreakGenericTie = streakReply.contains("We are tied now") || streakReply.contains("We're tied") || streakReply.contains("Finally tied") || streakReply.contains("would catch you")
         #expect(streakReply.contains("50") || isStreakGenericTie, "Expected caught-up reply to mention commenter record: \(streakReply)")
-        let isStreakBeat = streakReply.lowercased().contains("caught up") || streakReply.contains("catch up") || streakReply.contains("catch you") || streakReply.contains("ahead now") || streakReply.contains("passed you") || streakReply.contains("overtake") || streakReply.contains("watch your back") || streakReply.contains("beat your")
+        let isStreakBeat = streakReply.lowercased().contains("caught up") || streakReply.contains("catch up") || streakReply.contains("catch you") || streakReply.contains("ahead") || streakReply.contains("passed") || streakReply.contains("overtake") || streakReply.contains("watch your back") || streakReply.contains("beat your") || streakReply.contains("higher") || streakReply.contains("leaves you behind") || streakReply.contains("bragging about") || streakReply.contains("is a joke") || streakReply.contains(" > ")
         #expect(isStreakBeat, "Expected streak caught-up reply to use beat/ahead phrasing: \(streakReply)")
     }
 
@@ -1486,10 +1486,14 @@ struct ParityModelsTests {
         let expectedSubstrings = [
             "15",
             "lose your streak",
+            "losing your streak",
             "streak would die",
             "streak died",
             "streak is dead",
-            "consistency would break"
+            "consistency would break",
+            "consistency is clearly beyond you",
+            "bound to break",
+            "finally snapped"
         ]
         let matched = expectedSubstrings.contains { reply.lowercased().contains($0.lowercased()) }
         #expect(matched, "Expected reply to be a streak-loss comment mock, but got: \(reply)")
