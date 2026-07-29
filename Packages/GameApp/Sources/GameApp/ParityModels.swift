@@ -3604,13 +3604,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let isMassiveGap = Bool.random()
                     
                     func generateBetterTime() -> Int {
-                        if totalSecs <= 10 {
-                            return max(2, totalSecs - Int.random(in: 1...3))
+                        let maxGap: Int
+                        if totalSecs >= 240 {
+                            maxGap = 60
+                        } else if totalSecs >= 90 {
+                            maxGap = 40
+                        } else if totalSecs >= 30 {
+                            maxGap = 25
+                        } else if totalSecs >= 10 {
+                            maxGap = 15
                         } else {
-                            let maxLess = totalSecs - 10
-                            let lessBy = isMassiveGap && maxLess > 30 ? Int.random(in: totalSecs / 2...maxLess) : Int.random(in: max(5, totalSecs / 10)...max(15, totalSecs / 3))
-                            return max(10, totalSecs - lessBy)
+                            maxGap = 2
                         }
+                        let gap = Int.random(in: 1...min(maxGap, max(1, totalSecs - 1)))
+                        return max(1, totalSecs - gap)
                     }
                     
                     var myTotal = generateBetterTime()
@@ -4634,8 +4641,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             myTimeStr = speakerValue
                             mySecs = sMins * 60 + sSecs
                         } else {
-                            var calculatedSecs = totalSecs / 3 // Ridiculously fast
-                            if calculatedSecs <= 1 { calculatedSecs = 2 }
+                            let maxGap: Int
+                            if totalSecs >= 240 {
+                                maxGap = 60
+                            } else if totalSecs >= 90 {
+                                maxGap = 40
+                            } else if totalSecs >= 30 {
+                                maxGap = 25
+                            } else if totalSecs >= 10 {
+                                maxGap = 15
+                            } else {
+                                maxGap = 2
+                            }
+                            let gap = Int.random(in: 1...min(maxGap, max(1, totalSecs - 1)))
+                            let calculatedSecs = max(1, totalSecs - gap)
                             myTimeStr = "\(calculatedSecs / 60):\(String(format: "%02d", calculatedSecs % 60))"
                             mySecs = calculatedSecs
                         }
@@ -4869,7 +4888,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let isLost = message.contains("lost") || message.contains("broke") || message.contains("reset")
                 if isLost {
                     let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue), valInt > 0 {
                         higherNum = valInt
                     } else {
                         higherNum = Int.random(in: 15...45)
@@ -4897,7 +4916,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(Self.getOneUpBrag(metric: "streak", lower: "\(cN)", higher: "\(rN)", excluding: previousSelfComment))
                     } else if rootIsJealous, let cN = commentNumber {
                         let higherNum: Int
-                        if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        if let speakerValue = speakerValue, let valInt = Int(speakerValue), valInt > 0 {
                             higherNum = valInt
                         } else if forceTone == "behind" && cN > 1 {
                             higherNum = max(1, cN - Int.random(in: 1...max(5, cN / 2)))
@@ -4979,7 +4998,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let cN = commentNumber ?? num
                         let isLowStreak = false
                         let higherNum: Int
-                        if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
+                        if let speakerValue = speakerValue, let valInt = Int(speakerValue), valInt > 0 {
                             higherNum = valInt
                         } else if (isLowStreak || forceTone == "behind") && cN > 1 {
                             higherNum = max(1, cN - Int.random(in: 1...max(5, cN / 2)))
@@ -5212,11 +5231,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             if forceTone == "behind" {
                                 higherNum = totalSecs + Int.random(in: 5...30)
                             } else {
-                                if totalSecs <= 10 {
-                                    higherNum = max(2, totalSecs - Int.random(in: 1...3))
+                                let maxGap: Int
+                                if totalSecs >= 240 {
+                                    maxGap = 60
+                                } else if totalSecs >= 90 {
+                                    maxGap = 40
+                                } else if totalSecs >= 30 {
+                                    maxGap = 25
+                                } else if totalSecs >= 10 {
+                                    maxGap = 15
                                 } else {
-                                    higherNum = max(10, totalSecs - Int.random(in: 10...30))
+                                    maxGap = 2
                                 }
+                                let gap = Int.random(in: 1...min(maxGap, max(1, totalSecs - 1)))
+                                higherNum = max(1, totalSecs - gap)
                             }
                         }
                         let myMins = higherNum / 60
@@ -5291,7 +5319,20 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     } else if isLowTime {
                         higherNum = assumedTotal + Int.random(in: 10...30)
                     } else {
-                        higherNum = max(10, assumedTotal - Int.random(in: 10...30))
+                        let maxGap: Int
+                        if assumedTotal >= 240 {
+                            maxGap = 60
+                        } else if assumedTotal >= 90 {
+                            maxGap = 40
+                        } else if assumedTotal >= 30 {
+                            maxGap = 25
+                        } else if assumedTotal >= 10 {
+                            maxGap = 15
+                        } else {
+                            maxGap = 2
+                        }
+                        let gap = Int.random(in: 1...min(maxGap, max(1, assumedTotal - 1)))
+                        higherNum = max(1, assumedTotal - gap)
                     }
                     let myMins = higherNum / 60
                     let mySecs = higherNum % 60
