@@ -127,9 +127,9 @@ public actor LiveAudioService: AudioServiceProtocol {
     // SystemSoundID fallback: when AVAudioPlayer is broken (common in Simulator),
     // we fall back to AudioToolbox which uses a completely different CoreAudio path.
     private var _avPlayerBroken: Bool = false
-    // When BOTH AVAudioPlayer AND SystemSoundID fail, the simulator's entire audio HAL
-    // is dead. Stop calling ANY audio API to prevent AQMEIO error spam in the console.
-    private var _audioCompletelyDead: Bool = false
+    // Audio is disabled by default until the startup probe confirms the HAL is alive.
+    // This prevents ALL audio API calls (and error spam) before we know audio works.
+    private var _audioCompletelyDead: Bool = true
     private var _systemSoundCache: [String: SystemSoundID] = [:]
     private var _recoveryTask: Task<Void, Never>? = nil
 
@@ -232,13 +232,11 @@ public actor LiveAudioService: AudioServiceProtocol {
     /// Mark audio as completely dead and start periodic recovery attempts.
     private func markAVPlayerBroken() {
         _avPlayerBroken = true
-        _audioCompletelyDead = true  // SystemSoundID won't work either with a dead HAL
+        _audioCompletelyDead = true
         print("🔇 Audio HAL is dead — all audio disabled until simulator restarts")
         print("🔇 Fix: run ./scripts/fix-sim-audio.sh then rebuild")
-        
-        // Run aggressive recovery once in case it helps
-        aggressiveAudioRecovery()
-        // Start a background timer to periodically re-test
+        // Don't call aggressiveAudioRecovery here — it generates more errors on a dead HAL.
+        // Just start the background timer to silently check every 30s.
         startRecoveryTimer()
     }
 
@@ -596,8 +594,10 @@ public actor LiveAudioService: AudioServiceProtocol {
     }
     
     private func handleMusicFinished() async {
+        // Don't restart music if audio HAL is dead — this prevents an infinite loop
+        // where play() fails instantly → "finished" fires → restart → fails again
+        guard !_audioCompletelyDead else { return }
         print("🎵 Music finished playing")
-        // If looping was enabled but music stopped, it might be an error - try to restart
         if currentMusicLoop, let fileName = currentMusicFileName {
             print("🎵 Looping music stopped unexpectedly, restarting...")
             await playMusic(named: fileName, loop: true)
