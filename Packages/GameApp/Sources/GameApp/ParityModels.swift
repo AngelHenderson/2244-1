@@ -915,12 +915,22 @@ public struct MockSocialService: SocialService, Sendable {
         case "hof", "streak":
             if let pattern = try? NSRegularExpression(pattern: "(?<!:)\\b(\\d{1,6})(?:d|day|days)?\\b(?!:)") {
                 let regexMatches = pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+                var dayMatches: [(val: String, range: NSRange)] = []
+                var bareMatches: [(val: String, range: NSRange)] = []
                 for m in regexMatches {
+                    let fullStr = nsText.substring(with: m.range)
                     if m.numberOfRanges > 1 {
                         let r = m.range(at: 1)
                         let val = nsText.substring(with: r)
-                        matches.append((val: val, range: m.range))
+                        if fullStr.contains("d") || fullStr.contains("day") {
+                            dayMatches.append((val: val, range: m.range))
+                        } else {
+                            bareMatches.append((val: val, range: m.range))
+                        }
                     }
+                }
+                if let best = dayMatches.first ?? bareMatches.first {
+                    matches.append(best)
                 }
             }
             
@@ -3291,7 +3301,7 @@ public struct MockSocialService: SocialService, Sendable {
                         ("That's zero effort.", 6.9),
                         ("That's laughable.", 3.0),
                         ("That's entirely average.", 4.0),
-                        ("Not worth my time.", 0.6),
+                        ("Not worth my time.", 7.6),
                         ("Unimpressive.", 0.01),
                         ("Not impressed.", 0.01),
                         ("That's cute.", 20.5),
@@ -3299,8 +3309,8 @@ public struct MockSocialService: SocialService, Sendable {
                         ("That's a joke.", 7.2),
                         ("Imagine celebrating that.", 9.4),
                         ("Is that all?", 0.01),
-                        ("I did this by accident.", 19.5),
-                        ("That's nothing.", 11.57),
+                        ("I did this by accident.", 16),
+                        ("That's nothing.", 8.07),
                         ("Are you even trying?", 0.1)
                     ]
                     
@@ -3744,7 +3754,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         "Stuck at \(m)? I left that in the dust. I'm sitting at \(localHigherM).",
                         "Couldn't even get past \(m)? I'm already pushing \(localHigherM).",
                         "Dead end? Your skill is a joke. I'm dominating with \(localHigherM).",
-                        "Imagine stopping at \(m). I'm comfortably sitting at \(localHigherM)."
+                        "Ran out of moves at \(m)? I'm comfortably sitting at \(localHigherM)."
                     ]
                     let realName = claimLeaderboardName(Self.leaderboardPlayerAtMilestone(localHigherM))
                     let idx = Self.drawIndexFromBag(key: "\(bagKey)_milestone_lost", count: templates.count)
