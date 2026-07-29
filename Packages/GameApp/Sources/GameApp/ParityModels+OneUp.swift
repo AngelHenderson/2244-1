@@ -104,15 +104,15 @@ extension MockSocialService {
                 return pickRandom(list)
             case 3:
                 let weightedReplies: [(String, Double)] = [
-                    ("I easily passed your \(lower). I'm at \(higher).", 3.1),
-                    ("You thought you had the lead? Your \(lower) is nothing. I'm at \(higher).", 18.0),
-                    ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 19.9),
-                    ("You thought I was lower than \(lower)? Cute. I'm now at \(higher).", 24.9),
-                    ("I blew past your \(lower) and hit \(higher) without even trying.", 6.1),
+                    ("I easily passed your \(lower). I'm at \(higher).", 1.7),
+                    ("You thought you had the lead? Your \(lower) is nothing. I'm at \(higher).", 16.0),
+                    ("You fell for it. I easily beat your \(lower). My real record is \(higher).", 46.9),
+                    ("You thought I was lower than \(lower)? Cute. I'm now at \(higher).", 15.9),
+                    ("I blew past your \(lower) and hit \(higher) without even trying.", 2.7),
                     ("Only at \(lower)? I easily reached \(higher).", 4.6),
-                    ("Your \(lower) is a joke compared to my \(higher).", 2.4),
+                    ("Your \(lower) is a joke compared to my \(higher).", 1.2),
                     ("I cleared \(higher) without trying.", 0.6),
-                    ("I was just toying with you. I'm actually at \(higher).", 20.4)
+                    ("I was just toying with you. I'm actually at \(higher).", 10.2)
                 ]
                 return pickWeighted(weightedReplies)
             case 4:

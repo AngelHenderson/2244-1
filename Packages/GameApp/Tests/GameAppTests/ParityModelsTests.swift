@@ -566,8 +566,8 @@ struct ParityModelsTests {
         #expect(!timeReplyNonComp.lowercased().contains("too slow") && !timeReplyNonComp.lowercased().contains("fast enough"), "Should not use too slow/slow brag if comment is not competitive: \(timeReplyNonComp)")
 
         // Reply to a competitive comment (contains "beat you"):
-        let timeReplyComp = service.generateContextualReply(to: "I beat you, clocked 0:07.", message: "0:06", forceTone: "one_up")
-        #expect(timeReplyComp.lowercased().contains("not fast enough") || timeReplyComp.lowercased().contains("too slow"), "Should use slow brag if comment is competitive: \(timeReplyComp)")
+        let timeReplyComp = service.generateContextualReply(to: "I beat you, clocked 0:25.", message: "0:06", forceTone: "one_up", speakerValue: "0:06")
+        #expect(timeReplyComp.lowercased().contains("not fast enough") || timeReplyComp.lowercased().contains("too slow"), "Should use slow brag if gap >= 10s: \(timeReplyComp)")
 
         // 2. Milestone topic:
         // Reply to a competitive comment:
@@ -2250,30 +2250,30 @@ struct ParityModelsTests {
         #expect(outOfMovesPercent >= 12.0 && outOfMovesPercent <= 18.0, "Out of moves milestone way-behind should be ~15%, actual is \(outOfMovesPercent)%")
     }
 
-    @Test("Verify that practice run templates are not generated for fast speedrun times")
+    @Test("Verify that practice run templates are only generated when gap >= 30 seconds")
     func testPracticeRunTemplateThreshold() {
         let service = MockSocialService()
         
-        // Fast time (e.g. 0:24)
+        // Gap < 30s (23s gap: 2:45 vs 2:22) -> Should NOT contain "practice run"
         for _ in 0..<100 {
             let reply = service.generateContextualReply(
-                to: "My best is 0:24",
-                message: "timed challenge in 0:20",
+                to: "My best is 2:45",
+                message: "timed challenge in 2:22",
                 forceTone: "one_up",
-                speakerValue: "0:20",
-                opponentValue: "0:24"
+                speakerValue: "2:22",
+                opponentValue: "2:45"
             )
-            #expect(!reply.contains("practice run"), "Practice run templates should not be generated for fast times (0:24)")
+            #expect(!reply.contains("practice run"), "Practice run templates should not be generated for gap < 30s (2:45 vs 2:22, gap = 23s): \(reply)")
         }
         
-        // Slower time (e.g. 1:30)
+        // Gap >= 30s (40s gap: 1:30 vs 0:50) -> CAN contain "practice run"
         var sawPracticeRun = false
         for _ in 0..<500 {
             let reply = service.generateContextualReply(
                 to: "My best is 1:30",
-                message: "timed challenge in 1:20",
+                message: "timed challenge in 0:50",
                 forceTone: "one_up",
-                speakerValue: "1:20",
+                speakerValue: "0:50",
                 opponentValue: "1:30"
             )
             if reply.contains("practice run") {
@@ -2281,7 +2281,7 @@ struct ParityModelsTests {
                 break
             }
         }
-        #expect(sawPracticeRun, "Practice run templates should be generated for slower times (1:30)")
+        #expect(sawPracticeRun, "Practice run templates should be generated when gap >= 30s (1:30 vs 0:50, gap = 40s)")
     }
 
     @Test("Verify that NPC streak values do not increase within a single comment thread")

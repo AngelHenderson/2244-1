@@ -1271,7 +1271,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     public static let feedCacheKey = "socialFeed.cache.v52"
-    public static let feedDateKey = "socialFeed.cacheDate.v64"
+    public static let feedDateKey = "socialFeed.cacheDate.v65"
     /// Version-independent key for user-posted events so they survive cache bumps.
     public static let userPostsKey = "socialFeed.userPosts.v8"
 
@@ -1284,7 +1284,7 @@ public struct MockSocialService: SocialService, Sendable {
     }
 
     private static var feedCacheURL: URL {
-        storageDirectory.appendingPathComponent("socialFeedCache_v64.json")
+        storageDirectory.appendingPathComponent("socialFeedCache_v65.json")
     }
     
     private static var userPostsURL: URL {
@@ -4129,7 +4129,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
         let questionKeywords = ["?", "how", "what", "any tips", "did you", "do you", "how long", "how many", "which", "when", "can i", "could you", "is it", "was it"]
         let isQuestion = !isForcedCompetitive && questionKeywords.contains(where: { strippedLower.contains($0) })
 
-        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "compared to"]
+        let competitiveKeywords = ["nothing compared", "dominate", "cute", "light work", "in the dust", "standard", "floor", "ceiling", "destroy", "practice run", "laughing", "irrelevant", "meaningless", "joke", "beneath", "eternity", "forever", "beat", "faster", "toying", "toying with", "without trying", "old news", "blew past", "child's play", "compared to", "is next", "is close"]
         var isCompetitive = isForcedCompetitive || competitiveKeywords.contains(where: { strippedLower.contains($0) })
         if forceTone == nil && Double.random(in: 0..<1) < 0.55 {
             isCompetitive = true
@@ -5271,13 +5271,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     ("You call \(posterTime) fast? I'm already down to \(higherTime).", 6.0),
                                     ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 14.0)
                                 ]
-                                if totalSecs > 30 {
+                                if diff >= 30 {
                                     templatesWithWeights.append(("Your \(posterTime) was my practice run. I'm down to \(higherTime).", 5.0))
                                 }
                                 if diff >= 60 {
                                     templatesWithWeights.append(("I am leagues faster than your \(posterTime). I'm at \(higherTime).", 10.0))
                                 }
-                                if diff >= 10 && commentIsCompetitive && commentText != message {
+                                if diff >= 10 {
                                     templatesWithWeights.append(("\(posterTime) is too slow. I just clocked \(higherTime).", 10.0))
                                 } else {
                                     templatesWithWeights.append(("\(posterTime) is close, but I just clocked \(higherTime).", 10.0))
@@ -5333,13 +5333,13 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             ("You call \(posterTime) fast? I'm already down to \(higherTime).", 6.0),
                             ("I speedrun easily. \(higherTime) destroys your \(posterTime).", 58.0)
                         ]
-                        if assumedTotal > 30 {
+                        if diff >= 30 {
                             templatesWithWeights.append(("Your \(posterTime) was my practice run. I'm down to \(higherTime).", 5.0))
                         }
                         if diff >= 60 {
                             templatesWithWeights.append(("I am leagues faster than your \(posterTime). I'm at \(higherTime).", 10.0))
                         }
-                        if diff >= 10 && commentIsCompetitive && commentText != message {
+                        if diff >= 10 {
                             templatesWithWeights.append(("\(posterTime) is too slow. I just clocked \(higherTime).", 10.0))
                         } else {
                             templatesWithWeights.append(("\(posterTime) is close, but I just clocked \(higherTime).", 10.0))
