@@ -348,36 +348,14 @@ public final class PlayerReadinessStore {
     }
 
     public func recomputeVisibleFeatures(highestTile: Int, highestTileStep: Int) {
-        var features: Set<HomeFeature> = [.play, .journey, .settings]
-
-        if snapshot.hasCompletedTutorial || highestTileStep > 0 {
-            features.formUnion([.modes, .practice, .account, .reminders, .widgetPromo])
-        }
-
-        if snapshot.completedRuns > 0 || highestTileStep > 0 {
-            features.formUnion([.daily, .dailyQuests, .dailyStreaks])
-        }
-
-        if snapshot.hasEarnedFirstReward {
-            features.formUnion([.shop, .freeSpin, .music, .theme, .profile, .adBonus, .subscription, .yearReview])
-        }
-
-        if snapshot.totalMerges >= 10 || highestTileStep >= 10
-            || snapshot.completedRuns > 0 || snapshot.hasEarnedFirstReward {
-            features.formUnion([.achievements, .leaderboard, .boosts, .feed, .friends, .proCoach])
-        }
-
-        if highestTileStep >= 15 || highestTile >= 65_536 {
-            features.insert(.create)
-        }
-
-        if highestTileStep >= 25 || highestTile >= 67_108_864 {
-            features.insert(.challenge)
-        }
-
-        if snapshot.sessionsStarted >= 3 && snapshot.hasEarnedFirstReward {
-            features.insert(.bestOffer)
-        }
+        var features: Set<HomeFeature> = [
+            .play, .journey, .settings,
+            .modes, .practice, .account, .reminders, .widgetPromo,
+            .daily, .dailyQuests, .dailyStreaks,
+            .shop, .freeSpin, .music, .theme, .profile, .adBonus, .subscription, .yearReview,
+            .achievements, .leaderboard, .boosts, .feed, .friends, .proCoach,
+            .create, .challenge, .bestOffer
+        ]
 
         snapshot.visibleFeatures = features
         persist()

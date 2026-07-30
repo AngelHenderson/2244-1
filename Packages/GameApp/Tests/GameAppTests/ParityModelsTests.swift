@@ -273,6 +273,34 @@ struct ParityModelsTests {
         #expect(sawLeaguesOneUp, "Should generate 'leagues faster' for one up reply when gap >= 60s")
     }
 
+    @Test("Verify tied comments force immediate one-up tie break in feed threads")
+    func testTiedCommentsImmediateTieBreak() async throws {
+        let service = MockSocialService()
+        MockSocialService.clearFileStorageForTests()
+        MockSocialService.inMemoryUserPostsOverride = []
+        defer { MockSocialService.inMemoryUserPostsOverride = nil }
+        
+        let milestones = ["70a milestone", "100a milestone", "500a milestone", "1b milestone"]
+        for m in milestones {
+            try await service.postEvent(message: "Reached \(m)", statText: "stat")
+        }
+        
+        if let feed = MockSocialService.loadUserPosts() {
+            for item in feed {
+                var consecutiveTies = 0
+                for comment in item.comments {
+                    let msg = comment.text.lowercased()
+                    if msg.contains("tied at") || msg.contains("won't be tied") || msg.contains("tie is just temporary") {
+                        consecutiveTies += 1
+                        #expect(consecutiveTies <= 1, "Thread contains back-to-back tied comments! Consecutive ties: \(consecutiveTies)")
+                    } else {
+                        consecutiveTies = 0
+                    }
+                }
+            }
+        }
+    }
+
     @Test("Verify one up speedrun time zones and gaps")
     func testOneUpSpeedrunTimeZonesAndGaps() {
         func parseSecs(_ timeStr: String) -> Int {

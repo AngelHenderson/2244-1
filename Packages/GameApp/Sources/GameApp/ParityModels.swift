@@ -1102,21 +1102,27 @@ public struct MockSocialService: SocialService, Sendable {
                 return mins * 60 + secs
             }
             let currentSecs = val.map(timeToSeconds) ?? Int.random(in: 60...120)
+            let minFloor = 10
+            if currentSecs <= minFloor {
+                let mins = minFloor / 60
+                let secs = minFloor % 60
+                return "\(mins):\(String(format: "%02d", secs))"
+            }
             let maxGap: Int
             if currentSecs >= 240 {
                 maxGap = 60
             } else if currentSecs >= 90 {
                 maxGap = 40
             } else if currentSecs >= 30 {
-                maxGap = 25
-            } else if currentSecs >= 10 {
-                maxGap = 15
+                maxGap = 20
+            } else if currentSecs >= 20 {
+                maxGap = 8
             } else {
-                maxGap = 2
+                maxGap = 3
             }
-            let upper = min(maxGap, max(1, currentSecs - 1))
+            let upper = min(maxGap, max(1, currentSecs - minFloor))
             let gap = Int.random(in: 1...upper)
-            let newSecs = max(1, currentSecs - gap)
+            let newSecs = max(minFloor, currentSecs - gap)
             let mins = newSecs / 60
             let secs = newSecs % 60
             return "\(mins):\(String(format: "%02d", secs))"
@@ -3604,27 +3610,30 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                     let isMassiveGap = Bool.random()
                     
                     func generateBetterTime() -> Int {
+                        let minFloor = 10
+                        if totalSecs <= minFloor { return minFloor }
                         let maxGap: Int
                         if totalSecs >= 240 {
                             maxGap = 60
                         } else if totalSecs >= 90 {
                             maxGap = 40
                         } else if totalSecs >= 30 {
-                            maxGap = 25
-                        } else if totalSecs >= 10 {
-                            maxGap = 15
+                            maxGap = 20
+                        } else if totalSecs >= 20 {
+                            maxGap = 8
                         } else {
-                            maxGap = 2
+                            maxGap = 3
                         }
-                        let gap = Int.random(in: 1...min(maxGap, max(1, totalSecs - 1)))
-                        return max(1, totalSecs - gap)
+                        let upper = min(maxGap, max(1, totalSecs - minFloor))
+                        let gap = Int.random(in: 1...upper)
+                        return max(minFloor, totalSecs - gap)
                     }
                     
                     var myTotal = generateBetterTime()
                     var attempts = 0
                     while attempts < 5 && (myTotal >= totalSecs || usedStats.contains("time_\(myTotal)")) {
                         myTotal = generateBetterTime()
-                        if myTotal >= totalSecs { myTotal = max(0, totalSecs - 1) }
+                        if myTotal >= totalSecs { myTotal = max(10, totalSecs - 1) }
                         attempts += 1
                     }
                     usedStats.insert("time_\(myTotal)")
@@ -4641,20 +4650,22 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             myTimeStr = speakerValue
                             mySecs = sMins * 60 + sSecs
                         } else {
+                            let minFloor = 10
                             let maxGap: Int
                             if totalSecs >= 240 {
                                 maxGap = 60
                             } else if totalSecs >= 90 {
                                 maxGap = 40
                             } else if totalSecs >= 30 {
-                                maxGap = 25
-                            } else if totalSecs >= 10 {
-                                maxGap = 15
+                                maxGap = 20
+                            } else if totalSecs >= 20 {
+                                maxGap = 8
                             } else {
-                                maxGap = 2
+                                maxGap = 3
                             }
-                            let gap = Int.random(in: 1...min(maxGap, max(1, totalSecs - 1)))
-                            let calculatedSecs = max(1, totalSecs - gap)
+                            let upper = min(maxGap, max(1, totalSecs - minFloor))
+                            let gap = Int.random(in: 1...upper)
+                            let calculatedSecs = max(minFloor, totalSecs - gap)
                             myTimeStr = "\(calculatedSecs / 60):\(String(format: "%02d", calculatedSecs % 60))"
                             mySecs = calculatedSecs
                         }
@@ -5195,7 +5206,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                             mySecs = sMins * 60 + sSecs
                         } else {
                             var calculatedSecs = cSecs - Int.random(in: 5...30)
-                            if calculatedSecs <= 1 { calculatedSecs = 2 }
+                            if calculatedSecs < 10 { calculatedSecs = 10 }
                             myTimeStr = "\(calculatedSecs / 60):\(String(format: "%02d", calculatedSecs % 60))"
                             mySecs = calculatedSecs
                         }
