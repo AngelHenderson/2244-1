@@ -4888,7 +4888,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                 let isLost = message.contains("lost") || message.contains("broke") || message.contains("reset")
                 if isLost {
                     let higherNum: Int
-                    if let speakerValue = speakerValue, let valInt = Int(speakerValue), valInt > 0 {
+                    if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                         higherNum = valInt
                     } else {
                         higherNum = Int.random(in: 15...45)
@@ -4916,7 +4916,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         replies.append(Self.getOneUpBrag(metric: "streak", lower: "\(cN)", higher: "\(rN)", excluding: previousSelfComment))
                     } else if rootIsJealous, let cN = commentNumber {
                         let higherNum: Int
-                        if let speakerValue = speakerValue, let valInt = Int(speakerValue), valInt > 0 {
+                        if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
                         } else if forceTone == "behind" && cN > 1 {
                             higherNum = max(1, cN - Int.random(in: 1...max(5, cN / 2)))
@@ -4998,7 +4998,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                         let cN = commentNumber ?? num
                         let isLowStreak = false
                         let higherNum: Int
-                        if let speakerValue = speakerValue, let valInt = Int(speakerValue), valInt > 0 {
+                        if let speakerValue = speakerValue, let valInt = Int(speakerValue) {
                             higherNum = valInt
                         } else if (isLowStreak || forceTone == "behind") && cN > 1 {
                             higherNum = max(1, cN - Int.random(in: 1...max(5, cN / 2)))
@@ -5026,7 +5026,7 @@ private func generateTruthfulCompetitive(message: String, pool: [String], bagKey
                                     "I'm at \(higherNum) days. Just wait until you lose your \(cN) day streak.",
                                     "Only at \(higherNum) days right now, but you'll slip up and I'll pass your \(cN) days.",
                                     "Enjoy your \(cN) days while it lasts. You'll lose it and my \(higherNum) days will pass you.",
-                                    "You're bound to lose your \(cN) day streak. My \(higherNum) days will be higher than yours soon.",
+                                    "You're bound to lose your \(cN) day streak. My \(higherNum) days will pass you before long.",
                                     "I'm at \(higherNum) days, but you'll break your \(cN) day streak before I break mine."
                                 ])
                             }

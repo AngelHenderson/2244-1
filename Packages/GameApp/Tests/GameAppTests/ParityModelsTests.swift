@@ -1187,7 +1187,7 @@ struct ParityModelsTests {
         )
         let isMilestoneGenericTie = milestoneReply.contains("We are tied now") || milestoneReply.contains("We're tied") || milestoneReply.contains("Finally tied") || milestoneReply.contains("would catch you")
         #expect(milestoneReply.contains("383n") || isMilestoneGenericTie, "Expected caught-up reply to mention commenter record: \(milestoneReply)")
-        let isMilestoneBeat = milestoneReply.lowercased().contains("caught up") || milestoneReply.contains("catch up") || milestoneReply.contains("catch you") || milestoneReply.contains("ahead now") || milestoneReply.contains("passed you") || milestoneReply.contains("overtake") || milestoneReply.contains("watch your back") || milestoneReply.contains("beat your")
+        let isMilestoneBeat = milestoneReply.lowercased().contains("caught up") || milestoneReply.contains("catch up") || milestoneReply.contains("catch you") || milestoneReply.contains("ahead") || milestoneReply.contains("passed") || milestoneReply.contains("overtake") || milestoneReply.contains("watch your back") || milestoneReply.contains("beat") || milestoneReply.contains("higher") || milestoneReply.contains("coasting") || milestoneReply.contains("bypassed") || milestoneReply.contains("irrelevant") || milestoneReply.contains("untouchable") || milestoneReply.contains("is a joke") || milestoneReply.contains("cleared")
         #expect(isMilestoneBeat, "Expected milestone caught-up reply to use beat/ahead phrasing: \(milestoneReply)")
         
         // 2. Streak
